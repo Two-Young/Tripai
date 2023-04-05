@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"travel-ai/log"
+)
 
 func main() {
-	fmt.Println("Hello world!")
+	log.Info("Travel AI Server is now starting...")
 }
