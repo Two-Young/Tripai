@@ -11,14 +11,19 @@ function OnBoardFirstScreen(props) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text>OnBoardFirstScreen</Text>
-      <Button onPress={onPressButton} title={'Next'} />
-    </View>
+    <SafeAreaView style={styles.safearea}>
+      <View style={styles.container}>
+        <Text>OnBoardFirstScreen</Text>
+        <Button onPress={onPressButton} title={'Next'} />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safearea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     alignItems: 'center',
