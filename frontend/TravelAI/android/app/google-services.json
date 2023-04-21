@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "24378092542",
+    "project_id": "travelai-62995",
+    "storage_bucket": "travelai-62995.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24378092542:android:d2234db65179ad68e6aeaf",
+        "android_client_info": {
+          "package_name": "com.travelai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "24378092542-ihtc1gffj4dst7dltpengn83k4qjunuf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.travelai",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "24378092542-m4f94uq1e6eijgb1kmf7slajac6f25s3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDr6zHJwtVx2Br1ZjHWab4nVX78DVuDeo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "24378092542-m4f94uq1e6eijgb1kmf7slajac6f25s3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "24378092542-m84ibiqleg2khthdpkqcnib7blvmsmqb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.twoyoung.travelAI"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
