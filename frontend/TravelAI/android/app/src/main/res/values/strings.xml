@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">TravelAI</string>
+    <string name="facebook_app_id">546783450703471</string>
+    <string name="fb_login_protocol_scheme">fb546783450703471</string>
+    <string name="facebook_client_token">dc64e33d80fab5032678400b179f6199</string>
 </resources>

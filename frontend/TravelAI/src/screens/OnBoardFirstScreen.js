@@ -1,10 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {View, Text, StyleSheet} from 'react-native';
 import Button from '../component/atoms/Button';
 import {useNavigation} from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
 
 GoogleSignin.configure({
   webClientId: '24378092542-l46d9sch9rgn6d2th6hj880q3841o3ml.apps.googleusercontent.com',
@@ -21,6 +22,28 @@ async function onGoogleButtonPress() {
 
   // Sign-in the user with the credential
   return auth().signInWithCredential(googleCredential);
+}
+
+async function onFacebookButtonPress() {
+  // Attempt login with permissions
+  const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
+
+  if (result.isCancelled) {
+    throw 'User cancelled the login process';
+  }
+
+  // Once signed in, get the users AccesToken
+  const data = await AccessToken.getCurrentAccessToken();
+
+  if (!data) {
+    throw 'Something went wrong obtaining access token';
+  }
+
+  // Create a Firebase credential with the AccessToken
+  const facebookCredential = auth.FacebookAuthProvider.credential(data.accessToken);
+
+  // Sign-in the user with the credential
+  return auth().signInWithCredential(facebookCredential);
 }
 
 function OnBoardFirstScreen(props) {
@@ -52,12 +75,32 @@ function OnBoardFirstScreen(props) {
         <Text>OnBoardFirstScreen</Text>
         <Button onPress={onPressButton} title={'Next'} />
         {!user ? (
-          <Button
-            title="Google Sign-In"
-            onPress={() => onGoogleButtonPress().then(() => console.log('Signed in with Google!'))}
-          />
+          <>
+            <Button
+              title="Facebook Sign-In"
+              onPress={() =>
+                onFacebookButtonPress().then(() => console.log('Signed in with Facebook!'))
+              }
+            />
+            <Button
+              title="Google Sign-In"
+              onPress={() =>
+                onGoogleButtonPress().then(() => console.log('Signed in with Google!'))
+              }
+            />
+          </>
         ) : (
-          <Text>{user.email}</Text>
+          <>
+            <Text>{user.email}</Text>
+            <Button
+              title="Sign Out"
+              onPress={() => {
+                auth()
+                  .signOut()
+                  .then(() => console.log('User signed out!'));
+              }}
+            />
+          </>
         )}
       </View>
     </SafeAreaView>
