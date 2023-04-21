@@ -61,6 +61,10 @@ target 'TravelAI' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+  
+  # Altering cocoapods to use frameworks
+  use_frameworks! :linkage => :static
+  $RNFirebaseAsStatickFramework = true
 
   target 'TravelAITests' do
     inherit! :complete
