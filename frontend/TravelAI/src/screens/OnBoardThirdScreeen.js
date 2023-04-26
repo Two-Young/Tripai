@@ -8,7 +8,11 @@ import {StackActions, useNavigation} from '@react-navigation/native';
 function OnBoardThirdScreen(props) {
   const navigation = useNavigation();
   const onPressButton = () => {
-    navigation.dispatch(StackActions.replace('Auth', {screen: 'SignIn'}));
+    navigation.dispatch(
+      StackActions.replace('Auth', {
+        screen: 'SignIn',
+      }),
+    );
   };
 
   return (
