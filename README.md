@@ -2,8 +2,8 @@
 
 ## Progress Plan
 
-- [*] Users can access Travel-AI in iOS.
-- [*] Users can access Travel-AI in Android.
+- [x] Users can access Travel-AI in iOS.
+- [x] Users can access Travel-AI in Android.
 - [ ] Users can register to Travel-AI. (authentication)
 - [ ] Users can sign in to Travel-AI.
 - [ ] Users can sign out from Travel-AI.
