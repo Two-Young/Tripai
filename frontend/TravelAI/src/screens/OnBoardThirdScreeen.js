@@ -1,14 +1,14 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {View, Image, StyleSheet} from 'react-native';
-import Button from '../component/atoms/Button';
-import {useNavigation} from '@react-navigation/native';
+import {View, Text, Image, StyleSheet} from 'react-native';
 import colors from '../theme/colors';
+import Button from '../component/atoms/Button';
+import {StackActions, useNavigation} from '@react-navigation/native';
 
-function OnBoardFirstScreen(props) {
+function OnBoardThirdScreen(props) {
   const navigation = useNavigation();
   const onPressButton = () => {
-    navigation.navigate('OnBoardSecond');
+    navigation.dispatch(StackActions.replace('Auth', {screen: 'SignIn'}));
   };
 
   return (
@@ -16,11 +16,11 @@ function OnBoardFirstScreen(props) {
       <Image
         style={styles.onBoardImage}
         source={{
-          uri: 'https://i.pinimg.com/originals/4a/ed/3e/4aed3ebe924270e9fefebc5267cbca30.jpg',
+          uri: 'https://i.pinimg.com/564x/d4/e2/b9/d4e2b99bbd236575aea5c6f6d0f2aeab.jpg',
         }}
       />
       <View style={styles.container}>
-        <Button title="Get Started" onPress={onPressButton} />
+        <Button title="Next" onPress={onPressButton} />
       </View>
     </SafeAreaView>
   );
@@ -40,4 +40,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OnBoardFirstScreen;
+export default OnBoardThirdScreen;
