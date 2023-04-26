@@ -42,7 +42,7 @@ func RunGin() {
 
 	log.Infof("Starting server on port on %d...", AppServerPort)
 	r := SetupRouter()
-	if err := r.Run(fmt.Sprintf(":%d", AppServerPort)); err != nil {
+	if err := r.Run(fmt.Sprintf(":%s", AppServerPort)); err != nil {
 		log.Fatal(err)
 		os.Exit(-3)
 	}
