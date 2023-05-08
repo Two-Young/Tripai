@@ -5,6 +5,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"os"
+	"travel-ai/controllers/auth"
 	"travel-ai/log"
 )
 
@@ -22,7 +23,7 @@ func SetupRouter() *gin.Engine {
 	gin.DefaultErrorWriter = &log.GlobalLogger
 
 	// initialize oauth
-	InitializeGoogleOauth()
+	auth.InitializeGoogleOauth()
 
 	// setting cors
 	config := cors.DefaultConfig()
@@ -33,7 +34,7 @@ func SetupRouter() *gin.Engine {
 	r.Use(DefaultMiddleware)
 	r.GET("/ping", ping)
 
-	UseAuthRouter(r)
+	auth.UseAuthRouter(r)
 	return r
 }
 
