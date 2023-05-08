@@ -17,7 +17,7 @@ import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
 import CustomTextInput from '../component/atoms/CustomTextInput';
 import colors from '../theme/colors';
 import SocialButton from '../component/atoms/SocialButton';
-import axios from 'axios';
+import {authFacebookSign, authGoogleSign} from '../services/api';
 
 GoogleSignin.configure({
   webClientId: '24378092542-l46d9sch9rgn6d2th6hj880q3841o3ml.apps.googleusercontent.com',
@@ -30,10 +30,12 @@ async function onGoogleButtonPress() {
   const {idToken} = await GoogleSignin.signIn();
 
   // Create a Google credential with the token
-  const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+  const sign_result = await authGoogleSign(idToken);
+  console.log(sign_result);
+  // const googleCredential = auth.GoogleAuthProvider.credential(idToken);
 
   // Sign-in the user with the credential
-  return auth().signInWithCredential(googleCredential);
+  // return auth().signInWithCredential(googleCredential);
 }
 
 async function onFacebookButtonPress() {
@@ -51,11 +53,14 @@ async function onFacebookButtonPress() {
     throw 'Something went wrong obtaining access token';
   }
 
+  const sign_result = await authFacebookSign(data.accessToken);
+  console.log(sign_result);
+
   // Create a Firebase credential with the AccessToken
-  const facebookCredential = auth.FacebookAuthProvider.credential(data.accessToken);
+  //const facebookCredential = auth.FacebookAuthProvider.credential(data.accessToken);
 
   // Sign-in the user with the credential
-  return auth().signInWithCredential(facebookCredential);
+  // return auth().signInWithCredential(facebookCredential);
 }
 
 function SignInScreen(props) {
@@ -128,6 +133,22 @@ function SignInScreen(props) {
                 }}
                 onPress={() =>
                   onFacebookButtonPress().then(() => console.log('Signed in with Facebook!'))
+                }
+              />
+              <SocialButton
+                source={{
+                  uri: 'https://s4827.pcdn.co/wp-content/uploads/2018/04/Google-logo-2015-G-icon.png',
+                }}
+                onPress={() =>
+                  onGoogleButtonPress().then(() => console.log('Signed in with Google!'))
+                }
+              />
+              <SocialButton
+                source={{
+                  uri: 'https://s4827.pcdn.co/wp-content/uploads/2018/04/Google-logo-2015-G-icon.png',
+                }}
+                onPress={() =>
+                  onGoogleButtonPress().then(() => console.log('Signed in with Google!'))
                 }
               />
               <SocialButton
