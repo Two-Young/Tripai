@@ -1,14 +1,23 @@
 import React, {useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {View, Text, StyleSheet, KeyboardAvoidingView, Keyboard, Pressable} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Keyboard,
+  Pressable,
+  Alert,
+} from 'react-native';
 import Button from '../component/atoms/Button';
-import {useNavigation} from '@react-navigation/native';
+import {StackActions, useNavigation} from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
 import CustomTextInput from '../component/atoms/CustomTextInput';
 import colors from '../theme/colors';
 import SocialButton from '../component/atoms/SocialButton';
+import axios from 'axios';
 
 GoogleSignin.configure({
   webClientId: '24378092542-l46d9sch9rgn6d2th6hj880q3841o3ml.apps.googleusercontent.com',
@@ -50,6 +59,7 @@ async function onFacebookButtonPress() {
 }
 
 function SignInScreen(props) {
+  const navigation = useNavigation();
   // Set an initializing state whilst Firebase connects
   const [initializing, setInitializing] = useState(false);
   const [user, setUser] = useState();
@@ -65,7 +75,21 @@ function SignInScreen(props) {
     return subscriber; // unsubscribe on unmount
   }, []);
 
-  const navigation = useNavigation();
+  useEffect(() => {
+    if (user) {
+      navigation.dispatch(StackActions.replace('Tab', {screen: 'Home', params: {user: user}}));
+    }
+  }, [user, navigation]);
+
+  const onPressSignIn = () => {
+    Alert.alert('email is not registered');
+  };
+
+  const onPressForgotPassword = () => {};
+
+  const onPressSignUp = () => {
+    navigation.navigate('SignUp');
+  };
 
   if (initializing) return null;
 
@@ -79,56 +103,42 @@ function SignInScreen(props) {
           </View>
           <View style={styles.signInForm}>
             <CustomTextInput />
-            <CustomTextInput />
+            <CustomTextInput secureTextEntry />
             <View style={{width: '100%', alignItems: 'flex-end'}}>
               <Text
                 style={[styles.linkableText, {textAlign: 'right'}]}
-                onPress={() => {
-                  console.log('hi');
-                }}>
+                onPress={onPressForgotPassword}>
                 Forget Password?
               </Text>
             </View>
           </View>
           <View style={styles.signInBox}>
-            <Button title="Sign In" />
+            <Button title="Sign In" onPress={onPressSignIn} />
             <Text style={{marginTop: 40, marginBottom: 20}}>
-              Don't have an account? <Text style={styles.linkableText}>Sign up</Text>
+              Don't have an account?{' '}
+              <Text style={styles.linkableText} onPress={onPressSignUp}>
+                Sign up
+              </Text>
             </Text>
             <Text>Or Connect</Text>
-
-            {!user ? (
-              <View style={styles.socialBox}>
-                <SocialButton
-                  source={{
-                    uri: 'https://marcas-logos.net/wp-content/uploads/2020/01/Facebook-Novo-Logo.jpg',
-                  }}
-                  onPress={() =>
-                    onFacebookButtonPress().then(() => console.log('Signed in with Facebook!'))
-                  }
-                />
-                <SocialButton
-                  source={{
-                    uri: 'https://s4827.pcdn.co/wp-content/uploads/2018/04/Google-logo-2015-G-icon.png',
-                  }}
-                  onPress={() =>
-                    onGoogleButtonPress().then(() => console.log('Signed in with Google!'))
-                  }
-                />
-              </View>
-            ) : (
-              <>
-                <Text>{user.email}</Text>
-                <Button
-                  title="Sign Out"
-                  onPress={() => {
-                    auth()
-                      .signOut()
-                      .then(() => console.log('User signed out!'));
-                  }}
-                />
-              </>
-            )}
+            <View style={styles.socialBox}>
+              <SocialButton
+                source={{
+                  uri: 'https://marcas-logos.net/wp-content/uploads/2020/01/Facebook-Novo-Logo.jpg',
+                }}
+                onPress={() =>
+                  onFacebookButtonPress().then(() => console.log('Signed in with Facebook!'))
+                }
+              />
+              <SocialButton
+                source={{
+                  uri: 'https://s4827.pcdn.co/wp-content/uploads/2018/04/Google-logo-2015-G-icon.png',
+                }}
+                onPress={() =>
+                  onGoogleButtonPress().then(() => console.log('Signed in with Google!'))
+                }
+              />
+            </View>
           </View>
         </View>
       </Pressable>

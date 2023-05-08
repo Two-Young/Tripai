@@ -1,17 +1,19 @@
 import React from 'react';
-import {View, Text} from 'react-native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createStackNavigator, TransitionPresets} from '@react-navigation/stack';
 import SignInScreen from '../screens/SignInScreen';
+import SignUpScreen from '../screens/SignUpScreen';
 
-const authStack = createNativeStackNavigator();
+const authStack = createStackNavigator();
 
 function AuthNavigator() {
   return (
     <authStack.Navigator
       screenOptions={{
         headerShown: false,
+        ...TransitionPresets.SlideFromRightIOS,
       }}>
       <authStack.Screen name="SignIn" component={SignInScreen} />
+      <authStack.Screen name="SignUp" component={SignUpScreen} />
     </authStack.Navigator>
   );
 }

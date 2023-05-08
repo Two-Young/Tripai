@@ -1,20 +1,24 @@
 import React from 'react';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {View, Text} from 'react-native';
+import {createStackNavigator, TransitionPresets} from '@react-navigation/stack';
 import OnBoardNavigator from './OnBoardNavigator';
 import AuthNavigator from './AuthNavigator';
+import TabNavigator from './TabNavigator';
 
-const RootStack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 function RootNavigator(props) {
   return (
-    <RootStack.Navigator
+    <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        ...TransitionPresets.SlideFromRightIOS,
       }}>
-      <RootStack.Screen name="OnBoard" component={OnBoardNavigator} />
-      <RootStack.Screen name="Auth" component={AuthNavigator} />
-    </RootStack.Navigator>
+      {/* OnBoard */}
+      <Stack.Screen name="OnBoard" component={OnBoardNavigator} />
+      <Stack.Screen name="Auth" component={AuthNavigator} />
+      <Stack.Screen name="Tab" component={TabNavigator} />
+      {/* Tab */}
+    </Stack.Navigator>
   );
 }
 
