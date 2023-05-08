@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"travel-ai/controllers/auth"
 	"travel-ai/service/database"
 )
 
@@ -80,9 +79,4 @@ func NewAuthTokenDto(accessToken, refreshToken authToken) *authTokenDto {
 type authResultDto struct {
 	User *userDto      `json:"user"`
 	Auth *authTokenDto `json:"auth"`
-}
-
-type googleAuthResultDto struct {
-	GoogleUserInfo *auth.GoogleOauth2UserInfo `json:"googleUserInfo"`
-	Auth           *authTokenDto              `json:"auth"`
 }
