@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"travel-ai/controllers/auth"
 	"travel-ai/service/database"
 )
 
@@ -82,6 +83,6 @@ type authResultDto struct {
 }
 
 type googleAuthResultDto struct {
-	GoogleUserInfo *GoogleOauth2UserInfo `json:"googleUserInfo"`
-	Auth           *authTokenDto         `json:"auth"`
+	GoogleUserInfo *auth.GoogleOauth2UserInfo `json:"googleUserInfo"`
+	Auth           *authTokenDto              `json:"auth"`
 }
