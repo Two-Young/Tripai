@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import Button from '../component/atoms/Button';
 import {StackActions, useNavigation} from '@react-navigation/native';
-import auth from '@react-native-firebase/auth';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
 import CustomTextInput from '../component/atoms/CustomTextInput';
@@ -93,11 +92,6 @@ function SignInScreen(props) {
     setUser(user);
     if (initializing) setInitializing(false);
   }
-
-  useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    return subscriber; // unsubscribe on unmount
-  }, []);
 
   useEffect(() => {
     if (user) {

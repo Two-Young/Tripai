@@ -1719,7 +1719,7 @@
   "resolved" "https://registry.npmjs.org/@react-native-community/eslint-plugin/-/eslint-plugin-1.3.0.tgz"
   "version" "1.3.0"
 
-"@react-native-firebase/app@^17.4.2", "@react-native-firebase/app@17.4.2":
+"@react-native-firebase/app@17.4.2":
   "integrity" "sha512-8oj29shxA2lxwmOxpxJ/nHVSEqK5ebHJW1WUKIBwcLTvfi+EFI7CKzPG+BFpYtdapH5BuK+yQjuReRNBy+oQjQ=="
   "resolved" "https://registry.npmjs.org/@react-native-firebase/app/-/app-17.4.2.tgz"
   "version" "17.4.2"
