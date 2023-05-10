@@ -22,9 +22,6 @@ func SetupRouter() *gin.Engine {
 	gin.DefaultWriter = &log.GlobalLogger
 	gin.DefaultErrorWriter = &log.GlobalLogger
 
-	// initialize oauth
-	auth.InitializeGoogleOauth()
-
 	// setting cors
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"*"}

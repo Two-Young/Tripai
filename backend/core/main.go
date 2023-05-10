@@ -5,14 +5,16 @@ import (
 	"os"
 	"strings"
 	"travel-ai/controllers"
+	"travel-ai/libs/crypto"
 	"travel-ai/log"
+	"travel-ai/service/database"
 )
 
 func main() {
 	log.Info("Travel AI Server is now starting...")
 
 	// Create Jwt secret key if needed
-	//crypto.PrintNewJwtSecret()
+	crypto.PrintNewJwtSecret()
 
 	// Load environment variables
 	log.Info("Initializing environments...")
@@ -49,6 +51,17 @@ func main() {
 		log.Error("Missing environment variables: ", missingVarKeys)
 		os.Exit(-1)
 	}
+
+	// Initialize database
+	log.Info("Initializing database...")
+	if _, err := database.Initialize(); err != nil {
+		log.Error(err)
+		os.Exit(-2)
+	}
+
+	// Initialize in-memory database
+	log.Info("Initializing in-memory database...")
+	database.InMemoryDB = database.NewRedis()
 
 	// Run web server with gin
 	controllers.RunGin()
