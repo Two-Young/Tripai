@@ -11,17 +11,22 @@ import {
 } from 'react-native';
 import Button from '../component/atoms/Button';
 import {StackActions, useNavigation} from '@react-navigation/native';
-import auth from '@react-native-firebase/auth';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
 import CustomTextInput from '../component/atoms/CustomTextInput';
 import colors from '../theme/colors';
 import SocialButton from '../component/atoms/SocialButton';
-import {authFacebookSign, authGoogleSign} from '../services/api';
+import {authFacebookSign, authGoogleSign, authNaverSign} from '../services/api';
+import NaverLogin, {NaverLoginResponse, GetProfileResponse} from '@react-native-seoul/naver-login';
 
 GoogleSignin.configure({
   webClientId: '24378092542-l46d9sch9rgn6d2th6hj880q3841o3ml.apps.googleusercontent.com',
 });
+
+const consumerKey = 'yslLLko5U73xJ8HfWEPP';
+const consumerSecret = '8dZZfr0tOR';
+const appName = 'TravelAI';
+const serviceUrlScheme = 'travelai';
 
 async function onGoogleButtonPress() {
   // Check if your device supports Google Play
@@ -62,6 +67,19 @@ async function onFacebookButtonPress() {
   // Sign-in the user with the credential
   // return auth().signInWithCredential(facebookCredential);
 }
+const onNaverButtonPress = async () => {
+  const {failureResponse, successResponse} = await NaverLogin.login({
+    appName,
+    consumerKey,
+    consumerSecret,
+    serviceUrlScheme,
+  });
+  if (successResponse) {
+    console.log(successResponse);
+    const sign_result = await authNaverSign(successResponse.accessToken);
+    console.log(sign_result);
+  }
+};
 
 function SignInScreen(props) {
   const navigation = useNavigation();
@@ -74,11 +92,6 @@ function SignInScreen(props) {
     setUser(user);
     if (initializing) setInitializing(false);
   }
-
-  useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    return subscriber; // unsubscribe on unmount
-  }, []);
 
   useEffect(() => {
     if (user) {
@@ -129,6 +142,14 @@ function SignInScreen(props) {
             <View style={styles.socialBox}>
               <SocialButton
                 source={{
+                  uri: 'https://s4827.pcdn.co/wp-content/uploads/2018/04/Google-logo-2015-G-icon.png',
+                }}
+                onPress={() =>
+                  onGoogleButtonPress().then(() => console.log('Signed in with Google!'))
+                }
+              />
+              <SocialButton
+                source={{
                   uri: 'https://marcas-logos.net/wp-content/uploads/2020/01/Facebook-Novo-Logo.jpg',
                 }}
                 onPress={() =>
@@ -137,26 +158,18 @@ function SignInScreen(props) {
               />
               <SocialButton
                 source={{
-                  uri: 'https://s4827.pcdn.co/wp-content/uploads/2018/04/Google-logo-2015-G-icon.png',
+                  uri: 'https://png.pngtree.com/element_our/sm/20180630/sm_5b37de3263964.jpg',
                 }}
                 onPress={() =>
-                  onGoogleButtonPress().then(() => console.log('Signed in with Google!'))
+                  onGoogleButtonPress().then(() => console.log('Signed in with Instagram!'))
                 }
               />
               <SocialButton
                 source={{
-                  uri: 'https://s4827.pcdn.co/wp-content/uploads/2018/04/Google-logo-2015-G-icon.png',
+                  uri: 'https://clova-phinf.pstatic.net/MjAxODAzMjlfOTIg/MDAxNTIyMjg3MzM3OTAy.WkiZikYhauL1hnpLWmCUBJvKjr6xnkmzP99rZPFXVwgg.mNH66A47eL0Mf8G34mPlwBFKP0nZBf2ZJn5D4Rvs8Vwg.PNG/image.png',
                 }}
                 onPress={() =>
-                  onGoogleButtonPress().then(() => console.log('Signed in with Google!'))
-                }
-              />
-              <SocialButton
-                source={{
-                  uri: 'https://s4827.pcdn.co/wp-content/uploads/2018/04/Google-logo-2015-G-icon.png',
-                }}
-                onPress={() =>
-                  onGoogleButtonPress().then(() => console.log('Signed in with Google!'))
+                  onNaverButtonPress().then(() => console.log('Signed in with Naver!'))
                 }
               />
             </View>

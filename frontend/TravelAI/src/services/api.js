@@ -22,7 +22,7 @@ export const authGoogleSign = async idToken => {
 
 export const authFacebookSign = async accessToken => {
   try {
-    const response = await api.post('/auth/facebook/sign', {access_token: accessToken});
+    const response = await api.post('/auth/facebook/sign', {id_token: accessToken});
     return response.data;
   } catch (error) {
     throw error.response.data;
@@ -31,16 +31,18 @@ export const authFacebookSign = async accessToken => {
 
 export const authNaverSign = async accessToken => {
   try {
-    const response = await api.post('/auth/naver/sign', {access_token: accessToken});
+    console.log('accessToken: ', accessToken);
+    const response = await api.post('/auth/naver/sign', {id_token: accessToken});
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error.response.data;
   }
 };
 
 export const authInstagramSign = async accessToken => {
   try {
-    const response = await api.post('/auth/instagram/sign', {access_token: accessToken});
+    const response = await api.post('/auth/instagram/sign', {id_token: accessToken});
     return response.data;
   } catch (error) {
     throw error.response.data;
