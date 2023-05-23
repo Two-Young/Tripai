@@ -5,16 +5,16 @@ import (
 	"os"
 	"strings"
 	"travel-ai/controllers"
-	"travel-ai/libs/crypto"
 	"travel-ai/log"
 	"travel-ai/service/database"
+	"travel-ai/third_party/open_ai"
 )
 
 func main() {
 	log.Info("Travel AI Server is now starting...")
 
 	// Create Jwt secret key if needed
-	crypto.PrintNewJwtSecret()
+	//crypto.PrintNewJwtSecret()
 
 	// Load environment variables
 	log.Info("Initializing environments...")
@@ -26,9 +26,7 @@ func main() {
 	// Check environment variables
 	var envCheckKeys = []string{
 		"APP_SERVER_PORT",
-		"GOOGLE_OAUTH2_CLIENT_ID",
-		"GOOGLE_OAUTH2_CLIENT_SECRET",
-		"GOOGLE_OAUTH2_REDIRECT_URL",
+		"OPEN_AI_API_KEY",
 		"DB_USER",
 		"DB_PASSWORD",
 		"DB_HOST",
@@ -62,6 +60,9 @@ func main() {
 	// Initialize in-memory database
 	log.Info("Initializing in-memory database...")
 	database.InMemoryDB = database.NewRedis()
+
+	// Initialize third party libraries
+	open_ai.Initialize()
 
 	// Run web server with gin
 	controllers.RunGin()

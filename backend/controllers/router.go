@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"os"
 	"travel-ai/controllers/auth"
+	auth2 "travel-ai/controllers/test"
 	"travel-ai/log"
 )
 
@@ -32,6 +33,7 @@ func SetupRouter() *gin.Engine {
 	r.GET("/ping", ping)
 
 	auth.UseAuthRouter(r)
+	auth2.UseTestRouter(r)
 	return r
 }
 

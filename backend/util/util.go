@@ -1,10 +1,12 @@
 package util
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
+	"travel-ai/log"
 )
 
 func InterfaceToStruct(src interface{}, dst interface{}) error {
@@ -52,4 +54,14 @@ func ParseDuration(str string) (time.Duration, error) {
 	default:
 		return 0, fmt.Errorf("unknown duration unit: %v", unit)
 	}
+}
+
+func StructToReadable(src interface{}) *bytes.Buffer {
+	jsonData, err := json.Marshal(src)
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+	buffer := bytes.NewBuffer(jsonData)
+	return buffer
 }
