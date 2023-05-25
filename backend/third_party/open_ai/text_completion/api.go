@@ -55,7 +55,7 @@ type CompletionSyncResponse struct {
 
 type CompletionErrorResponse struct {
 	Error struct {
-		Code    int    `json:"code"`
+		Code    string `json:"code"`
 		Message string `json:"message"`
 		Type    string `json:"type"`
 		Param   string `json:"param"`
