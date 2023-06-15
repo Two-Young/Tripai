@@ -1,23 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {
-  View,
-  Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Keyboard,
-  Pressable,
-  Alert,
-} from 'react-native';
+import {View, Text, StyleSheet, ImageBackground} from 'react-native';
 import Button from '../component/atoms/Button';
 import {StackActions, useNavigation} from '@react-navigation/native';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
-import CustomTextInput from '../component/atoms/CustomTextInput';
 import colors from '../theme/colors';
 import SocialButton from '../component/atoms/SocialButton';
 import {authFacebookSign, authGoogleSign, authNaverSign} from '../services/api';
-import NaverLogin, {NaverLoginResponse, GetProfileResponse} from '@react-native-seoul/naver-login';
+import NaverLogin from '@react-native-seoul/naver-login';
 
 GoogleSignin.configure({
   webClientId: '24378092542-l46d9sch9rgn6d2th6hj880q3841o3ml.apps.googleusercontent.com',
@@ -37,10 +28,7 @@ async function onGoogleButtonPress() {
   // Create a Google credential with the token
   const sign_result = await authGoogleSign(idToken);
   console.log(sign_result);
-  // const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-
-  // Sign-in the user with the credential
-  // return auth().signInWithCredential(googleCredential);
+  return sign_result;
 }
 
 async function onFacebookButtonPress() {
@@ -60,13 +48,9 @@ async function onFacebookButtonPress() {
 
   const sign_result = await authFacebookSign(data.accessToken);
   console.log(sign_result);
-
-  // Create a Firebase credential with the AccessToken
-  //const facebookCredential = auth.FacebookAuthProvider.credential(data.accessToken);
-
-  // Sign-in the user with the credential
-  // return auth().signInWithCredential(facebookCredential);
+  return sign_result;
 }
+
 const onNaverButtonPress = async () => {
   const {failureResponse, successResponse} = await NaverLogin.login({
     appName,
@@ -78,6 +62,7 @@ const onNaverButtonPress = async () => {
     console.log(successResponse);
     const sign_result = await authNaverSign(successResponse.accessToken);
     console.log(sign_result);
+    return sign_result;
   }
 };
 
@@ -87,95 +72,59 @@ function SignInScreen(props) {
   const [initializing, setInitializing] = useState(false);
   const [user, setUser] = useState();
 
-  // Handle user state changes
-  function onAuthStateChanged(user) {
-    setUser(user);
-    if (initializing) setInitializing(false);
-  }
-
   useEffect(() => {
     if (user) {
       navigation.dispatch(StackActions.replace('Tab', {screen: 'Home', params: {user: user}}));
     }
   }, [user, navigation]);
 
-  const onPressSignIn = () => {
-    Alert.alert('email is not registered');
-  };
-
-  const onPressForgotPassword = () => {};
-
-  const onPressSignUp = () => {
-    navigation.navigate('SignUp');
-  };
-
-  if (initializing) return null;
-
   return (
     <SafeAreaView edges={['bottom']} style={styles.safearea}>
-      <Pressable style={{flex: 1}} onPress={() => Keyboard.dismiss()}>
+      <ImageBackground
+        style={styles.imageBackground}
+        source={{
+          uri: 'https://i.pinimg.com/564x/7f/6c/95/7f6c9555512ca982521941cba9de20d9.jpg',
+        }}>
         <View style={styles.container}>
           <View style={styles.titleBox}>
-            <Text style={styles.title}>Sign in now</Text>
-            <Text>Please sign in to continue our app</Text>
+            <Text style={styles.title}>Please log in to securely store your valuable records.</Text>
           </View>
-          <View style={styles.signInForm}>
-            <CustomTextInput />
-            <CustomTextInput secureTextEntry />
-            <View style={{width: '100%', alignItems: 'flex-end'}}>
-              <Text
-                style={[styles.linkableText, {textAlign: 'right'}]}
-                onPress={onPressForgotPassword}>
-                Forget Password?
-              </Text>
-            </View>
-          </View>
-          <View style={styles.signInBox}>
-            <Button title="Sign In" onPress={onPressSignIn} />
-            <Text style={{marginTop: 40, marginBottom: 20}}>
-              Don't have an account?{' '}
-              <Text style={styles.linkableText} onPress={onPressSignUp}>
-                Sign up
-              </Text>
-            </Text>
-            <Text>Or Connect</Text>
-            <View style={styles.socialBox}>
-              <SocialButton
-                source={{
-                  uri: 'https://s4827.pcdn.co/wp-content/uploads/2018/04/Google-logo-2015-G-icon.png',
-                }}
-                onPress={() =>
-                  onGoogleButtonPress().then(() => console.log('Signed in with Google!'))
-                }
-              />
-              <SocialButton
-                source={{
-                  uri: 'https://marcas-logos.net/wp-content/uploads/2020/01/Facebook-Novo-Logo.jpg',
-                }}
-                onPress={() =>
-                  onFacebookButtonPress().then(() => console.log('Signed in with Facebook!'))
-                }
-              />
-              <SocialButton
-                source={{
-                  uri: 'https://png.pngtree.com/element_our/sm/20180630/sm_5b37de3263964.jpg',
-                }}
-                onPress={() =>
-                  onGoogleButtonPress().then(() => console.log('Signed in with Instagram!'))
-                }
-              />
-              <SocialButton
-                source={{
-                  uri: 'https://clova-phinf.pstatic.net/MjAxODAzMjlfOTIg/MDAxNTIyMjg3MzM3OTAy.WkiZikYhauL1hnpLWmCUBJvKjr6xnkmzP99rZPFXVwgg.mNH66A47eL0Mf8G34mPlwBFKP0nZBf2ZJn5D4Rvs8Vwg.PNG/image.png',
-                }}
-                onPress={() =>
-                  onNaverButtonPress().then(() => console.log('Signed in with Naver!'))
-                }
-              />
-            </View>
+          <View style={styles.socialBox}>
+            <SocialButton
+              style={{marginBottom: 10}}
+              source={{
+                uri: 'https://pixlok.com/wp-content/uploads/2021/04/Google-Icon-PNG.jpg',
+              }}
+              onPress={() => onGoogleButtonPress().then(res => setUser(res))}
+              type="Google"
+            />
+            <SocialButton
+              style={{marginBottom: 10}}
+              source={{
+                uri: 'https://marcas-logos.net/wp-content/uploads/2020/01/Facebook-Novo-Logo.jpg',
+              }}
+              onPress={() => onFacebookButtonPress().then(res => setUser(res))}
+              type="Facebook"
+            />
+            <SocialButton
+              style={{marginBottom: 10}}
+              source={{
+                uri: 'https://png.pngtree.com/element_our/sm/20180630/sm_5b37de3263964.jpg',
+              }}
+              onPress={() => onGoogleButtonPress().then(res => setUser(res))}
+              type="Instagram"
+            />
+            <SocialButton
+              style={{marginBottom: 10}}
+              source={{
+                uri: 'https://clova-phinf.pstatic.net/MjAxODAzMjlfOTIg/MDAxNTIyMjg3MzM3OTAy.WkiZikYhauL1hnpLWmCUBJvKjr6xnkmzP99rZPFXVwgg.mNH66A47eL0Mf8G34mPlwBFKP0nZBf2ZJn5D4Rvs8Vwg.PNG/image.png',
+              }}
+              onPress={() => onNaverButtonPress().then(res => setUser(res))}
+              type="Naver"
+            />
           </View>
         </View>
-      </Pressable>
+      </ImageBackground>
     </SafeAreaView>
   );
 }
@@ -185,6 +134,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
+  imageBackground: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   container: {
     flex: 1,
     alignItems: 'center',
@@ -193,35 +146,19 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   titleBox: {
-    height: 66,
-    justifyContent: 'space-between',
+    flex: 1,
     alignItems: 'center',
-    marginBottom: 40,
   },
   title: {
-    color: '#1B1E2B',
+    color: '#fff',
     fontSize: 26,
     fontWeight: 'bold',
-  },
-  signInForm: {
-    width: '100%',
-    height: 168,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 40,
-  },
-  signInBox: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    textAlign: 'center',
   },
   socialBox: {
-    marginTop: 40,
-    flexDirection: 'row',
-  },
-  linkableText: {
-    color: colors.primary,
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
   },
 });
 
