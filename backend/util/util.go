@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"time"
 	"travel-ai/log"
@@ -64,4 +66,9 @@ func StructToReadable(src interface{}) *bytes.Buffer {
 	}
 	buffer := bytes.NewBuffer(jsonData)
 	return buffer
+}
+
+func GetRootDirectory() string {
+	_, b, _, _ := runtime.Caller(0)
+	return filepath.Dir(filepath.Dir(b))
 }
