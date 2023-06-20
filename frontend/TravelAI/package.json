@@ -11,7 +11,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "@react-native-firebase/auth": "^17.4.2",
     "@react-native-google-signin/google-signin": "^9.0.2",
     "@react-native-masked-view/masked-view": "^0.2.9",
     "@react-native-seoul/naver-login": "^3.0.0-rc.2",
@@ -24,6 +23,7 @@
     "react-native": "0.71.4",
     "react-native-fbsdk-next": "^11.2.1",
     "react-native-gesture-handler": "^2.9.0",
+    "react-native-maps": "^1.7.1",
     "react-native-paper": "^5.7.2",
     "react-native-safe-area-context": "^4.5.0",
     "react-native-screens": "^3.20.0",

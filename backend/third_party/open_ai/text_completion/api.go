@@ -55,7 +55,7 @@ type CompletionSyncResponse struct {
 
 type CompletionErrorResponse struct {
 	Error struct {
-		Code    int    `json:"code"`
+		Code    string `json:"code"`
 		Message string `json:"message"`
 		Type    string `json:"type"`
 		Param   string `json:"param"`
@@ -199,6 +199,7 @@ func RequestCompletion(model string, role string, prompt string) (*io.PipeReader
 	} else {
 		defer resp.Body.Close()
 		bodyContent, err := io.ReadAll(resp.Body)
+		log.Debug(bodyContent)
 		var response CompletionErrorResponse
 		if err = json.Unmarshal(bodyContent, &response); err != nil {
 			return nil, err
