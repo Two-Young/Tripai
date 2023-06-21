@@ -11,13 +11,18 @@ import {authFacebookSign, authGoogleSign, authNaverSign} from '../services/api';
 import NaverLogin from '@react-native-seoul/naver-login';
 
 GoogleSignin.configure({
-  webClientId: '24378092542-l46d9sch9rgn6d2th6hj880q3841o3ml.apps.googleusercontent.com',
+  webClientId:
+    '567003577983-an1ml4gbv1buqf19as8rcinum3oultqa.apps.googleusercontent.com',
+  offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
+  forceCodeForRefreshToken: true, // [Android] related to `serverAuthCode`, read the docs link below *.
+  iosClientId:
+    '567003577983-mk46jh9jh9dvqcfg0tqnqa2t0hk6pvvm.apps.googleusercontent.com', // [iOS] optional, if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
 });
 
 const consumerKey = 'yslLLko5U73xJ8HfWEPP';
 const consumerSecret = '8dZZfr0tOR';
 const appName = 'TravelAI';
-const serviceUrlScheme = 'travelai';
+const serviceUrlScheme = 'com.twoyoung.travelai';
 
 async function onGoogleButtonPress() {
   // Check if your device supports Google Play
@@ -33,7 +38,10 @@ async function onGoogleButtonPress() {
 
 async function onFacebookButtonPress() {
   // Attempt login with permissions
-  const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
+  const result = await LoginManager.logInWithPermissions([
+    'public_profile',
+    'email',
+  ]);
 
   if (result.isCancelled) {
     throw 'User cancelled the login process';
@@ -66,6 +74,11 @@ const onNaverButtonPress = async () => {
   }
 };
 
+const onKakaoButtonPress = async () => {
+  const token = await login();
+  console.log(JSON.stringify(token));
+};
+
 function SignInScreen(props) {
   const navigation = useNavigation();
   // Set an initializing state whilst Firebase connects
@@ -74,7 +87,9 @@ function SignInScreen(props) {
 
   useEffect(() => {
     if (user) {
-      navigation.dispatch(StackActions.replace('Tab', {screen: 'Home', params: {user: user}}));
+      navigation.dispatch(
+        StackActions.replace('Tab', {screen: 'Home', params: {user: user}}),
+      );
     }
   }, [user, navigation]);
 
@@ -87,7 +102,9 @@ function SignInScreen(props) {
         }}>
         <View style={styles.container}>
           <View style={styles.titleBox}>
-            <Text style={styles.title}>Please log in to securely store your valuable records.</Text>
+            <Text style={styles.title}>
+              Please log in to securely store your valuable records.
+            </Text>
           </View>
           <View style={styles.socialBox}>
             <SocialButton
@@ -109,18 +126,18 @@ function SignInScreen(props) {
             <SocialButton
               style={{marginBottom: 10}}
               source={{
-                uri: 'https://png.pngtree.com/element_our/sm/20180630/sm_5b37de3263964.jpg',
-              }}
-              onPress={() => onGoogleButtonPress().then(res => setUser(res))}
-              type="Instagram"
-            />
-            <SocialButton
-              style={{marginBottom: 10}}
-              source={{
                 uri: 'https://clova-phinf.pstatic.net/MjAxODAzMjlfOTIg/MDAxNTIyMjg3MzM3OTAy.WkiZikYhauL1hnpLWmCUBJvKjr6xnkmzP99rZPFXVwgg.mNH66A47eL0Mf8G34mPlwBFKP0nZBf2ZJn5D4Rvs8Vwg.PNG/image.png',
               }}
               onPress={() => onNaverButtonPress().then(res => setUser(res))}
               type="Naver"
+            />
+            <SocialButton
+              style={{marginBottom: 10}}
+              source={{
+                uri: 'https://i.pinimg.com/564x/4f/b5/ab/4fb5abad387bab970b9fa4e1fafb7401.jpg',
+              }}
+              onPress={() => onKakaoButtonPress().then(res => setUser(res))}
+              type="Kakao"
             />
           </View>
         </View>

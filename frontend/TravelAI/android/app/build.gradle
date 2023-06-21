@@ -1,5 +1,4 @@
 apply plugin: "com.android.application"
-apply plugin: "com.google.gms.google-services" // android firebase
 apply plugin: "com.facebook.react"
 
 import com.android.build.OutputFile
@@ -94,9 +93,9 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.travelai"
+    namespace "com.twoyoung.travelai"
     defaultConfig {
-        applicationId "com.travelai"
+        applicationId "com.twoyoung.travelai"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -155,6 +154,14 @@ dependencies {
 
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
 
+    // facebook sdk
+    implementation 'com.facebook.android:facebook-android-sdk:latest.release'
+
+    // google signin
+    // implementation 'com.google.android.gms:play-services-auth:20.0.0'
+    // implementation "androidx.browser:browser:1.2.0"
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0'
+
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.squareup.okhttp3', module:'okhttp'
@@ -166,8 +173,8 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-
-    implementation 'com.facebook.android:facebook-android-sdk:[4,5)' // facebook login
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+
+apply plugin: 'com.google.gms.google-services' // <--- this should be the last line
