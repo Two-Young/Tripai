@@ -9,14 +9,13 @@ import colors from '../theme/colors';
 import SocialButton from '../component/atoms/SocialButton';
 import {authFacebookSign, authGoogleSign, authNaverSign} from '../services/api';
 import NaverLogin from '@react-native-seoul/naver-login';
+import {login} from '@react-native-seoul/kakao-login';
 
 GoogleSignin.configure({
-  webClientId:
-    '567003577983-an1ml4gbv1buqf19as8rcinum3oultqa.apps.googleusercontent.com',
+  webClientId: '567003577983-an1ml4gbv1buqf19as8rcinum3oultqa.apps.googleusercontent.com',
   offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
   forceCodeForRefreshToken: true, // [Android] related to `serverAuthCode`, read the docs link below *.
-  iosClientId:
-    '567003577983-mk46jh9jh9dvqcfg0tqnqa2t0hk6pvvm.apps.googleusercontent.com', // [iOS] optional, if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
+  iosClientId: '567003577983-mk46jh9jh9dvqcfg0tqnqa2t0hk6pvvm.apps.googleusercontent.com', // [iOS] optional, if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
 });
 
 const consumerKey = 'yslLLko5U73xJ8HfWEPP';
@@ -38,10 +37,7 @@ async function onGoogleButtonPress() {
 
 async function onFacebookButtonPress() {
   // Attempt login with permissions
-  const result = await LoginManager.logInWithPermissions([
-    'public_profile',
-    'email',
-  ]);
+  const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
 
   if (result.isCancelled) {
     throw 'User cancelled the login process';
@@ -81,15 +77,11 @@ const onKakaoButtonPress = async () => {
 
 function SignInScreen(props) {
   const navigation = useNavigation();
-  // Set an initializing state whilst Firebase connects
-  const [initializing, setInitializing] = useState(false);
   const [user, setUser] = useState();
 
   useEffect(() => {
     if (user) {
-      navigation.dispatch(
-        StackActions.replace('Tab', {screen: 'Home', params: {user: user}}),
-      );
+      navigation.dispatch(StackActions.replace('MainScreen', {user: user}));
     }
   }, [user, navigation]);
 
@@ -102,9 +94,7 @@ function SignInScreen(props) {
         }}>
         <View style={styles.container}>
           <View style={styles.titleBox}>
-            <Text style={styles.title}>
-              Please log in to securely store your valuable records.
-            </Text>
+            <Text style={styles.title}>Please log in to securely store your valuable records.</Text>
           </View>
           <View style={styles.socialBox}>
             <SocialButton

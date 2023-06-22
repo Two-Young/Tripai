@@ -11,8 +11,6 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <Text>HomeScreen</Text>
-      <Text>{user.email}</Text>
-      <Button title="Sign Out" onPress={() => {}} />
     </View>
   );
 };
