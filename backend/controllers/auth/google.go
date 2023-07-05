@@ -1,4 +1,4 @@
-package auth
+package controller
 
 import (
 	"database/sql"
@@ -12,6 +12,9 @@ import (
 	"travel-ai/service/database"
 )
 
+// SignWithGoogle godoc
+// @Router /auth/google/sign [post]
+// @Name SignWithGoogle
 func SignWithGoogle(c *gin.Context) {
 	var body SignRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {

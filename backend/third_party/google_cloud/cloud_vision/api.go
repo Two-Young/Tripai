@@ -30,6 +30,9 @@ func RequestImageToText(path string) ([]string, error) {
 	}
 	defer client.Close()
 
+	// preprocess image
+	//preprocessImage(path)
+
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -53,6 +56,41 @@ func RequestImageToText(path string) ([]string, error) {
 
 	return nil, nil
 }
+
+//func preprocessImage(path string) {
+//	img := gocv.IMRead(path, gocv.IMReadColor)
+//	defer img.Close()
+//
+//	gray := gocv.NewMat()
+//	defer gray.Close()
+//
+//	gocv.CvtColor(img, &gray, gocv.ColorBGRToGray)
+//	blurred := gocv.NewMat()
+//	defer blurred.Close()
+//
+//	gocv.GaussianBlur(gray, &blurred, image.Point{X: 5, Y: 5}, 0, 0, gocv.BorderDefault)
+//	edged := gocv.NewMat()
+//	defer edged.Close()
+//
+//	gocv.Canny(blurred, &edged, 30, 150)
+//	contours := gocv.FindContours(edged, gocv.RetrievalExternal, gocv.ChainApproxSimple)
+//	for _, contour := range contours.P() {
+//		rect := gocv.BoundingRect(contour)
+//		gocv.Rectangle(&img, rect, color.RGBA{0, 0, 255, 0}, 2)
+//	}
+//
+//	mask := gocv.NewMatWithSize(img.Rows(), img.Cols(), gocv.MatTypeCV8U)
+//	defer mask.Close()
+//
+//	gocv.DrawContours(&mask, contours, -1, color.RGBA{255, 255, 255, 0}, -1)
+//
+//	result := gocv.NewMat()
+//	defer result.Close()
+//	img.CopyToWithMask(&result, mask)
+//
+//	newFileName := util.AppendFilename(path, "_preprocessed")
+//	gocv.IMWrite(newFileName, result)
+//}
 
 func processReceiptAnnotation(annotations []*pb.EntityAnnotation, yTolerance int32) {
 	// sort annotations by y position

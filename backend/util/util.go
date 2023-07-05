@@ -72,3 +72,9 @@ func GetRootDirectory() string {
 	_, b, _, _ := runtime.Caller(0)
 	return filepath.Dir(filepath.Dir(b))
 }
+
+func AppendFilename(src string, append string) string {
+	ext := filepath.Ext(src)
+	name := src[:len(src)-len(ext)]
+	return name + append + ext
+}

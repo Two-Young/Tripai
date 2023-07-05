@@ -4,9 +4,13 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/swag/example/basic/docs"
 	"os"
-	"travel-ai/controllers/auth"
-	auth2 "travel-ai/controllers/test"
+	controller "travel-ai/controllers/auth"
+	controller3 "travel-ai/controllers/platform"
+	controller2 "travel-ai/controllers/test"
 	"travel-ai/log"
 )
 
@@ -31,9 +35,12 @@ func SetupRouter() *gin.Engine {
 	r.Use(cors.New(config))
 	r.Use(DefaultMiddleware)
 	r.GET("/ping", ping)
+	r.GET("/swagger/:any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	docs.SwaggerInfo.Host = "localhost:10375"
 
-	auth.UseAuthRouter(r)
-	auth2.UseTestRouter(r)
+	controller.UseAuthRouter(r)
+	controller2.UseTestRouter(r)
+	controller3.UsePlatformRouter(r)
 	return r
 }
 

@@ -1,4 +1,4 @@
-package auth
+package controller
 
 type authToken struct {
 	Token     string `json:"token"`
