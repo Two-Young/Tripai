@@ -1,13 +1,15 @@
 import React, {useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
-import SplashScreen from 'react-native-splash-screen';
+// import SplashScreen from 'react-native-splash-screen';
 import RootNavigator from './src/navigation/RootNavigator';
 import {RecoilRoot} from 'recoil';
 
 function App() {
-  useEffect(() => {
+  /*
+  	useEffect(() => {
     SplashScreen.hide();
-  }, []);
+  	}, []);
+  */
 
   return (
     <RecoilRoot>

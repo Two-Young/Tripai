@@ -1,4 +1,4 @@
-package com.travelai;
+package com.twoyoung.travelai;
 
 import android.app.Application;
 import com.facebook.react.PackageList;
