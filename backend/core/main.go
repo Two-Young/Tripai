@@ -8,6 +8,7 @@ import (
 	"travel-ai/log"
 	"travel-ai/service/database"
 	"travel-ai/third_party/google_cloud/cloud_vision"
+	"travel-ai/third_party/google_cloud/maps"
 	"travel-ai/third_party/open_ai"
 )
 
@@ -65,6 +66,7 @@ func main() {
 	// Initialize third party libraries
 	open_ai.Initialize()
 	cloud_vision.Initialize()
+	maps.Initialize()
 
 	// Run web server with gin
 	controllers.RunGin()

@@ -14,7 +14,7 @@ func Route(c *gin.Context) {
 	originCoord := c.Query("origin")
 	destCoord := c.Query("dest")
 
-	apiKey := os.Getenv("GOOGLE_ROUTES_API_KEY")
+	apiKey := os.Getenv("GOOGLE_CLOUD_API_KEY")
 
 	url := fmt.Sprintf("https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&key=%s", originCoord, destCoord, apiKey)
 
