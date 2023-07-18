@@ -22,6 +22,10 @@ func InterfaceToStruct(src interface{}, dst interface{}) error {
 	return nil
 }
 
+func CurrentTimeMillis() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
 func ParseDuration(str string) (time.Duration, error) {
 	// Duration string without last character (the unit)
 	valueStr := str[:len(str)-1]

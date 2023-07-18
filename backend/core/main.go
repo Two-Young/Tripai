@@ -5,8 +5,10 @@ import (
 	"os"
 	"strings"
 	"travel-ai/controllers"
+	"travel-ai/libs/crypto"
 	"travel-ai/log"
 	"travel-ai/service/database"
+	"travel-ai/service/platform"
 	"travel-ai/third_party/google_cloud/cloud_vision"
 	"travel-ai/third_party/google_cloud/maps"
 	"travel-ai/third_party/open_ai"
@@ -64,9 +66,13 @@ func main() {
 	database.InMemoryDB = database.NewRedis()
 
 	// Initialize third party libraries
+	crypto.Initialize()
 	open_ai.Initialize()
 	cloud_vision.Initialize()
 	maps.Initialize()
+
+	// Preload
+	platform.Preload()
 
 	// Run web server with gin
 	controllers.RunGin()

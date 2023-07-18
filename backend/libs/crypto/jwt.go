@@ -4,7 +4,16 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"os"
 )
+
+var (
+	JwtSecretKey = ""
+)
+
+func Initialize() {
+	JwtSecretKey = os.Getenv("JWT_ACCESS_SECRET")
+}
 
 func generateJWTSecretKey(length int) string {
 	bytes := make([]byte, length)

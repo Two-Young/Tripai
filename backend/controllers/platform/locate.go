@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"travel-ai/log"
+	"travel-ai/service/platform"
 	"travel-ai/third_party/google_cloud/maps"
 )
 
@@ -167,28 +167,11 @@ func Direction(c *gin.Context) {
 }
 
 func Countries(c *gin.Context) {
-	resp, err := http.Get("https://restcountries.com/v3.1/all?fields=name,flags,cca2")
-	if err != nil {
-		return
+	countries := make([]platform.Country, 0)
+	for _, c := range platform.CountriesMap {
+		countries = append(countries, c)
 	}
-	defer resp.Body.Close()
-	var countriesData []map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&countriesData); err != nil {
-		return
-	}
-
-	data := make(locateCountriesResponseDto, 0)
-	for _, country := range countriesData {
-		data = append(data, locateCountriesItem{
-			CountryCode: country["cca2"].(string),
-			CommonName:  country["name"].(map[string]interface{})["common"].(string),
-			Alt:         country["name"].(map[string]interface{})["common"].(string),
-			Png:         country["flags"].(map[string]interface{})["png"].(string),
-			Svg:         country["flags"].(map[string]interface{})["svg"].(string),
-		})
-	}
-
-	c.JSON(http.StatusOK, data)
+	c.JSON(http.StatusOK, countries)
 }
 
 func UseLocateRouter(g *gin.RouterGroup) {

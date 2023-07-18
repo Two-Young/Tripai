@@ -61,3 +61,9 @@ type locateCountriesItem struct {
 }
 
 type locateCountriesResponseDto []locateCountriesItem
+
+type sessionCreateRequestDto struct {
+	CountryCodes []string `json:"country_codes" binding:"required"`
+	StartAt      string   `json:"start_at" binding:"required"`
+	EndAt        string   `json:"end_at" binding:"required"`
+}
