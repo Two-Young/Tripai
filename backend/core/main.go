@@ -12,6 +12,7 @@ import (
 	"travel-ai/third_party/google_cloud/cloud_vision"
 	"travel-ai/third_party/google_cloud/maps"
 	"travel-ai/third_party/open_ai"
+	"travel-ai/third_party/others"
 )
 
 func main() {
@@ -70,6 +71,7 @@ func main() {
 	open_ai.Initialize()
 	cloud_vision.Initialize()
 	maps.Initialize()
+	others.Initialize()
 
 	// Preload
 	platform.Preload()

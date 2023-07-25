@@ -1,21 +1,63 @@
-package controller
+package platform
 
 import (
-	"errors"
+	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
 	"strings"
+	"time"
+	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
 	"travel-ai/service/platform"
-	"travel-ai/util"
+	"travel-ai/third_party/others"
 )
 
 func Sessions(c *gin.Context) {
-	// TODO :: implement this
-	// TODO :: return session list for user
+	rawUid, ok := c.Get("uid")
+	if !ok {
+		log.Error("uid not found")
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	uid := rawUid.(string)
+
+	sessions := make([]database.SessionEntity, 0)
+	if err := database.DB.Select(&sessions, "SELECT sessions.* "+
+		"FROM sessions "+
+		"LEFT JOIN user_sessions us ON sessions.sid = us.sid "+
+		"WHERE us.uid = ?;", uid); err != nil {
+		if err != sql.ErrNoRows {
+			log.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	respItems := make(sessionsResponseDto, 0)
+	for _, s := range sessions {
+		countryCodes := make([]string, 0)
+		if err := database.DB.Select(&countryCodes, "SELECT country_code FROM countries WHERE sid = ?;", s.SessionId); err != nil {
+			log.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		respItems = append(respItems, sessionsResponseItem{
+			SessionId:     *s.SessionId,
+			CreatorUserId: *s.CreatorUserId,
+			Name:          *s.Name,
+			StartAt:       s.StartAt.Format("2006-01-02"),
+			EndAt:         s.EndAt.Format("2006-01-02"),
+			CreatedAt:     s.CreatedAt.UnixMilli(),
+			CountryCodes:  countryCodes,
+			ThumbnailUrl:  *s.ThumbnailUrl,
+		})
+	}
+
+	c.JSON(http.StatusOK, respItems)
 }
 
 func CreateSession(c *gin.Context) {
@@ -30,34 +72,36 @@ func CreateSession(c *gin.Context) {
 	var body sessionCreateRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, errors.New("invalid request body"))
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	// check if country codes are valid
-	regions := make([]string, 0)
+	regionMap := make(map[string]bool)
 	for _, countryCode := range body.CountryCodes {
 		country, ok := platform.CountriesMap[countryCode]
 		if !ok {
-			c.AbortWithError(http.StatusBadRequest, errors.New("invalid country code"))
+			util2.AbortWithStrJson(c, http.StatusBadRequest, fmt.Sprintf("invalid country code: %s", countryCode))
 			return
 		}
-		regions = append(regions, country.Region)
+		regionMap[country.Region] = true
 	}
 
 	// check if start_at and end_at are valid
 	startAt, sErr := platform.ValidateDateString(body.StartAt)
 	if sErr != nil {
-		c.AbortWithError(http.StatusBadRequest, errors.New("invalid start_at"))
+		log.Error(sErr)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid start_at")
 		return
 	}
 	endAt, eErr := platform.ValidateDateString(body.EndAt)
 	if eErr != nil {
-		c.AbortWithError(http.StatusBadRequest, errors.New("invalid end_at"))
+		log.Error(eErr)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid end_at")
 		return
 	}
 	if startAt.After(endAt) {
-		c.AbortWithError(http.StatusBadRequest, errors.New("start_at should be before end_at"))
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "start_at should be before end_at")
 		return
 	}
 
@@ -68,12 +112,40 @@ func CreateSession(c *gin.Context) {
 		return
 	}
 
-	// create session entity
+	// get keys of regions
+	regions := make([]string, 0)
+	for region := range regionMap {
+		regions = append(regions, region)
+	}
+
+	travelName := strings.Join(regions, ", ")
+	if len(body.CountryCodes) == 1 {
+		cc := body.CountryCodes[0]
+		countryName, ok := platform.CountriesMap[cc]
+		if !ok {
+			log.Error("country not found")
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		travelName = countryName.CommonName
+	}
+
 	sessionId := uuid.New().String()
-	sessionName := fmt.Sprintf("%s Travel", strings.Join(regions, ", "))
+	sessionName := fmt.Sprintf("%s Travel", travelName)
+	// get free image url with travel topic
+	imageUrl, err := others.GetFreeImageUrlByKeyword(sessionName)
+	if err != nil {
+		log.Error(err)
+		ctx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// create session entity
+	// TODO :: set unit
 	if _, err := ctx.Exec(
-		"INSERT INTO sessions(sid, creator_uid, name, start_at, end_at, created_at, budget, unit) VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-		sessionId, uid, sessionName, startAt, endAt, util.CurrentTimeMillis(), 0, "USD",
+		"INSERT INTO sessions(sid, creator_uid, name, start_at, end_at, created_at, budget, unit, thumbnail_url) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		sessionId, uid, sessionName, startAt, endAt, time.Now(), 0, "USD", imageUrl,
 	); err != nil {
 		log.Error(err)
 		ctx.Rollback()
@@ -95,6 +167,17 @@ func CreateSession(c *gin.Context) {
 		}
 	}
 
+	// add user to session
+	if _, err := ctx.Exec(
+		"INSERT INTO user_sessions(sid, uid) VALUES(?, ?)",
+		sessionId, uid,
+	); err != nil {
+		log.Error(err)
+		ctx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
 	if err = ctx.Commit(); err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -105,12 +188,143 @@ func CreateSession(c *gin.Context) {
 }
 
 func DeleteSession(c *gin.Context) {
-	// TODO :: implement this
+	rawUid, ok := c.Get("uid")
+	if !ok {
+		log.Error("uid not found")
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	uid := rawUid.(string)
+
+	var body sessionDeleteRequestDto
+	if err := c.ShouldBindJSON(&body); err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	ctx, err := database.DB.BeginTxx(c, nil)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// check if user has permission to delete session
+	var creatorUid string
+	if err := ctx.Get(
+		&creatorUid,
+		"SELECT creator_uid FROM sessions WHERE sid = ?",
+		body.SessionId,
+	); err != nil {
+		ctx.Rollback()
+		if err == sql.ErrNoRows {
+			c.AbortWithStatus(http.StatusForbidden)
+			return
+		}
+		log.Error(err)
+		c.AbortWithStatus(http.StatusForbidden)
+	}
+
+	if uid != creatorUid {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+
+	// delete countries entity
+	if _, err := ctx.Exec(
+		"DELETE FROM countries WHERE sid = ?",
+		body.SessionId,
+	); err != nil {
+		log.Error(err)
+		ctx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// delete receipt items users
+	if _, err := ctx.Exec(
+		"DELETE receipt_items_users "+
+			"FROM receipt_items_users "+
+			"LEFT JOIN receipt_items ON receipt_items_users.riid = receipt_items.riid "+
+			"LEFT JOIN receipts ON receipt_items.rid = receipts.rid "+
+			"WHERE receipts.sid = ?;",
+		body.SessionId,
+	); err != nil {
+		log.Error(err)
+		ctx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// delete receipts entity
+	if _, err := ctx.Exec(
+		"DELETE FROM receipts WHERE sid = ?;",
+		body.SessionId,
+	); err != nil {
+		log.Error(err)
+		ctx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// delete schedules entity
+	if _, err := ctx.Exec(
+		"DELETE FROM schedules WHERE sid = ?;",
+		body.SessionId,
+	); err != nil {
+		log.Error(err)
+		ctx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// delete locations entity
+	if _, err := ctx.Exec(
+		"DELETE FROM locations WHERE sid = ?;",
+		body.SessionId,
+	); err != nil {
+		log.Error(err)
+		ctx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// delete user_sessions entity
+	if _, err := ctx.Exec(
+		"DELETE FROM user_sessions WHERE sid = ?;",
+		body.SessionId,
+	); err != nil {
+		log.Error(err)
+		ctx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// delete sessions entity
+	if _, err := ctx.Exec(
+		"DELETE FROM sessions WHERE sid = ?;",
+		body.SessionId,
+	); err != nil {
+		log.Error(err)
+		ctx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// commit
+	if err = ctx.Commit(); err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func UseSessionRouter(g *gin.RouterGroup) {
 	rg := g.Group("/session")
-	rg.GET("/list", Sessions)
-	rg.PUT("/create", CreateSession)
-	rg.DELETE("/delete", DeleteSession)
+	rg.GET("", Sessions)
+	rg.PUT("", CreateSession)
+	rg.DELETE("", DeleteSession)
 }

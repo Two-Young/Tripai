@@ -1,4 +1,4 @@
-package controller
+package auth
 
 import (
 	"database/sql"
@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"io"
 	"net/http"
+	"travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
 )
@@ -18,7 +19,7 @@ import (
 func SignWithGoogle(c *gin.Context) {
 	var body SignRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -94,7 +95,8 @@ func SignWithGoogle(c *gin.Context) {
 		if err := database.DB.QueryRowx("INSERT INTO users(uid, id, username, profile_image, platform) VALUES(?, ?, ?, ?, ?)",
 			userInfo.UserId, userInfo.Id, userInfo.Username, userInfo.ProfileImage, userInfo.Platform).Err(); err != nil {
 			log.Error(err)
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to create user"))
+			util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to create user")
+			return
 		}
 		returnCode = http.StatusCreated
 	} else {
@@ -105,13 +107,13 @@ func SignWithGoogle(c *gin.Context) {
 	authTokenBundle, err := createAuthToken(uid)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to create access token"))
+		util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to create access token")
 	}
 
 	// save refresh token to in-memory
 	if err := saveRefreshToken(uid, authTokenBundle.RefreshToken); err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to save refresh token"))
+		util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to save refresh token")
 	}
 
 	signResponseDto := SignResponseDto{

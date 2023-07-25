@@ -1,4 +1,4 @@
-package controller
+package auth
 
 import (
 	"database/sql"
@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"io"
 	"net/http"
+	"travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
 )
@@ -47,12 +48,12 @@ func SignWithNaver(c *gin.Context) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("invalid token: status code must be 200, but %d given", resp.StatusCode))
+		util.AbortWithErrJson(c, http.StatusUnauthorized, fmt.Errorf("invalid token: status code must be 200, but %d given", resp.StatusCode))
 		return
 	}
 
 	if naverCredentials.ResultCode != "00" {
-		c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("invalid token: result code must be 00, but %s given", naverCredentials.ResultCode))
+		util.AbortWithErrJson(c, http.StatusUnauthorized, fmt.Errorf("invalid token: result code must be 00, but %s given", naverCredentials.ResultCode))
 		return
 	}
 
@@ -119,7 +120,7 @@ func SignWithNaver(c *gin.Context) {
 		if err := database.DB.QueryRowx("INSERT INTO users(uid, id, username, profile_image, platform) VALUES(?, ?, ?, ?, ?)",
 			userInfo.UserId, userInfo.Id, userInfo.Username, userInfo.ProfileImage, userInfo.Platform).Err(); err != nil {
 			log.Error(err)
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to create user"))
+			util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to create user")
 		}
 		returnCode = http.StatusCreated
 	} else {
@@ -130,13 +131,15 @@ func SignWithNaver(c *gin.Context) {
 	authTokenBundle, err := createAuthToken(uid)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to create access token"))
+		util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to create access token")
+		return
 	}
 
 	// save refresh token to in-memory
 	if err := saveRefreshToken(uid, authTokenBundle.RefreshToken); err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to save refresh token"))
+		util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to save refresh token")
+		return
 	}
 
 	signResponseDto := SignResponseDto{

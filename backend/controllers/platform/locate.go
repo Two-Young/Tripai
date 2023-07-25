@@ -1,9 +1,10 @@
-package controller
+package platform
 
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/platform"
 	"travel-ai/third_party/google_cloud/maps"
@@ -13,13 +14,13 @@ func AutoComplete(c *gin.Context) {
 	var body locateAutocompleteRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, errors.New("invalid request body"))
+		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 	result, err := maps.GetAutoComplete(body.Input)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 	data := make(locateAutocompleteResponseDto, 0)
@@ -36,13 +37,13 @@ func Location(c *gin.Context) {
 	var query locateLocationQueryDto
 	if err := c.ShouldBindQuery(&query); err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, errors.New("invalid request query"))
+		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query")
 		return
 	}
 	result, err := maps.GetPlaceDetail(query.PlaceId)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 	data := locateLocationResponseDto{
@@ -63,13 +64,13 @@ func Pin(c *gin.Context) {
 	var query locatePinRequestDto
 	if err := c.ShouldBindQuery(&query); err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, errors.New("invalid request query"))
+		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query")
 		return
 	}
 	result, err := maps.GetPlaceByLatLng(query.Latitude, query.Longitude)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -91,13 +92,13 @@ func PlacePhoto(c *gin.Context) {
 	var query locatePlacePhotoQueryDto
 	if err := c.ShouldBindQuery(&query); err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, errors.New("invalid request query"))
+		util.AbortWithErrJson(c, http.StatusBadRequest, errors.New("invalid request query"))
 		return
 	}
 	result, err := maps.GetPlacePhoto(query.Reference, query.MaxWidth)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 	defer result.Data.Close()
@@ -108,20 +109,20 @@ func Direction(c *gin.Context) {
 	var query locateDirectionQueryDto
 	if err := c.ShouldBindQuery(&query); err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, errors.New("invalid request query"))
+		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query")
 		return
 	}
 
 	originDetail, err := maps.GetPlaceDetail(query.OriginalPlaceId)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 	destDetail, err := maps.GetPlaceDetail(query.DestinationPlaceId)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -134,7 +135,7 @@ func Direction(c *gin.Context) {
 	result, err := maps.GetPlaceDirection(originLatLng, destLatLng)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -144,7 +145,7 @@ func Direction(c *gin.Context) {
 		points, err := polyline.Decode()
 		if err != nil {
 			log.Error(err)
-			c.AbortWithError(http.StatusBadRequest, err)
+			util.AbortWithErrJson(c, http.StatusBadRequest, err)
 			return
 		}
 		for _, point := range points {

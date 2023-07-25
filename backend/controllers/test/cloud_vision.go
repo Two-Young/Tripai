@@ -1,4 +1,4 @@
-package controller
+package test
 
 import (
 	"github.com/gin-gonic/gin"
@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/third_party/google_cloud/cloud_vision"
 	"travel-ai/util"
@@ -21,7 +22,7 @@ func Image2Text(c *gin.Context) {
 	dest := filepath.Join(rootDir, "/temp/", newFileName)
 	if err := c.SaveUploadedFile(file, dest); err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusInternalServerError, err)
+		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
 		return
 	}
 	log.Debug("file saved as: " + dest)
@@ -38,7 +39,7 @@ func Image2Text(c *gin.Context) {
 	_, err := cloud_vision.RequestImageToText(dest)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusInternalServerError, err)
+		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
 		return
 	}
 

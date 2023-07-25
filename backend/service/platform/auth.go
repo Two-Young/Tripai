@@ -17,16 +17,16 @@ var (
 	}
 )
 
-func DissolveAuthToken(rawToken string) (string, map[string]error) {
-	errors := make(map[string]error)
+func DissolveAuthToken(rawToken string) (string, map[string]string) {
+	errMap := make(map[string]string)
 	for method, f := range TokenDissolvers {
 		uid, err := f(rawToken)
 		if err == nil {
 			return uid, nil
 		}
-		errors[method] = err
+		errMap[method] = err.Error()
 	}
-	return "", errors
+	return "", errMap
 }
 
 func dissolveWithPlatformToken(rawToken string) (string, error) {
@@ -56,7 +56,7 @@ func ExtractAuthToken(req *http.Request) (string, error) {
 	bearer := req.Header.Get("Authorization")
 	token := strings.Split(bearer, " ")
 	if len(token) != 2 {
-		return "", errors.New("invalid token")
+		return "", fmt.Errorf("invalid token: \"%s\"", bearer)
 	}
 	authToken := token[1]
 	if len(authToken) == 0 {

@@ -1,4 +1,4 @@
-package controller
+package platform
 
 import (
 	"github.com/gin-gonic/gin"
@@ -19,7 +19,7 @@ func DeleteBudget(c *gin.Context) {
 
 func UseBudgetRouter(g *gin.RouterGroup) {
 	rg := g.Group("/budget")
-	rg.GET("/list", Budgets)
-	rg.PUT("/create", CreateBudget)
-	rg.DELETE("/delete", DeleteBudget)
+	rg.GET("", Budgets)
+	rg.PUT("", CreateBudget)
+	rg.DELETE("", DeleteBudget)
 }

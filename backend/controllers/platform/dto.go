@@ -1,5 +1,6 @@
-package controller
+package platform
 
+/* ---------------- Locate ---------------- */
 type locateCoordinate struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
@@ -52,18 +53,55 @@ type locateDirectionQueryDto struct {
 
 type locateDirectionResponseDto []locateCoordinate
 
-type locateCountriesItem struct {
-	CountryCode string `json:"country_code"`
-	Alt         string `json:"alt"`
-	Png         string `json:"png"`
-	Svg         string `json:"svg"`
-	CommonName  string `json:"common_name"`
+/* ---------------- Session ---------------- */
+type sessionsResponseItem struct {
+	SessionId     string   `json:"session_id"`
+	CreatorUserId string   `json:"creator_user_id"`
+	Name          string   `json:"name"`
+	StartAt       string   `json:"start_at"`
+	EndAt         string   `json:"end_at"`
+	CreatedAt     int64    `json:"created_at"` //timestamp
+	CountryCodes  []string `json:"country_codes"`
+	ThumbnailUrl  string   `json:"thumbnail_url"`
 }
 
-type locateCountriesResponseDto []locateCountriesItem
+type sessionsResponseDto []sessionsResponseItem
 
 type sessionCreateRequestDto struct {
 	CountryCodes []string `json:"country_codes" binding:"required"`
 	StartAt      string   `json:"start_at" binding:"required"`
 	EndAt        string   `json:"end_at" binding:"required"`
+}
+
+type sessionDeleteRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
+}
+
+/* ---------------- Location ---------------- */
+type locationsRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type locationsResponseItem struct {
+	LocationId string  `json:"location_id"`
+	PlaceId    string  `json:"place_id"`
+	Name       string  `json:"name"`
+	Latitude   float64 `json:"latitude"`
+	Longitude  float64 `json:"longitude"`
+	Address    string  `json:"address"`
+}
+
+type locationsResponseDto []locationsResponseItem
+
+type locationCreateRequestDto struct {
+	SessionId string  `json:"session_id" binding:"required"`
+	PlaceId   string  `json:"place_id" binding:"required"`
+	Name      string  `json:"name" binding:"required"`
+	Latitude  float64 `json:"latitude" binding:"required"`
+	Longitude float64 `json:"longitude" binding:"required"`
+	Address   string  `json:"address" binding:"required"`
+}
+
+type locationDeleteRequestDto struct {
+	LocationId string `json:"location_id" binding:"required"`
 }

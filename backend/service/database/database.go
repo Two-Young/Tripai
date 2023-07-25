@@ -48,7 +48,7 @@ func (d *DatabaseConfig) validate() error {
 }
 
 func (d *DatabaseConfig) getEndpoint() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", d.User, d.Password, d.Host, d.Port, d.DatabaseName)
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", d.User, d.Password, d.Host, d.Port, d.DatabaseName)
 }
 
 func Initialize() (db *sqlx.DB, err error) {

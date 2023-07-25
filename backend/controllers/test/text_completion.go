@@ -1,9 +1,10 @@
-package controller
+package test
 
 import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
+	"travel-ai/controllers/util"
 	"travel-ai/third_party/open_ai/text_completion"
 )
 
@@ -16,7 +17,7 @@ func TextCompletionSync(c *gin.Context) {
 
 	resp, err := text_completion.RequestCompletionSync(text_completion.MODEL_GPT_3_5_TURBO, text_completion.ROLE_USER, body.Prompt)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, resp)
@@ -35,13 +36,13 @@ func TextCompletion(c *gin.Context) {
 
 	resp, err := text_completion.RequestCompletion(text_completion.MODEL_GPT_3_5_TURBO, text_completion.ROLE_USER, body.Prompt)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
 		return
 	}
 
 	_, err = io.Copy(c.Writer, resp)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
 		return
 	}
 

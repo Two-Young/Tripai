@@ -1,12 +1,7 @@
-create table locations
+create table session_thumbnail_caches
 (
-    lid varchar(255) not null
-        primary key,
-    place_id varchar(255) null,
-    name varchar(255) null,
-    latitude double null,
-    longitude double null,
-    address varchar(255) null
+    keyword varchar(255) not null,
+    url varchar(255) not null
 );
 
 create table users
@@ -28,8 +23,9 @@ create table sessions
     start_at date null,
     end_at date null,
     created_at datetime not null,
-    budget float default 0 null,
+    budget double default 0 null,
     unit varchar(50) not null,
+    thumbnail_url varchar(255) null,
     constraint sessions_users_uid_fk
         foreign key (creator_uid) references users (uid)
 );
@@ -45,17 +41,31 @@ create table countries
         foreign key (sid) references sessions (sid)
 );
 
+create table locations
+(
+    lid varchar(255) not null
+        primary key,
+    place_id varchar(255) null,
+    name varchar(255) null,
+    latitude double null,
+    longitude double null,
+    address varchar(255) null,
+    sid varchar(50) null,
+    constraint locations_sessions_sid_fk
+        foreign key (sid) references sessions (sid)
+);
+
 create table receipts
 (
     rid varchar(255) not null
         primary key,
     name varchar(255) null,
-    scid varchar(255) null,
+    sid varchar(255) null,
     total_price float default 0 null,
     unit varchar(20) null,
     type varchar(255) null,
-    constraint receipts_countries_scid_fk
-        foreign key (scid) references countries (scid)
+    constraint receipts_sessions_sid_fk
+        foreign key (sid) references sessions (sid)
 );
 
 create table receipt_items
@@ -78,6 +88,24 @@ create table receipt_items_users
         foreign key (riid) references receipt_items (riid),
     constraint receipt_items_users_users_uid_fk
         foreign key (uid) references users (uid)
+);
+
+create table schedules
+(
+    sscid varchar(255) not null
+        primary key,
+    type varchar(50) null,
+    name varchar(255) null,
+    image_url varchar(255) null,
+    place_id varchar(255) null,
+    latitude double null,
+    longitude double null,
+    address varchar(255) null,
+    start_at datetime null,
+    end_at datetime null,
+    sid varchar(50) null,
+    constraint schedules_sessions_sid_fk
+        foreign key (sid) references sessions (sid)
 );
 
 create table table_name
