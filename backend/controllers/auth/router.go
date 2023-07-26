@@ -36,7 +36,7 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	authToken, err := createAuthToken(userId)
+	authToken, err := CreateAuthToken(userId)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)

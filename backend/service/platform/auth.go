@@ -56,7 +56,7 @@ func ExtractAuthToken(req *http.Request) (string, error) {
 	bearer := req.Header.Get("Authorization")
 	token := strings.Split(bearer, " ")
 	if len(token) != 2 {
-		return "", fmt.Errorf("invalid token: \"%s\"", bearer)
+		return "", fmt.Errorf("invalid token: %s", bearer)
 	}
 	authToken := token[1]
 	if len(authToken) == 0 {

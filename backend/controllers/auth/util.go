@@ -16,7 +16,7 @@ const (
 	FACEBOOK  = "FACEBOOK"
 )
 
-func createAuthToken(uid string) (*authTokenBundle, error) {
+func CreateAuthToken(uid string) (*authTokenBundle, error) {
 	var err error
 	atd := &authTokenBundle{}
 

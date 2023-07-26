@@ -7,6 +7,7 @@ import (
 	"travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/platform"
+	"travel-ai/service/platform/database_io"
 	"travel-ai/third_party/google_cloud/maps"
 )
 
@@ -40,23 +41,26 @@ func Location(c *gin.Context) {
 		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query")
 		return
 	}
-	result, err := maps.GetPlaceDetail(query.PlaceId)
+
+	cache, err := database_io.GetPlaceDetailCache(c, query.PlaceId)
 	if err != nil {
 		log.Error(err)
-		util.AbortWithErrJson(c, http.StatusBadRequest, err)
+		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
 		return
 	}
+
 	data := locateLocationResponseDto{
-		PlaceId:        result.PlaceID,
-		Name:           result.Name,
-		Address:        result.FormattedAddress,
+		PlaceId:        *cache.PlaceId,
+		Name:           *cache.Name,
+		Address:        *cache.Address,
 		PhotoReference: "",
-		Longitude:      result.Geometry.Location.Lng,
-		Latitude:       result.Geometry.Location.Lat,
+		Longitude:      *cache.Longitude,
+		Latitude:       *cache.Latitude,
 	}
-	if len(result.Photos) > 0 {
-		data.PhotoReference = result.Photos[0].PhotoReference
+	if cache.PhotoReference != nil {
+		data.PhotoReference = *cache.PhotoReference
 	}
+
 	c.JSON(http.StatusOK, data)
 }
 
@@ -113,24 +117,21 @@ func Direction(c *gin.Context) {
 		return
 	}
 
-	originDetail, err := maps.GetPlaceDetail(query.OriginalPlaceId)
+	originCache, err := database_io.GetPlaceDetailCache(c, query.OriginalPlaceId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
-	destDetail, err := maps.GetPlaceDetail(query.DestinationPlaceId)
+	destCache, err := database_io.GetPlaceDetailCache(c, query.DestinationPlaceId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 
-	originLocation := originDetail.Geometry.Location
-	destLocation := destDetail.Geometry.Location
-
-	originLatLng := originLocation.String()
-	destLatLng := destLocation.String()
+	originLatLng := *originCache.LatLng
+	destLatLng := *destCache.LatLng
 
 	result, err := maps.GetPlaceDirection(originLatLng, destLatLng)
 	if err != nil {
@@ -156,12 +157,12 @@ func Direction(c *gin.Context) {
 		}
 	} else {
 		data = append(data, locateCoordinate{
-			Latitude:  originLocation.Lat,
-			Longitude: originLocation.Lng,
+			Latitude:  *originCache.Latitude,
+			Longitude: *originCache.Longitude,
 		})
 		data = append(data, locateCoordinate{
-			Latitude:  destLocation.Lat,
-			Longitude: destLocation.Lng,
+			Latitude:  *destCache.Latitude,
+			Longitude: *destCache.Longitude,
 		})
 	}
 	c.JSON(http.StatusOK, data)

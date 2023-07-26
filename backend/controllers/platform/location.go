@@ -1,13 +1,16 @@
 package platform
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"net/http"
 	"travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
 	"travel-ai/service/platform"
+	"travel-ai/service/platform/database_io"
 )
 
 func Locations(c *gin.Context) {
@@ -42,7 +45,7 @@ func Locations(c *gin.Context) {
 	var locations []database.LocationEntity
 	if err := database.DB.Select(
 		&locations,
-		"SELECT lid, place_id, name, latitude, longitude, address FROM locations WHERE sid = ?;",
+		"SELECT lid, place_id, name, latitude, longitude, photo_reference, address FROM locations WHERE sid = ?;",
 		query.SessionId,
 	); err != nil {
 		log.Error(err)
@@ -52,16 +55,20 @@ func Locations(c *gin.Context) {
 
 	locationResp := make(locationsResponseDto, 0)
 	for _, l := range locations {
-		locationResp = append(locationResp, locationsResponseItem{
-			LocationId: *l.LocationId,
-			PlaceId:    *l.PlaceId,
-			Name:       *l.Name,
-			Latitude:   *l.Latitude,
-			Longitude:  *l.Longitude,
-			Address:    *l.Address,
-		})
+		item := locationsResponseItem{
+			LocationId:     *l.LocationId,
+			PlaceId:        *l.PlaceId,
+			Name:           *l.Name,
+			Latitude:       *l.Latitude,
+			Longitude:      *l.Longitude,
+			PhotoReference: "",
+			Address:        *l.Address,
+		}
+		if l.PhotoReference != nil {
+			item.PhotoReference = *l.PhotoReference
+		}
+		locationResp = append(locationResp, item)
 	}
-
 	c.JSON(http.StatusOK, locationResp)
 }
 
@@ -93,12 +100,28 @@ func CreateLocation(c *gin.Context) {
 		return
 	}
 
+	// get place detail
+	cache, err := database_io.GetPlaceDetailCache(c, body.PlaceId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
 	// create location entity
 	locationId := uuid.New().String()
 	if _, err := database.DB.Exec(
-		"INSERT INTO locations (lid, place_id, name, latitude, longitude, address, sid) VALUES (?, ?, ?, ?, ?, ?, ?);",
-		locationId, body.PlaceId, body.Name, body.Latitude, body.Longitude, body.Address, body.SessionId,
+		"INSERT INTO locations (lid, place_id, name, latitude, longitude, address, photo_reference, sid) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
+		locationId, body.PlaceId,
+		*cache.Name, *cache.Latitude,
+		*cache.Longitude, *cache.Address,
+		*cache.PhotoReference, body.SessionId,
 	); err != nil {
+		var mysqlErr *mysql.MySQLError
+		if ok := errors.As(err, &mysqlErr); ok && mysqlErr.Number == 1062 {
+			util.AbortWithStrJson(c, http.StatusConflict, "location already exists")
+			return
+		}
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return

@@ -1,3 +1,16 @@
+create table place_detail_caches
+(
+    place_id varchar(255) not null
+        primary key,
+    name varchar(255) null,
+    address varchar(255) null,
+    photo_reference varchar(255) null,
+    latitude double null,
+    longitude double null,
+    country_code varchar(10) null,
+    hit int null
+);
+
 create table session_thumbnail_caches
 (
     keyword varchar(255) not null,

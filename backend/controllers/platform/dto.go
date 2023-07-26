@@ -83,23 +83,20 @@ type locationsRequestDto struct {
 }
 
 type locationsResponseItem struct {
-	LocationId string  `json:"location_id"`
-	PlaceId    string  `json:"place_id"`
-	Name       string  `json:"name"`
-	Latitude   float64 `json:"latitude"`
-	Longitude  float64 `json:"longitude"`
-	Address    string  `json:"address"`
+	LocationId     string  `json:"location_id"`
+	PlaceId        string  `json:"place_id"`
+	Name           string  `json:"name"`
+	Latitude       float64 `json:"latitude"`
+	Longitude      float64 `json:"longitude"`
+	PhotoReference string  `json:"photo_reference"`
+	Address        string  `json:"address"`
 }
 
 type locationsResponseDto []locationsResponseItem
 
 type locationCreateRequestDto struct {
-	SessionId string  `json:"session_id" binding:"required"`
-	PlaceId   string  `json:"place_id" binding:"required"`
-	Name      string  `json:"name" binding:"required"`
-	Latitude  float64 `json:"latitude" binding:"required"`
-	Longitude float64 `json:"longitude" binding:"required"`
-	Address   string  `json:"address" binding:"required"`
+	SessionId string `json:"session_id" binding:"required"`
+	PlaceId   string `json:"place_id" binding:"required"`
 }
 
 type locationDeleteRequestDto struct {

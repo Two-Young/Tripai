@@ -30,16 +30,29 @@ type CountryEntity struct {
 }
 
 type LocationEntity struct {
-	LocationId *string  `db:"lid" json:"location_id"`
-	PlaceId    *string  `db:"place_id" json:"place_id"`
-	Name       *string  `db:"name" json:"name"`
-	Latitude   *float64 `db:"latitude" json:"latitude"`
-	Longitude  *float64 `db:"longitude" json:"longitude"`
-	Address    *string  `db:"address" json:"address"`
-	SessionId  *string  `db:"sid" json:"session_id"`
+	LocationId     *string  `db:"lid" json:"location_id"`
+	PlaceId        *string  `db:"place_id" json:"place_id"`
+	Name           *string  `db:"name" json:"name"`
+	Latitude       *float64 `db:"latitude" json:"latitude"`
+	Longitude      *float64 `db:"longitude" json:"longitude"`
+	Address        *string  `db:"address" json:"address"`
+	PhotoReference *string  `db:"photo_reference" json:"photo_reference"`
+	SessionId      *string  `db:"sid" json:"session_id"`
 }
 
 type SessionThumbnailCacheEntity struct {
 	Keyword *string `db:"keyword" json:"keyword"`
 	Url     *string `db:"url" json:"url"`
+}
+
+type PlaceDetailCacheEntity struct {
+	PlaceId        *string  `db:"place_id" json:"place_id"`
+	Name           *string  `db:"name" json:"name"`
+	Address        *string  `db:"address" json:"address"`
+	PhotoReference *string  `db:"photo_reference" json:"photo_reference"`
+	Latitude       *float64 `db:"latitude" json:"latitude"`
+	Longitude      *float64 `db:"longitude" json:"longitude"`
+	LatLng         *string  `db:"lat_lng" json:"lat_lng"`
+	CountryCode    *string  `db:"country_code" json:"country_code"`
+	Hit            *int     `db:"hit" json:"hit"`
 }

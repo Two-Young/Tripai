@@ -128,7 +128,7 @@ func SignWithNaver(c *gin.Context) {
 	}
 
 	// create access, refresh token
-	authTokenBundle, err := createAuthToken(uid)
+	authTokenBundle, err := CreateAuthToken(uid)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to create access token")

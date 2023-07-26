@@ -56,9 +56,12 @@ func GetFreeImageUrlByKeyword(keyword string) (string, error) {
 	if err := database.DB.Select(
 		&sessionThumbnailCaches,
 		"SELECT * FROM session_thumbnail_caches WHERE keyword = ?", keyword); err == nil {
-		cachedRandUrl = *sessionThumbnailCaches[math.RandIntByMax(len(sessionThumbnailCaches))].Url
-		if len(sessionThumbnailCaches) >= LocalCacheCountThreshold {
-			return cachedRandUrl, nil
+		cacheCount := len(sessionThumbnailCaches)
+		if cacheCount > 0 {
+			cachedRandUrl = *sessionThumbnailCaches[math.RandIntByMax(cacheCount)].Url
+			if len(sessionThumbnailCaches) >= LocalCacheCountThreshold {
+				return cachedRandUrl, nil
+			}
 		}
 	}
 
