@@ -15,8 +15,11 @@ import (
 	"travel-ai/third_party/others"
 )
 
+const VERSION = "0.3.0"
+
 func main() {
 	log.Info("Travel AI Server is now starting...")
+	log.Info("Version: ", VERSION)
 
 	// Create Jwt secret key if needed
 	//crypto.PrintNewJwtSecret()
