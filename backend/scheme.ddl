@@ -7,8 +7,9 @@ create table place_detail_caches
     photo_reference varchar(255) null,
     latitude double null,
     longitude double null,
-    country_code varchar(10) null,
-    hit int null
+    lat_lng varchar(255) null,
+    hit int null,
+    country_code varchar(10) null
 );
 
 create table session_thumbnail_caches
@@ -63,7 +64,10 @@ create table locations
     latitude double null,
     longitude double null,
     address varchar(255) null,
+    photo_reference varchar(255) null,
     sid varchar(50) null,
+    constraint locations_pk
+        unique (sid, place_id),
     constraint locations_sessions_sid_fk
         foreign key (sid) references sessions (sid)
 );
