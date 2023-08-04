@@ -1,17 +1,18 @@
 import {StyleSheet, Text, View} from 'react-native';
 import React from 'react';
-import Button from '../component/atoms/Button';
-import {StackActions, useNavigation, useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const HomeScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const {user} = route.params || {};
 
   return (
-    <View style={styles.container}>
-      <Text>HomeScreen</Text>
-    </View>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.safearea}>
+      <View style={styles.container}>
+        <Text>Home Screen</Text>
+      </View>
+    </SafeAreaView>
   );
 };
 
