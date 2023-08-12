@@ -10,6 +10,7 @@ module.exports = {
     'plugin:prettier/recommended',
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
+    '@react-native',
   ],
   overrides: [],
   parserOptions: {
@@ -23,6 +24,7 @@ module.exports = {
     'no-empty-function': 'off',
     'react/display-name': 'off',
     'react/prop-types': 'off',
+    'react-hooks/exhaustive-deps': 'off',
     'prettier/prettier': [
       'error',
       {

@@ -4,10 +4,10 @@ import colors from '../../theme/colors';
 import fonts from '../../theme/fonts';
 
 function Button(props) {
-  const {title, onPress, style, textStyle} = props;
+  const {title, onPress, style, textStyle, disabled} = props;
 
   return (
-    <TouchableOpacity onPress={onPress} style={styles.container}>
+    <TouchableOpacity onPress={onPress} style={styles.container} disabled={disabled}>
       <Text style={styles.textContainer}>{title}</Text>
     </TouchableOpacity>
   );
