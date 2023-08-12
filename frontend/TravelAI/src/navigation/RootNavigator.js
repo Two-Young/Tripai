@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import AddTravelScreen from '../screens/AddTravelScreen';
 import AddDateScreen from '../screens/AddDateScreen';
 import AddCustomPlaceScreen from '../screens/AddCustomPlaceScreen';
-import PlaceScreenFromSchedule from '../screens/PlaceScreenFromSchedule';
+import AddAddressScreen from '../screens/AddAddressScreen';
 import {useRecoilState} from 'recoil';
 import userAtom from '../recoil/user/user';
 import Reactotron from 'reactotron-react-native';
@@ -62,7 +62,6 @@ const RootNavigator = () => {
       <Stack.Group>
         <Stack.Screen name="Main" component={MainScreen} />
         <Stack.Screen name="Tab" component={TabNavigator} />
-        <Stack.Screen name="PlaceWithoutTab" component={PlaceScreenFromSchedule} />
       </Stack.Group>
       <Stack.Group
         screenOptions={{
@@ -73,6 +72,7 @@ const RootNavigator = () => {
       </Stack.Group>
       <Stack.Group />
       <Stack.Group>
+        <Stack.Screen name="AddAddress" component={AddAddressScreen} />
         <Stack.Screen name="AddCustomPlace" component={AddCustomPlaceScreen} />
         <Stack.Screen name="AddTravel" component={AddTravelScreen} />
         <Stack.Screen name="AddDate" component={AddDateScreen} />

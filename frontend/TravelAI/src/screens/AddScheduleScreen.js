@@ -6,7 +6,7 @@ import {
   TouchableWithoutFeedback,
   Pressable,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Header as HeaderRNE} from '@rneui/themed';
 import defaultStyle from '../styles/styles';
@@ -33,7 +33,7 @@ const AddScheduleScreen = () => {
   };
 
   const handleSetAddress = () => {
-    navigation.navigate('PlaceWithoutTab', {});
+    navigation.navigate('AddAddress', {});
   };
 
   // memo
@@ -51,6 +51,13 @@ const AddScheduleScreen = () => {
     const minutes = date.getMinutes();
     setStartAt(`${year}-${month}-${day} ${hours}:${minutes}`);
   }, [date]);
+
+  useEffect(() => {
+    if (route.params?.day) {
+      console.log(route.params?.day);
+      setDate(route.params?.day);
+    }
+  }, [route.params?.day]);
 
   React.useEffect(() => {
     if (route.params?.place) {

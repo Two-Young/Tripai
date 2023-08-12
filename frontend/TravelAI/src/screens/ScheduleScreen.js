@@ -10,13 +10,11 @@ import {getSessions, locateDirection} from '../services/api';
 import {ListItem} from '@rneui/base';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import reactotron from 'reactotron-react-native';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
-const GOOGLE_MAPS_APIKEY = 'AIzaSyDfvktC6dAf0oARSwkLrTcVwe1Vi3GEz58';
 
 const DayButton = props => {
   const {day, onPress} = props;
@@ -75,13 +73,12 @@ const ScheduleScreen = () => {
 
   // functions
   const onPressDay = day => {
-    setCurrentDay(day);
+    setCurrentDay(days);
   };
 
-  const onPressAddPlace = React.useCallback(() => {
-    // navigation.navigate('PlaceWithoutTab', {day: currentDay, routeKey: route?.key});
-    navigation.navigate('AddSchedule');
-  }, [navigation, currentDay, route]);
+  const handleAddingSchedule = React.useCallback(() => {
+    navigation.navigate('AddSchedule', {day: days[currentDay - 1]});
+  }, [navigation, currentDay, route, days]);
 
   const getSessionsFromServer = React.useCallback(async () => {
     try {
@@ -228,7 +225,11 @@ const ScheduleScreen = () => {
           onDragEnd={({data}) => setLocations(data)}
           keyExtractor={(item, index) => `draggable-item-${index}`}
           ListFooterComponent={
-            <Button title="Add Place" onPress={onPressAddPlace} containerStyle={{margin: 10}} />
+            <Button
+              title="Add Schedule"
+              onPress={handleAddingSchedule}
+              containerStyle={{margin: 10}}
+            />
           }
         />
       </View>

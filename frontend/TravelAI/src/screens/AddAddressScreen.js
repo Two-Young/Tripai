@@ -15,7 +15,7 @@ import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
 import PlaceImageCard from '../component/atoms/PlaceImageCard';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 
-const PlaceScreenFromSchedule = () => {
+const AddAddressScreen = () => {
   // hooks
   const navigation = useNavigation();
   const route = useRoute();
@@ -130,7 +130,7 @@ const PlaceScreenFromSchedule = () => {
   );
 };
 
-export default PlaceScreenFromSchedule;
+export default AddAddressScreen;
 
 const styles = StyleSheet.create({
   container: {

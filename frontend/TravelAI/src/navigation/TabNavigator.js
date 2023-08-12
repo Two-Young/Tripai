@@ -4,7 +4,6 @@ import HomeScreen from '../screens/HomeScreen';
 import BudgetScreen from '../screens/BudgetScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
 import ChatScreen from '../screens/ChatScreen';
-import PlaceScreen from '../screens/PlaceScreen';
 import colors from '../theme/colors';
 import {Icon} from '@rneui/themed';
 
@@ -19,10 +18,6 @@ const HomeIcon = ({focused}) => {
       color={focused ? colors.primary : colors.grey}
     />
   );
-};
-
-const PlaceIcon = ({focused}) => {
-  return <Icon name="place" size={24} color={focused ? colors.primary : colors.grey} />;
 };
 
 const ScheduleIcon = ({focused}) => {
@@ -65,13 +60,6 @@ const TabNavigator = () => {
         component={HomeScreen}
         options={{
           tabBarIcon: HomeIcon,
-        }}
-      />
-      <Tab.Screen
-        name="Place"
-        component={PlaceScreen}
-        options={{
-          tabBarIcon: PlaceIcon,
         }}
       />
       <Tab.Screen
