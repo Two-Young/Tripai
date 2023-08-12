@@ -5769,6 +5769,13 @@
   optionalDependencies:
     "moment" "^2.29.4"
 
+"react-native-date-picker@^4.2.14":
+  "integrity" "sha512-rP0ycj3I+8x4pIUGjeh7pL+cMPntKccLGX/OXx790bsIM0Hcyg0ZL86kGnnZu9fEUhXlgdr3OK/jhQue5L6kSQ=="
+  "resolved" "https://registry.npmjs.org/react-native-date-picker/-/react-native-date-picker-4.2.14.tgz"
+  "version" "4.2.14"
+  dependencies:
+    "prop-types" "^15.8.1"
+
 "react-native-draggable-flatlist@^4.0.1":
   "integrity" "sha512-ZO1QUTNx64KZfXGXeXcBfql67l38X7kBcJ3rxUVZzPHt5r035GnGzIC0F8rqSXp6zgnwgUYMfB6zQc5PKmPL9Q=="
   "resolved" "https://registry.npmjs.org/react-native-draggable-flatlist/-/react-native-draggable-flatlist-4.0.1.tgz"

@@ -79,7 +79,8 @@ const ScheduleScreen = () => {
   };
 
   const onPressAddPlace = React.useCallback(() => {
-    navigation.navigate('PlaceWithoutTab', {day: currentDay, routeKey: route?.key});
+    // navigation.navigate('PlaceWithoutTab', {day: currentDay, routeKey: route?.key});
+    navigation.navigate('AddSchedule');
   }, [navigation, currentDay, route]);
 
   const getSessionsFromServer = React.useCallback(async () => {

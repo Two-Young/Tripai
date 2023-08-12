@@ -11,7 +11,7 @@ const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#FFC107',
+    primary: '#0D6EFD',
   },
 };
 
@@ -22,9 +22,11 @@ const App = () => {
   	}, []);
   */
 
-  React.useEffect(() => {
+  /*
+      React.useEffect(() => {
     AsyncStorage.clear();
   }, []);
+  */
 
   return (
     <RecoilRoot>

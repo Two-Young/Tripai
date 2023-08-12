@@ -12,6 +12,7 @@ import PlaceScreenFromSchedule from '../screens/PlaceScreenFromSchedule';
 import {useRecoilState} from 'recoil';
 import userAtom from '../recoil/user/user';
 import Reactotron from 'reactotron-react-native';
+import AddScheduleScreen from '../screens/AddScheduleScreen';
 
 const Stack = createStackNavigator();
 
@@ -68,6 +69,7 @@ const RootNavigator = () => {
           ...TransitionPresets.BottomSheetAndroid,
         }}>
         <Stack.Screen name="AddPlace" component={AddPlaceScreen} />
+        <Stack.Screen name="AddSchedule" component={AddScheduleScreen} />
       </Stack.Group>
       <Stack.Group />
       <Stack.Group>
