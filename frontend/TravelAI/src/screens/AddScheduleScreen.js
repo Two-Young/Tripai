@@ -12,7 +12,7 @@ import {Header as HeaderRNE} from '@rneui/themed';
 import defaultStyle from '../styles/styles';
 import {Button, Surface, Text} from 'react-native-paper';
 import DatePicker from 'react-native-date-picker';
-import {useNavigation} from '@react-navigation/native';
+import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 
 const AddScheduleScreen = () => {
   // states
@@ -25,6 +25,7 @@ const AddScheduleScreen = () => {
 
   // hooks
   const navigation = useNavigation();
+  const route = useRoute();
 
   // functions
   const handleAdd = () => {
@@ -50,6 +51,13 @@ const AddScheduleScreen = () => {
     const minutes = date.getMinutes();
     setStartAt(`${year}-${month}-${day} ${hours}:${minutes}`);
   }, [date]);
+
+  React.useEffect(() => {
+    if (route.params?.place) {
+      setAddress(route.params?.place?.address);
+      navigation.dispatch({...CommonActions.setParams({place: null})});
+    }
+  }, [route.params?.place]);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

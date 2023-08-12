@@ -1,48 +1,14 @@
 import React from 'react';
 import {StyleSheet, Keyboard, TouchableWithoutFeedback, FlatList} from 'react-native';
-import {Icon, SearchBar} from '@rneui/themed';
-import {ListItem} from '@rneui/base';
+import {SearchBar} from '@rneui/themed';
 import {CommonActions, useNavigation, useNavigationState} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
 import {createLocation, locateAutoComplete, locateLocation} from '../services/api';
-import PropTypes from 'prop-types';
 import sessionAtom from '../recoil/session/session';
 import {useRecoilValue} from 'recoil';
 import reactotron from 'reactotron-react-native';
-
-const SearchResultItemList = props => {
-  const {item, onPress} = props;
-  return (
-    <ListItem bottomDivider onPress={onPress}>
-      <ListItem.Content>
-        <ListItem.Title>{item.description}</ListItem.Title>
-      </ListItem.Content>
-    </ListItem>
-  );
-};
-
-SearchResultItemList.propTypes = {
-  item: PropTypes.object,
-  onPress: PropTypes.func,
-};
-
-const SearchResultFooterItem = props => {
-  const {onPress} = props;
-  return (
-    <ListItem bottomDivider onPress={onPress}>
-      <ListItem.Content>
-        <ListItem.Title>Add Custom Place</ListItem.Title>
-        <ListItem.Subtitle>Enter the address manually</ListItem.Subtitle>
-      </ListItem.Content>
-      <Icon name="add" />
-    </ListItem>
-  );
-};
-
-SearchResultFooterItem.propTypes = {
-  onPress: PropTypes.func,
-};
+import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
 
 const AddPlaceScreen = () => {
   // hooks
@@ -56,7 +22,7 @@ const AddPlaceScreen = () => {
   const [isZeroResult, setIsZeroResult] = React.useState(false);
 
   // functions
-  const autoCompleteGooglePlace = async keyword => {
+  const autoCompletePlace = async keyword => {
     try {
       const res = await locateAutoComplete(keyword);
       setSearchResult(res);
@@ -98,7 +64,7 @@ const AddPlaceScreen = () => {
   // effects
   React.useEffect(() => {
     if (searchKeyword.length > 0) {
-      autoCompleteGooglePlace(searchKeyword);
+      autoCompletePlace(searchKeyword);
     } else {
       setSearchResult([]);
     }
@@ -116,15 +82,8 @@ const AddPlaceScreen = () => {
             setSearchKeyword('');
           }}
         />
-        <FlatList
-          style={{flex: 1}}
-          data={isZeroResult ? [] : searchResult}
-          renderItem={({item}) => (
-            <SearchResultItemList item={item} onPress={() => onPressListItem(item)} />
-          )}
-          ListFooterComponent={
-            searchResult.length > 0 && <SearchResultFooterItem onPress={onPressFooterItem} />
-          }
+        <SearchResultFlatList
+          {...{isZeroResult, searchResult, onPressListItem, onPressFooterItem}}
         />
       </SafeAreaView>
     </TouchableWithoutFeedback>

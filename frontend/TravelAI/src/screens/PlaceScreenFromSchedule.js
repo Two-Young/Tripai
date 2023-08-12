@@ -1,103 +1,140 @@
-import {StyleSheet, View, FlatList} from 'react-native';
+import {StyleSheet, View, Pressable, Keyboard, FlatList, Touchable} from 'react-native';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
-import {FAB, Header as HeaderRNE} from '@rneui/themed';
-import PlaceListItem from '../component/molecules/PlaceListItem';
-import colors from '../theme/colors';
-import {useNavigation, useRoute, CommonActions} from '@react-navigation/native';
+import {Header as HeaderRNE} from '@rneui/themed';
+import {useNavigation, useRoute, CommonActions, useNavigationState} from '@react-navigation/native';
 import _ from 'lodash';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import {getLocations} from '../services/api';
+import {createLocation, getLocations, locateAutoComplete, locateLocation} from '../services/api';
+import {Searchbar, Text} from 'react-native-paper';
+import reactotron from 'reactotron-react-native';
+
+import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
+import PlaceImageCard from '../component/atoms/PlaceImageCard';
+import {TouchableOpacity} from 'react-native-gesture-handler';
 
 const PlaceScreenFromSchedule = () => {
   // hooks
   const navigation = useNavigation();
   const route = useRoute();
+  const navigationState = useNavigationState(state => state);
   const currentSessionID = useRecoilValue(sessionAtom);
 
   // states
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchResult, setSearchResult] = React.useState([]);
+  const [isZeroResult, setIsZeroResult] = React.useState(false);
   const [places, setPlaces] = React.useState([]);
-  const [refreshing, setRefreshing] = React.useState(false);
 
   // functions
-  const onPressAddPlace = React.useCallback(() => {
-    navigation.navigate('AddPlace', {routeKey: route?.key});
-  }, [navigation, route]);
-
-  const onPressPlace = React.useCallback(
-    place => {
-      navigation.dispatch({
-        ...CommonActions.setParams({place, day: route.params?.day}),
-        source: route.params?.routeKey,
-      });
-      navigation.goBack();
-    },
-    [navigation],
-  );
+  const autoCompletePlace = async keyword => {
+    try {
+      const res = await locateAutoComplete(keyword);
+      setSearchResult(res);
+      setIsZeroResult(false);
+    } catch (error) {
+      setSearchResult([]);
+      setIsZeroResult(true);
+      throw error.response.data;
+    }
+  };
 
   const getPlacesFromServer = React.useCallback(async () => {
     const res = await getLocations(currentSessionID);
     setPlaces(res);
   }, [currentSessionID]);
 
-  const onRefresh = React.useCallback(async () => {
-    try {
-      if (!refreshing) {
-        setRefreshing(true);
-        await getPlacesFromServer();
-        setRefreshing(false);
-      }
-    } catch (err) {
-      console.error(err);
-      setRefreshing(false);
-    }
-  }, [refreshing, getPlacesFromServer]);
+  const onPressPlace = React.useCallback(
+    place => {
+      const addScheuleScreen = navigationState.routes[navigationState.routes.length - 2];
+      navigation.dispatch({
+        ...CommonActions.setParams({place: place}),
+        source: addScheuleScreen.key,
+      });
+      navigation.goBack();
+    },
+    [navigation],
+  );
 
-  // effects
+  const onPressListItem = async item => {
+    try {
+      Keyboard.dismiss();
+
+      const place = await locateLocation(item.place_id);
+
+      const addScheuleScreen = navigationState.routes[navigationState.routes.length - 2];
+      navigation.dispatch({
+        ...CommonActions.setParams({place: place}),
+        source: addScheuleScreen.key,
+      });
+      navigation.goBack();
+    } catch (error) {
+      console.error(error);
+      throw error.response.data;
+    }
+  };
+
+  const onPressFooterItem = () => {
+    navigation.navigate('AddCustomPlace');
+  };
+
+  // useEffect
   React.useEffect(() => {
     if (currentSessionID) {
-      getPlacesFromServer();
+      getPlacesFromServer().then(() => {});
     }
   }, [currentSessionID]);
 
   React.useEffect(() => {
-    if (route.params?.place) {
-      // setPlaces(_.uniqWith([...places, route.params?.place], _.isEqual));
-      getPlacesFromServer();
-      navigation.dispatch({...CommonActions.setParams({place: null})});
+    if (searchQuery.length > 0) {
+      autoCompletePlace(searchQuery);
+    } else {
+      setSearchResult([]);
     }
-  }, [route.params?.place]);
+  }, [searchQuery]);
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
-      <View style={defaultStyle.container}>
+    <Pressable onPress={Keyboard.dismiss} style={{flex: 1}}>
+      <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
         <HeaderRNE
           backgroundColor="#fff"
           barStyle="dark-content"
           centerComponent={{text: 'Location', style: defaultStyle.heading}}
         />
-        <FlatList
-          data={places}
-          renderItem={item => (
-            <PlaceListItem item={item.item} setArr={setPlaces} onPress={onPressPlace} />
+        <View style={styles.container}>
+          <Searchbar value={searchQuery} onChangeText={setSearchQuery} />
+          {searchQuery.length > 0 ? (
+            <SearchResultFlatList
+              {...{isZeroResult, searchResult, onPressListItem, onPressFooterItem}}
+            />
+          ) : (
+            <React.Fragment>
+              <Text>Quick Select</Text>
+              <FlatList
+                contentContainerStyle={{paddingTop: 16}}
+                data={places}
+                numColumns={2}
+                renderItem={({item}) => (
+                  <TouchableOpacity onPress={() => onPressPlace(item)}>
+                    <PlaceImageCard name={item.name} photo_reference={item.photo_reference} />
+                  </TouchableOpacity>
+                )}
+              />
+            </React.Fragment>
           )}
-          keyExtractor={item => item.location_id}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-        />
-        <FAB
-          placement="right"
-          icon={{name: 'add', color: 'white'}}
-          color={colors.primary}
-          onPress={onPressAddPlace}
-        />
-      </View>
-    </SafeAreaView>
+        </View>
+      </SafeAreaView>
+    </Pressable>
   );
 };
 
 export default PlaceScreenFromSchedule;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+});
