@@ -6,11 +6,23 @@ import (
 	"travel-ai/service/database"
 )
 
-func ValidateDateString(dateString string) (time.Time, error) {
+func GetDayCode(date time.Time) int64 {
+	return date.Unix() / 86400
+}
+
+func ConvertDateString(dateString string) (time.Time, error) {
 	date, err := time.Parse("2006-01-02", dateString)
 	if err != nil {
 		return time.Now(), err
 	}
+	return date, nil
+}
+
+func ConvertDateInt64(dateInt64 int64) (time.Time, error) {
+	if dateInt64 <= 0 {
+		return time.Now(), nil
+	}
+	date := time.UnixMilli(dateInt64)
 	return date, nil
 }
 

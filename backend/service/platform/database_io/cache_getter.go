@@ -5,7 +5,7 @@ import (
 	"errors"
 	"travel-ai/log"
 	"travel-ai/service/database"
-	"travel-ai/third_party/google_cloud/maps"
+	"travel-ai/third_party/google_cloud/places"
 )
 
 var (
@@ -20,7 +20,7 @@ func GetPlaceDetailCache(ctx context.Context, placeId string) (*database.PlaceDe
 	}
 	if cache == nil {
 		// check for api
-		result, err := maps.GetPlaceDetail(placeId)
+		result, err := places.GetPlaceDetail(placeId)
 		if err != nil {
 			return nil, err
 		}

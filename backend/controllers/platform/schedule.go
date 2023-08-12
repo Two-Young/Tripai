@@ -13,7 +13,7 @@ import (
 	"travel-ai/service/platform/database_io"
 )
 
-func Locations(c *gin.Context) {
+func Schedules(c *gin.Context) {
 	rawUid, ok := c.Get("uid")
 	if !ok {
 		log.Error("uid not found")
@@ -22,7 +22,7 @@ func Locations(c *gin.Context) {
 	}
 	uid := rawUid.(string)
 
-	var query locationsRequestDto
+	var query schedulesRequestDto
 	if err := c.ShouldBindQuery(&query); err != nil {
 		log.Error(err)
 		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query")
@@ -41,38 +41,30 @@ func Locations(c *gin.Context) {
 		return
 	}
 
-	// get locations
-	var locations []database.LocationEntity
-	if err := database.DB.Select(
-		&locations,
-		"SELECT lid, place_id, name, latitude, longitude, photo_reference, address FROM locations WHERE sid = ?;",
-		query.SessionId,
-	); err != nil {
+	// get schedules
+	schedules, err := database_io.GetSchedulesByDayCode(query.SessionId, query.Day)
+	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
 		return
 	}
 
-	locationResp := make(locationsResponseDto, 0)
-	for _, l := range locations {
-		item := locationsResponseItem{
-			LocationId:     *l.LocationId,
-			PlaceId:        *l.PlaceId,
-			Name:           *l.Name,
-			Latitude:       *l.Latitude,
-			Longitude:      *l.Longitude,
-			PhotoReference: "",
-			Address:        *l.Address,
-		}
-		if l.PhotoReference != nil {
-			item.PhotoReference = *l.PhotoReference
-		}
-		locationResp = append(locationResp, item)
+	resp := make(schedulesResponseDto, 0)
+	for _, s := range schedules {
+		resp = append(resp, schedulesResponseItem{
+			ScheduleId:     *s.ScheduleId,
+			Name:           *s.Name,
+			PhotoReference: *s.PhotoReference,
+			PlaceId:        *s.PlaceId,
+			Address:        *s.Address,
+			StartAt:        s.StartAt.UnixMilli(),
+		})
 	}
-	c.JSON(http.StatusOK, locationResp)
+
+	c.JSON(http.StatusOK, resp)
 }
 
-func CreateLocation(c *gin.Context) {
+func CreateSchedule(c *gin.Context) {
 	rawUid, ok := c.Get("uid")
 	if !ok {
 		log.Error("uid not found")
@@ -81,14 +73,20 @@ func CreateLocation(c *gin.Context) {
 	}
 	uid := rawUid.(string)
 
-	var body locationCreateRequestDto
+	var body scheduleCreateRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
 		log.Error(err)
 		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	// check if user has permission to create location
+	// validate body
+	if body.Name == "" {
+		util.AbortWithStrJson(c, http.StatusBadRequest, "name is required")
+		return
+	}
+
+	// check if user has permission to create schedule
 	yes, err := platform.DidParticipateInSession(uid, body.SessionId)
 	if err != nil {
 		log.Error(err)
@@ -100,6 +98,34 @@ func CreateLocation(c *gin.Context) {
 		return
 	}
 
+	// get session
+	session, err := database_io.GetSession(body.SessionId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// milliseconds to time
+	startAt, err := platform.ConvertDateInt64(body.StartAt)
+	if err != nil {
+		log.Error(err)
+		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid start_at")
+		return
+	}
+
+	// get day
+	sessionStartDayCode := platform.GetDayCode(*session.StartAt)
+	sessionEndDayCode := platform.GetDayCode(*session.EndAt)
+	startAtDayCode := platform.GetDayCode(startAt)
+	dayIndex := startAtDayCode - sessionStartDayCode + 1
+
+	if startAtDayCode > sessionEndDayCode || startAtDayCode < sessionStartDayCode {
+		log.Error(err)
+		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid start_at: out of session schedule range")
+		return
+	}
+
 	// get place detail
 	cache, err := database_io.GetPlaceDetailCache(c, body.PlaceId)
 	if err != nil {
@@ -108,14 +134,19 @@ func CreateLocation(c *gin.Context) {
 		return
 	}
 
-	// create location entity
-	locationId := uuid.New().String()
+	var placeId *string
+	if body.PlaceId == "" {
+		placeId = nil
+	} else {
+		placeId = &body.PlaceId
+	}
+
+	// create schedule entity
+	scheduleId := uuid.New().String()
 	if _, err := database.DB.Exec(
-		"INSERT INTO locations (lid, place_id, name, latitude, longitude, address, photo_reference, sid) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
-		locationId, body.PlaceId,
-		*cache.Name, *cache.Latitude,
-		*cache.Longitude, *cache.Address,
-		*cache.PhotoReference, body.SessionId,
+		"INSERT INTO schedules (sscid, name, photo_reference, place_id, address, day, start_at, sid) VALUES (?, ?, ?, ?, ?, ?, ?);",
+		scheduleId, body.Name, cache.PhotoReference, placeId,
+		cache.Address, dayIndex, startAt, body.SessionId,
 	); err != nil {
 		var mysqlErr *mysql.MySQLError
 		if ok := errors.As(err, &mysqlErr); ok && mysqlErr.Number == 1062 {
@@ -126,12 +157,9 @@ func CreateLocation(c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-
-	// return location id
-	c.JSON(http.StatusOK, locationId)
 }
 
-func DeleteLocation(c *gin.Context) {
+func DeleteSchedule(c *gin.Context) {
 	rawUid, ok := c.Get("uid")
 	if !ok {
 		log.Error("uid not found")
@@ -140,23 +168,23 @@ func DeleteLocation(c *gin.Context) {
 	}
 	uid := rawUid.(string)
 
-	var body locationDeleteRequestDto
+	var body scheduleDeleteRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
 		log.Error(err)
 		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	// find session id by location id
-	sessionId, err := platform.FindSessionIdByLocationId(body.LocationId)
+	// get session id by schedule id
+	schedule, err := database_io.GetSchedule(body.ScheduleId)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
+		util.AbortWithStrJson(c, http.StatusBadRequest, "schedule not found")
 		return
 	}
 
-	// check if user has permission to create location
-	yes, err := platform.DidParticipateInSession(uid, sessionId)
+	// check if user has permission to delete location
+	yes, err := platform.DidParticipateInSession(uid, *schedule.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -167,10 +195,10 @@ func DeleteLocation(c *gin.Context) {
 		return
 	}
 
-	// delete location entity
+	// delete schedule entity
 	if _, err := database.DB.Exec(
-		"DELETE FROM locations WHERE lid = ?;",
-		body.LocationId,
+		"DELETE FROM schedules WHERE sscid = ?;",
+		body.ScheduleId,
 	); err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -180,9 +208,9 @@ func DeleteLocation(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func UseLocationRouter(g *gin.RouterGroup) {
-	rg := g.Group("/location")
-	rg.GET("", Locations)
-	rg.PUT("", CreateLocation)
-	rg.DELETE("", DeleteLocation)
+func UseScheduleRouter(g *gin.RouterGroup) {
+	rg := g.Group("/schedule")
+	rg.GET("", Schedules)
+	rg.PUT("", CreateSchedule)
+	rg.DELETE("", DeleteSchedule)
 }

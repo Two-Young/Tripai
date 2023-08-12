@@ -10,6 +10,7 @@ func UsePlatformRouter(r *gin.Engine) {
 	g.Use(middlewares.AuthMiddleware)
 	UseLocateRouter(g)
 	UseLocationRouter(g)
+	UseScheduleRouter(g)
 	UseSessionRouter(g)
 	UseChatRouter(g)
 	UseBudgetRouter(g)

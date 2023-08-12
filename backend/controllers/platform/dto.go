@@ -102,3 +102,31 @@ type locationCreateRequestDto struct {
 type locationDeleteRequestDto struct {
 	LocationId string `json:"location_id" binding:"required"`
 }
+
+/* ---------------- Schedule ---------------- */
+type schedulesRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+	Day       int64  `form:"day" binding:"required"`
+}
+
+type schedulesResponseItem struct {
+	ScheduleId     string `json:"schedule_id"`
+	Name           string `json:"name"`
+	PhotoReference string `json:"photo_reference"`
+	PlaceId        string `json:"place_id"`
+	Address        string `json:"address"`
+	StartAt        int64  `json:"start_at"`
+}
+
+type schedulesResponseDto []schedulesResponseItem
+
+type scheduleCreateRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
+	PlaceId   string `json:"place_id" binding:"required"`
+	Name      string `json:"name" binding:"required"`
+	StartAt   int64  `json:"start_at" binding:"required"`
+}
+
+type scheduleDeleteRequestDto struct {
+	ScheduleId string `json:"schedule_id" binding:"required"`
+}

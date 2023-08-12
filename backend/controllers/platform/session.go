@@ -88,13 +88,13 @@ func CreateSession(c *gin.Context) {
 	}
 
 	// check if start_at and end_at are valid
-	startAt, sErr := platform.ValidateDateString(body.StartAt)
+	startAt, sErr := platform.ConvertDateString(body.StartAt)
 	if sErr != nil {
 		log.Error(sErr)
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid start_at")
 		return
 	}
-	endAt, eErr := platform.ValidateDateString(body.EndAt)
+	endAt, eErr := platform.ConvertDateString(body.EndAt)
 	if eErr != nil {
 		log.Error(eErr)
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid end_at")

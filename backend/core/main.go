@@ -10,7 +10,7 @@ import (
 	"travel-ai/service/database"
 	"travel-ai/service/platform"
 	"travel-ai/third_party/google_cloud/cloud_vision"
-	"travel-ai/third_party/google_cloud/maps"
+	"travel-ai/third_party/google_cloud/places"
 	"travel-ai/third_party/open_ai"
 	"travel-ai/third_party/others"
 )
@@ -73,7 +73,7 @@ func main() {
 	crypto.Initialize()
 	open_ai.Initialize()
 	cloud_vision.Initialize()
-	maps.Initialize()
+	places.Initialize()
 	others.Initialize()
 
 	// Preload

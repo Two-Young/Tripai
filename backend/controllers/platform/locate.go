@@ -8,7 +8,7 @@ import (
 	"travel-ai/log"
 	"travel-ai/service/platform"
 	"travel-ai/service/platform/database_io"
-	"travel-ai/third_party/google_cloud/maps"
+	"travel-ai/third_party/google_cloud/places"
 )
 
 func AutoComplete(c *gin.Context) {
@@ -18,7 +18,7 @@ func AutoComplete(c *gin.Context) {
 		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	result, err := maps.GetAutoComplete(body.Input)
+	result, err := places.GetAutoComplete(body.Input)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusBadRequest, err)
@@ -71,7 +71,7 @@ func Pin(c *gin.Context) {
 		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query")
 		return
 	}
-	result, err := maps.GetPlaceByLatLng(query.Latitude, query.Longitude)
+	result, err := places.GetPlaceByLatLng(query.Latitude, query.Longitude)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusBadRequest, err)
@@ -99,7 +99,7 @@ func PlacePhoto(c *gin.Context) {
 		util.AbortWithErrJson(c, http.StatusBadRequest, errors.New("invalid request query"))
 		return
 	}
-	result, err := maps.GetPlacePhoto(query.Reference, query.MaxWidth)
+	result, err := places.GetPlacePhoto(query.Reference, query.MaxWidth)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusBadRequest, err)
@@ -133,7 +133,7 @@ func Direction(c *gin.Context) {
 	originLatLng := *originCache.LatLng
 	destLatLng := *destCache.LatLng
 
-	result, err := maps.GetPlaceDirection(originLatLng, destLatLng)
+	result, err := places.GetPlaceDirection(originLatLng, destLatLng)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusBadRequest, err)

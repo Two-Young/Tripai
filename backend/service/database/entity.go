@@ -40,6 +40,16 @@ type LocationEntity struct {
 	SessionId      *string  `db:"sid" json:"session_id"`
 }
 
+type ScheduleEntity struct {
+	ScheduleId     *string    `db:"schid" json:"schedule_id"`
+	Name           *string    `db:"name" json:"name"`
+	PhotoReference *string    `db:"photo_reference" json:"photo_reference"`
+	PlaceId        *string    `db:"place_id" json:"place_id"`
+	Address        *string    `db:"address" json:"address"`
+	StartAt        *time.Time `db:"start_at" json:"start_at"`
+	SessionId      *string    `db:"sid" json:"session_id"`
+}
+
 type SessionThumbnailCacheEntity struct {
 	Keyword *string `db:"keyword" json:"keyword"`
 	Url     *string `db:"url" json:"url"`
