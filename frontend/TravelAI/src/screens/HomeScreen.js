@@ -15,7 +15,8 @@ const HomeScreen = () => {
   // hooks
   const navigation = useNavigation();
   const route = useRoute();
-  const currentSessionID = useRecoilValue(sessionAtom);
+  const currentSession = useRecoilValue(sessionAtom);
+  const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
   // states
   const [places, setPlaces] = React.useState([]);
@@ -47,10 +48,10 @@ const HomeScreen = () => {
 
   // effects
   React.useEffect(() => {
-    if (currentSessionID) {
+    if (currentSession) {
       getPlacesFromServer().then(() => {});
     }
-  }, [currentSessionID]);
+  }, [currentSession]);
 
   React.useEffect(() => {
     if (route.params?.place) {

@@ -13,8 +13,9 @@ import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
 const AddPlaceScreen = () => {
   // hooks
   const navigation = useNavigation();
-  const currentSessionId = useRecoilValue(sessionAtom);
   const navigationState = useNavigationState(state => state);
+  const currentSession = useRecoilValue(sessionAtom);
+  const currentSessionID = currentSession?.session_id;
 
   // states
   const [searchKeyword, setSearchKeyword] = React.useState('');
@@ -40,7 +41,7 @@ const AddPlaceScreen = () => {
 
       const place = await locateLocation(item.place_id);
       const {place_id} = place;
-      await createLocation(currentSessionId, place_id);
+      await createLocation(currentSessionID, place_id);
 
       /* */
       reactotron.log('navigationState', navigationState.routes[navigationState.routes.length - 2]);

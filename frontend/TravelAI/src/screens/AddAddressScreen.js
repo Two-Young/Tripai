@@ -1,5 +1,5 @@
 import {StyleSheet, View, Pressable, Keyboard, FlatList, Touchable} from 'react-native';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
 import {Header as HeaderRNE} from '@rneui/themed';
@@ -7,10 +7,8 @@ import {useNavigation, useRoute, CommonActions, useNavigationState} from '@react
 import _ from 'lodash';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import {createLocation, getLocations, locateAutoComplete, locateLocation} from '../services/api';
+import {getLocations, locateAutoComplete, locateLocation} from '../services/api';
 import {Searchbar, Text} from 'react-native-paper';
-import reactotron from 'reactotron-react-native';
-
 import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
 import PlaceImageCard from '../component/atoms/PlaceImageCard';
 import {TouchableOpacity} from 'react-native-gesture-handler';
@@ -18,9 +16,10 @@ import {TouchableOpacity} from 'react-native-gesture-handler';
 const AddAddressScreen = () => {
   // hooks
   const navigation = useNavigation();
-  const route = useRoute();
   const navigationState = useNavigationState(state => state);
-  const currentSessionID = useRecoilValue(sessionAtom);
+  const currentSession = useRecoilValue(sessionAtom);
+
+  const currentSessionID = useMemo(() => currentSession?.session_id, [currentSession]);
 
   // states
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -82,10 +81,10 @@ const AddAddressScreen = () => {
 
   // useEffect
   React.useEffect(() => {
-    if (currentSessionID) {
+    if (currentSession) {
       getPlacesFromServer().then(() => {});
     }
-  }, [currentSessionID]);
+  }, [currentSession]);
 
   React.useEffect(() => {
     if (searchQuery.length > 0) {
@@ -105,25 +104,29 @@ const AddAddressScreen = () => {
         />
         <View style={styles.container}>
           <Searchbar value={searchQuery} onChangeText={setSearchQuery} />
-          {searchQuery.length > 0 ? (
-            <SearchResultFlatList
-              {...{isZeroResult, searchResult, onPressListItem, onPressFooterItem}}
-            />
-          ) : (
-            <React.Fragment>
-              <Text>Quick Select</Text>
-              <FlatList
-                contentContainerStyle={{paddingTop: 16}}
-                data={places}
-                numColumns={2}
-                renderItem={({item}) => (
-                  <TouchableOpacity onPress={() => onPressPlace(item)}>
-                    <PlaceImageCard name={item.name} photo_reference={item.photo_reference} />
-                  </TouchableOpacity>
+          <FlatList
+            style={{flex: 1}}
+            ListHeaderComponent={() => (
+              <React.Fragment>
+                {searchQuery.length > 0 && (
+                  <SearchResultFlatList
+                    {...{isZeroResult, searchResult, onPressListItem, onPressFooterItem}}
+                  />
                 )}
-              />
-            </React.Fragment>
-          )}
+                <Text>Quick Select</Text>
+              </React.Fragment>
+            )}
+            contentContainerStyle={{paddingTop: 16}}
+            data={places.filter(place =>
+              place.name.toLowerCase().includes(searchQuery.toLowerCase()),
+            )}
+            numColumns={2}
+            renderItem={({item}) => (
+              <TouchableOpacity onPress={() => onPressPlace(item)}>
+                <PlaceImageCard name={item.name} photo_reference={item.photo_reference} />
+              </TouchableOpacity>
+            )}
+          />
         </View>
       </SafeAreaView>
     </Pressable>

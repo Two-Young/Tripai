@@ -6,7 +6,7 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import defaultStyle from './../styles/styles';
 import {Button, Header as HeaderRNE} from '@rneui/themed';
 import DraggableFlatList from 'react-native-draggable-flatlist';
-import {getSessions, locateDirection} from '../services/api';
+import {getSchedules, getSessions, locateDirection} from '../services/api';
 import {ListItem} from '@rneui/base';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
@@ -48,11 +48,14 @@ const ScheduleScreen = () => {
   // hooks
   const navigation = useNavigation();
   const route = useRoute();
-  const currentSessionID = useRecoilValue(sessionAtom);
+  const currentSession = useRecoilValue(sessionAtom);
+
+  const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
   // states
   const [days, setDays] = React.useState([]);
-  const [currentDay, setCurrentDay] = React.useState(1);
+  const [currentDay, setCurrentDay] = React.useState(-1);
+  const [schedules, setSchedules] = React.useState([]);
   const [locations, setLocations] = React.useState([]);
   const [coords, setCoords] = React.useState([]); // [Place
 
@@ -80,11 +83,11 @@ const ScheduleScreen = () => {
     navigation.navigate('AddSchedule', {day: days[currentDay - 1]});
   }, [navigation, currentDay, route, days]);
 
-  const getSessionsFromServer = React.useCallback(async () => {
+  const fetchSessionsData = React.useCallback(async () => {
     try {
       const res = await getSessions();
-      const currentSession = res.find(session => session.session_id === currentSessionID);
-      const {start_at, end_at} = currentSession;
+      const target = res.find(session => session.session_id === currentSessionID);
+      const {start_at, end_at} = target;
       const startDate = new Date(start_at);
       const endDate = new Date(end_at);
       let tempDays = [];
@@ -92,15 +95,25 @@ const ScheduleScreen = () => {
         tempDays.push(new Date(i));
       }
       setDays(tempDays);
+      setCurrentDay(1);
     } catch (err) {
       console.error(err);
     }
   }, [currentSessionID, setDays, getSessions]);
 
+  const fetchPlatformScheduleData = React.useCallback(async () => {
+    try {
+      const res = await getSchedules(currentSessionID, currentDay);
+      const {data} = res;
+    } catch (err) {
+      console.error(err);
+    }
+  }, [currentSessionID, currentDay]);
+
   // effects
   React.useEffect(() => {
     if (currentSessionID) {
-      getSessionsFromServer();
+      fetchSessionsData();
     }
   }, []);
 
@@ -110,6 +123,12 @@ const ScheduleScreen = () => {
       setLocations(prev => [...prev, place]);
     }
   }, [route.params]);
+
+  React.useEffect(() => {
+    if (currentSessionID && currentDay > 0) {
+      fetchPlatformScheduleData(currentSessionID, currentDay);
+    }
+  }, [currentSessionID, currentDay]);
 
   React.useEffect(() => {
     if (locations.length > 1) {
@@ -193,7 +212,7 @@ const ScheduleScreen = () => {
           </MapView>
         </View>
         <FlatList
-          style={{flexGrow: 0}}
+          style={{flexGrow: 0, marginVertical: 10}}
           containerStyle={{flex: 1}}
           horizontal
           showsHorizontalScrollIndicator={false}

@@ -247,10 +247,24 @@ export const createSession = async (country_codes, start_at, end_at) => {
 
 export const deleteSession = async session_id => {
   try {
-    console.log(session_id);
     const response = await api.delete('/platform/session', {
       data: {
         session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};
+
+// platform - schedule
+export const getSchedules = async (session_id, day) => {
+  try {
+    const response = await api.get('/platform/schedule', {
+      params: {
+        session_id,
+        day,
       },
     });
     return response.data;
