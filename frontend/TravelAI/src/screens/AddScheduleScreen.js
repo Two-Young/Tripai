@@ -54,7 +54,6 @@ const AddScheduleScreen = () => {
 
   useEffect(() => {
     if (route.params?.day) {
-      console.log(route.params?.day);
       setDate(route.params?.day);
     }
   }, [route.params?.day]);

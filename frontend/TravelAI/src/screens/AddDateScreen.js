@@ -8,7 +8,6 @@ import {CommonActions, useNavigation, useNavigationState, useRoute} from '@react
 import {createSession} from '../services/api';
 import {useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import reactotron from 'reactotron-react-native';
 
 const today = new Date();
 const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -23,7 +22,7 @@ const AddDateScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const navigationState = useNavigationState(state => state);
-  const setCurrentSessionID = useSetRecoilState(sessionAtom);
+  const setCurrentSession = useSetRecoilState(sessionAtom);
 
   // functions
   const onDayPress = day => {
@@ -49,14 +48,16 @@ const AddDateScreen = () => {
     });
     navigation.pop(2);
     navigation.navigate('Tab');
-    setCurrentSessionID(res);
+    setCurrentSession({
+      session_id: res.session_id,
+    });
   }, [
     firstDate,
     lastDate,
     route.params?.countries,
     navigationState.routes,
     navigation,
-    setCurrentSessionID,
+    setCurrentSession,
   ]);
 
   // effects
