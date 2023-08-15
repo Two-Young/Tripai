@@ -2,12 +2,13 @@ import {StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {CalendarList} from 'react-native-calendars';
-import {Button} from '@rneui/themed';
 import defaultStyle from '../styles/styles';
 import {CommonActions, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {createSession} from '../services/api';
 import {useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
+import {Button, IconButton} from 'react-native-paper';
+import {Header} from '@rneui/themed';
 
 const today = new Date();
 const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -17,6 +18,7 @@ const AddDateScreen = () => {
   const [firstDate, setFirstDate] = React.useState(null);
   const [lastDate, setLastDate] = React.useState(null);
   const [marked, setMarked] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
 
   // hooks
   const navigation = useNavigation();
@@ -39,26 +41,26 @@ const AddDateScreen = () => {
     }
   };
 
-  const onPressNext = React.useCallback(async () => {
-    const res = await createSession(route.params.countries, firstDate, lastDate ?? firstDate);
-    const index = navigationState.routes.findIndex(r => r.name === 'Main');
-    navigation.dispatch({
-      ...CommonActions.setParams({refresh: true}),
-      source: navigationState.routes[index].key,
-    });
-    navigation.pop(2);
-    navigation.navigate('Tab');
-    setCurrentSession({
-      session_id: res.session_id,
-    });
-  }, [
-    firstDate,
-    lastDate,
-    route.params?.countries,
-    navigationState.routes,
-    navigation,
-    setCurrentSession,
-  ]);
+  const onPressCreate = async () => {
+    try {
+      setLoading(true);
+      const res = await createSession(route.params.countries, firstDate, lastDate ?? firstDate);
+      const index = navigationState.routes.findIndex(r => r.name === 'Main');
+      navigation.dispatch({
+        ...CommonActions.setParams({refresh: true}),
+        source: navigationState.routes[index].key,
+      });
+      navigation.pop(2);
+      navigation.navigate('Tab');
+      setCurrentSession({
+        session_id: res,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // effects
   React.useEffect(() => {
@@ -108,8 +110,21 @@ const AddDateScreen = () => {
   // rendering
   return (
     <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
-      <View style={[styles.container, {paddingBottom: 12}]}>
-        <Text>Choose the date you want to add to your travel.</Text>
+      <Header
+        backgroundColor="#fff"
+        barStyle="dark-content"
+        leftComponent={
+          <IconButton
+            mode="contained"
+            icon="chevron-left"
+            iconColor="#000"
+            onPress={() => navigation.goBack()}
+          />
+        }
+        centerComponent={{text: 'Choose the date', style: defaultStyle.heading}}
+      />
+      <View style={styles.container}>
+        <Text style={styles.description}>Choose the date you want to add to your travel.</Text>
         <CalendarList
           pastScrollRange={0}
           futureScrollRange={12}
@@ -121,15 +136,15 @@ const AddDateScreen = () => {
           onDayPress={onDayPress}
         />
       </View>
-      <View style={{padding: 12}}>
-        <Button
-          onPress={onPressNext}
-          title="Create"
-          disabled={!firstDate && !lastDate}
-          buttonStyle={defaultStyle.button}
-          titleStyle={defaultStyle.buttonContent}
-        />
-      </View>
+      <Button
+        style={styles.createBtn}
+        contentStyle={styles.createBtnContent}
+        mode="contained"
+        onPress={onPressCreate}
+        disabled={!firstDate && !lastDate}
+        loading={loading}>
+        {loading ? 'Creating...' : 'Create'}
+      </Button>
     </SafeAreaView>
   );
 };
@@ -139,6 +154,20 @@ export default AddDateScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
+  },
+  description: {
+    paddingHorizontal: 80,
+    fontSize: 15,
+    textAlign: 'center',
+    color: '#808080',
+    marginBottom: 10,
+  },
+  createBtn: {
+    borderRadius: 5,
+    margin: 10,
+  },
+  createBtnContent: {
+    height: 50,
   },
 });
