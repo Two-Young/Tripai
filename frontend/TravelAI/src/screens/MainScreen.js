@@ -1,21 +1,20 @@
 import {FlatList, StyleSheet, Text, View, Image, Alert} from 'react-native';
-import React, {Suspense} from 'react';
+import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
-import {Header, Icon} from '@rneui/themed';
-import {Button, IconButton, Surface} from 'react-native-paper';
+import {Header} from '@rneui/themed';
+import {Button, IconButton, Portal, Snackbar, Surface} from 'react-native-paper';
 import defaultStyle from '../styles/styles';
-import {deleteSession, getSessions, locateCountries} from '../services/api';
-import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
+import {deleteSession, getSessions} from '../services/api';
+import {useRecoilValue, useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import countriesAtom from '../recoil/countries/countries';
 import userAtom from '../recoil/user/user';
 
 const MainScreen = () => {
   /* states */
   const [sessions, setSessions] = React.useState([]); // 세션 목록
-  const [countries, setCountries] = useRecoilState(countriesAtom); // 국가 목록
   const [refreshing, setRefreshing] = React.useState(false); // refresh 여부
+  const [snackbarVisible, setSnackbarVisible] = React.useState(false); // snackbar visible 여부
 
   /* hooks */
   const navigation = useNavigation();
@@ -49,6 +48,7 @@ const MainScreen = () => {
     try {
       await deleteSession(session.session_id);
       setSessions(sessions.filter(sess => sess.session_id !== session.session_id));
+      setSnackbarVisible(true);
     } catch (err) {
       console.error(err);
     }
@@ -56,8 +56,12 @@ const MainScreen = () => {
 
   // 세션 목록 가져오기
   const fetchSessions = async () => {
-    const res = await getSessions();
-    setSessions(res);
+    try {
+      const res = await getSessions();
+      setSessions(res);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // 새로고침
@@ -66,10 +70,10 @@ const MainScreen = () => {
       if (!refreshing) {
         setRefreshing(true);
         await fetchSessions();
-        setRefreshing(false);
       }
     } catch (err) {
       console.error(err);
+    } finally {
       setRefreshing(false);
     }
   };
@@ -116,9 +120,6 @@ const MainScreen = () => {
           renderItem={({item}) => (
             <TravelItem
               travel={item}
-              countries={countries.filter(country =>
-                item.country_codes.includes(country.country_code),
-              )}
               onPress={() => onPressSession(item)}
               onPressDelete={() => onPressDeleteSession(item)}
             />
@@ -135,6 +136,16 @@ const MainScreen = () => {
           onPress={onPressCreateNewTravel}>
           Create New Travel
         </Button>
+        <Portal>
+          <Snackbar
+            visible={snackbarVisible}
+            onDismiss={() => setSnackbarVisible(false)}
+            action={{
+              label: 'Close',
+            }}>
+            Delete Success!
+          </Snackbar>
+        </Portal>
       </View>
     </SafeAreaView>
   );
