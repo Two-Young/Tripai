@@ -1,5 +1,5 @@
 import {Dimensions, Keyboard, StyleSheet, Text, TouchableWithoutFeedback, View} from 'react-native';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
 import {Header as HeaderRNE, Button} from '@rneui/themed';
@@ -18,7 +18,9 @@ const AddCustomPlaceScreen = () => {
   // hooks
   const navigation = useNavigation();
   const navigationState = useNavigationState(state => state);
-  const currentSessionID = useRecoilValue(sessionAtom);
+  const currentSession = useRecoilValue(sessionAtom);
+
+  const currentSessionID = useMemo(() => currentSession?.session_id, [currentSession]);
 
   // states
   const [marker, setMarker] = React.useState({

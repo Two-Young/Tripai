@@ -6,22 +6,21 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Image,
-  ScrollView,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import Header from '../component/atoms/Header';
-import {SearchBar, ListItem, Button} from '@rneui/themed';
 import {useNavigation} from '@react-navigation/native';
-import defaultStyle from '../styles/styles';
-import {locateCountries} from '../services/api';
 import {useRecoilState} from 'recoil';
+import {Header} from '@rneui/themed';
+import {IconButton, Searchbar, List, Checkbox, Divider, Button} from 'react-native-paper';
 import countriesAtom from '../recoil/countries/countries';
+import {locateCountries} from '../services/api';
+import defaultStyle from '../styles/styles';
 
 const AddTravelScreen = () => {
   // state
-  const [selected, setSelected] = useState([]);
-  const [search, setSearch] = useState('');
+  const [selected, setSelected] = React.useState([]);
+  const [search, setSearch] = React.useState('');
   const [countries, setCountries] = useRecoilState(countriesAtom);
 
   // hook
@@ -43,19 +42,35 @@ const AddTravelScreen = () => {
   };
 
   // effect
-  useEffect(() => {
-    if (countries === null) {
+  React.useEffect(() => {
+    if (countries.length === 0) {
       getCountries();
     }
   }, [countries]);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={styles.container}>
-      <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
-        <Header />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+        <Header
+          backgroundColor="#fff"
+          barStyle="dark-content"
+          leftComponent={
+            <IconButton
+              mode="contained"
+              icon="chevron-left"
+              iconColor="#000"
+              onPress={() => navigation.goBack()}
+            />
+          }
+          centerComponent={{text: 'Choose the countries', style: defaultStyle.heading}}
+        />
         <View style={styles.container}>
-          <Text>Choose all the countries you want to add to your trip</Text>
-          <SearchBar placeholder="Search the country" value={search} onChangeText={setSearch} />
+          <Text style={styles.description}>
+            Choose all the countries you want to add to your trip
+          </Text>
+          <View style={styles.searchbarWrapper}>
+            <Searchbar placeholder="Search the country" value={search} onChangeText={setSearch} />
+          </View>
           <FlatList
             removeClippedSubviews
             initialNumToRender={20}
@@ -69,7 +84,7 @@ const AddTravelScreen = () => {
             disableVirtualization={false}
           />
           {selected.length > 0 && (
-            <SelectedCountryCard
+            <SelectedCountrySection
               countries={countries}
               selected={selected}
               setSelected={setSelected}
@@ -83,68 +98,120 @@ const AddTravelScreen = () => {
 };
 
 const CountryListItem = ({item, selected, setSelected}) => {
-  const isSelected = React.useMemo(() => selected.includes(item.country_code), [selected, item]);
+  const checked = React.useMemo(() => {
+    return selected.includes(item.country_code);
+  }, [selected, item.country_code]);
+
+  const leftComponent = () => <MemoizedFlags item={item} />;
+
+  const rightComponent = () => (
+    <Checkbox
+      status={checked ? 'checked' : 'unchecked'}
+      onPress={() => {
+        if (checked) {
+          setSelected(prevState => prevState.filter(code => code !== item.country_code));
+        } else {
+          setSelected(prevState => [...prevState, item.country_code]);
+        }
+      }}
+    />
+  );
+
   return (
-    <ListItem bottomDivider chevron>
-      <MemoizedFlags item={item} />
-      <MemoizedCountry item={item} />
-      <ListItem.CheckBox
-        checked={isSelected}
-        onPress={() => {
-          if (isSelected) {
-            setSelected(selected.filter(code => code !== item.country_code));
-          } else {
-            setSelected([...selected, item.country_code]);
-          }
-        }}
+    <React.Fragment>
+      <List.Item
+        style={styles.countryListItem}
+        titleStyle={styles.countryListTitle}
+        title={item.common_name}
+        left={leftComponent}
+        right={rightComponent}
       />
-    </ListItem>
+      <Divider />
+    </React.Fragment>
   );
 };
 
-const MemoizedCountry = React.memo(function MemoizedCountry({item}) {
+const MemoizedFlags = React.memo(function MemoizedFlags({item}) {
   return (
-    <ListItem.Content>
-      <ListItem.Title>{item.common_name}</ListItem.Title>
-    </ListItem.Content>
+    <View style={styles.flagWrapper}>
+      <Image style={styles.flag} source={{uri: item?.png}} />
+    </View>
   );
 });
 
-const MemoizedFlags = React.memo(function MemoizedFlags({item}) {
-  return <Image style={styles.flag} source={{uri: item?.png}} />;
+const MemoizedSelectedFlags = React.memo(function MemoizedSelectedFlags({item, onPressDelete}) {
+  return (
+    <View>
+      <View style={styles.deleteSelectedCountryBtn}>
+        <IconButton
+          icon="close"
+          color="black"
+          size={10}
+          onPress={() => onPressDelete(item?.country_code)}
+        />
+      </View>
+      <Image style={styles.flag} source={{uri: item?.png}} />
+    </View>
+  );
 });
 
-const SelectedCountryCard = ({countries, selected, setSelected, onPress}) => {
+const SelectedCountrySection = ({countries, selected, setSelected, onPress}) => {
+  const onPressDelete = React.useCallback(
+    code => {
+      setSelected(prevState => prevState.filter(country => country !== code));
+    },
+    [setSelected],
+  );
+
   return (
-    <View style={styles.countryCard}>
-      <Text>{`Selected Countries : ${selected.length}`}</Text>
-      <ScrollView showsHorizontalScrollIndicator={false} horizontal style={{paddingVertical: 5}}>
-        {selected.map(code => {
-          const country = countries.find(country => country.country_code === code);
-          return (
-            <Image
-              key={code}
-              style={[styles.flag, {marginHorizontal: 5}]}
-              source={{uri: country?.png}}
-            />
-          );
-        })}
-      </ScrollView>
-      <Button
-        title="Next"
-        onPress={onPress}
-        buttonStyle={defaultStyle.button}
-        titleStyle={defaultStyle.buttonContent}
+    <View style={styles.selectedCountrySection}>
+      <Text style={styles.selectedCountryText}>{`Selected Countries : ${selected.length}`}</Text>
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={selected}
+        contentContainerStyle={styles.selectedCountryContentContainer}
+        renderItem={({item}) => (
+          <MemoizedSelectedFlags
+            item={countries.find(country => country.country_code === item)}
+            onPressDelete={onPressDelete}
+          />
+        )}
+        ItemSeparatorComponent={<RenderSeparator />}
       />
+      <Button
+        style={styles.nextBtn}
+        contentStyle={styles.nextBtnContent}
+        mode="contained"
+        onPress={onPress}>
+        Next / Choose the Date
+      </Button>
     </View>
   );
 };
+
+const RenderSeparator = () => <View style={styles.seperator} />;
 
 export default AddTravelScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  description: {
+    paddingHorizontal: 80,
+    fontSize: 15,
+    textAlign: 'center',
+    color: '#808080',
+  },
+  searchbarWrapper: {
+    marginTop: 10,
+    paddingHorizontal: 31,
+    marginBottom: 36,
+  },
+  flagWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   flag: {
     width: 45,
@@ -154,10 +221,54 @@ const styles = StyleSheet.create({
     borderColor: '#808080',
     borderRadius: 5,
   },
-  countryCard: {
-    borderTopWidth: 1,
-    borderTopColor: '#808080',
+  countryListItem: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  countryListTitle: {
+    fontSize: 15,
+    color: '#000',
+  },
+  selectedCountrySection: {
+    height: 160,
     backgroundColor: '#fff',
-    padding: 12,
+    borderTopColor: '#808080',
+    borderTopWidth: 1,
+    padding: 10,
+  },
+  selectedCountryContentContainer: {
+    width: '100%',
+    paddingVertical: 20,
+  },
+  selectedCountryText: {
+    color: '#000',
+    fontSize: 16,
+  },
+  deleteSelectedCountryBtn: {
+    position: 'absolute',
+    top: -7.5,
+    right: -7.5,
+    zIndex: 1,
+    width: 15,
+    height: 15,
+    borderRadius: 20,
+    backgroundColor: '#f9f9f9',
+    borderWidth: 1,
+    borderColor: '#808080',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  seperator: {
+    width: 10,
+    backgroundColor: 'transparent',
+  },
+  nextBtn: {
+    marginTop: 10,
+    borderRadius: 5,
+  },
+  nextBtnContent: {
+    height: 50,
   },
 });

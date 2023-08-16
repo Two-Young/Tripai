@@ -1,90 +1,90 @@
-import {
-  FlatList,
-  ImageBackground,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import {FlatList, StyleSheet, Text, View, Image, Alert} from 'react-native';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
-import {Button, Icon} from '@rneui/themed';
+import {Header} from '@rneui/themed';
+import {Button, IconButton, Portal, Snackbar, Surface} from 'react-native-paper';
 import defaultStyle from '../styles/styles';
-import {deleteSession, getSessions, locateCountries} from '../services/api';
-import {useRecoilState, useSetRecoilState} from 'recoil';
+import {deleteSession, getSessions} from '../services/api';
+import {useRecoilValue, useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import countriesAtom from '../recoil/countries/countries';
+import userAtom from '../recoil/user/user';
 
 const MainScreen = () => {
-  // states
-  const [sessions, setSessions] = React.useState([]);
-  const [countries, setCountries] = useRecoilState(countriesAtom);
-  const [refreshing, setRefreshing] = React.useState(false);
+  /* states */
+  const [sessions, setSessions] = React.useState([]); // 세션 목록
+  const [refreshing, setRefreshing] = React.useState(false); // refresh 여부
+  const [snackbarVisible, setSnackbarVisible] = React.useState(false); // snackbar visible 여부
 
-  // hooks
+  /* hooks */
   const navigation = useNavigation();
   const route = useRoute();
-  const setCurrentSessionID = useSetRecoilState(sessionAtom);
+  const setCurrentSession = useSetRecoilState(sessionAtom);
+  const user = useRecoilValue(userAtom);
 
-  // functions
-  const onPressAddTravel = React.useCallback(() => {
+  const userName = React.useMemo(() => user?.user_info?.username, [user]);
+
+  /* functions */
+  // 여행 추가 버튼 클릭
+  const onPressCreateNewTravel = () => {
     navigation.navigate('AddTravel');
-    // navigation.navigate('Tab');
-  }, [navigation]);
-
-  const onPressItem = travel => {
-    navigation.navigate('Tab');
-    setCurrentSessionID(travel.session_id);
   };
 
-  const onPressDeleteItem = React.useCallback(
-    async travel => {
-      try {
-        await deleteSession(travel.session_id);
-        setSessions(sessions.filter(session => session.session_id !== travel.session_id));
-      } catch (err) {
-        console.error(err);
-      }
-    },
-    [sessions, getSessionsFromServer],
-  );
+  // 세션 클릭 시
+  const onPressSession = session => {
+    setCurrentSession(session);
+    navigation.navigate('Tab');
+  };
 
-  const getCountriesFromServer = async () => {
+  // 세션 삭제
+  const onPressDeleteSession = async session => {
+    Alert.alert('Delete Item', 'Are you sure you want to delete this item?', [
+      {text: 'Cancel', style: 'cancel'},
+      {text: 'Delete', onPress: () => onDelete(session), style: 'destructive'},
+    ]);
+  };
+
+  const onDelete = async session => {
     try {
-      const data = await locateCountries();
-      const sortedData = [...data].sort((a, b) => a.country_code.localeCompare(b.country_code));
-      setCountries(sortedData);
+      await deleteSession(session.session_id);
+      setSessions(sessions.filter(sess => sess.session_id !== session.session_id));
+      setSnackbarVisible(true);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const getSessionsFromServer = React.useCallback(async () => {
-    const res = await getSessions();
-    setSessions(res);
-  }, []);
+  // 세션 목록 가져오기
+  const fetchSessions = async () => {
+    try {
+      const res = await getSessions();
+      setSessions(res);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-  const onRefresh = React.useCallback(async () => {
+  // 새로고침
+  const onRefresh = async () => {
     try {
       if (!refreshing) {
         setRefreshing(true);
-        await getSessionsFromServer();
-        setRefreshing(false);
+        await fetchSessions();
       }
     } catch (err) {
       console.error(err);
+    } finally {
       setRefreshing(false);
     }
-  }, [refreshing, getSessionsFromServer]);
+  };
 
-  // effects
+  /* effects */
+
   React.useEffect(() => {
-    getSessionsFromServer();
-    getCountriesFromServer();
+    fetchSessions();
   }, []);
 
+  // route.params.refresh가 true일 경우 새로고침을 합니다.
   React.useEffect(() => {
     if (route.params?.refresh) {
       onRefresh().finally(() => {
@@ -96,111 +96,206 @@ const MainScreen = () => {
   }, [route.params?.refresh, onRefresh]);
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={styles.safearea}>
+    <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+      <Header
+        backgroundColor="#fff"
+        barStyle="dark-content"
+        leftComponent={{text: 'HOME', style: defaultStyle.heading}}
+        rightComponent={{
+          icon: 'settings',
+          color: '#000',
+        }}
+      />
       <View style={styles.container}>
-        <Text>Hello, Traveler</Text>
-        <Text>What travel do you want to manage?</Text>
         <FlatList
           contentContainerStyle={{paddingBottom: 100}}
           showsVerticalScrollIndicator={false}
           data={sessions}
+          ListHeaderComponent={
+            <View style={styles.textSection}>
+              <Text style={styles.textSectionHeader}>Hello, {userName}</Text>
+              <Text style={styles.textSectionDescription}>What travel do you want to manage?</Text>
+            </View>
+          }
           renderItem={({item}) => (
             <TravelItem
               travel={item}
-              countries={countries.filter(country =>
-                item.country_codes.includes(country.country_code),
-              )}
-              onPress={() => onPressItem(item)}
-              onPressDelete={() => onPressDeleteItem(item)}
+              onPress={() => onPressSession(item)}
+              onPressDelete={() => onPressDeleteSession(item)}
             />
           )}
+          ItemSeparatorComponent={renderSeparator}
           keyExtractor={item => item.session_id}
           refreshing={refreshing}
           onRefresh={onRefresh}
         />
-        <View style={styles.travelButton}>
-          <Button
-            title="Add Travel"
-            onPress={onPressAddTravel}
-            buttonStyle={defaultStyle.button}
-            titleStyle={defaultStyle.buttonContent}
-          />
-        </View>
+        <Button
+          style={styles.createTravelBtn}
+          contentStyle={styles.createTravelBtnContent}
+          mode="contained"
+          onPress={onPressCreateNewTravel}>
+          Create New Travel
+        </Button>
+        <Portal>
+          <Snackbar
+            visible={snackbarVisible}
+            onDismiss={() => setSnackbarVisible(false)}
+            action={{
+              label: 'Close',
+            }}>
+            Delete Success!
+          </Snackbar>
+        </Portal>
       </View>
     </SafeAreaView>
   );
 };
 
 const TravelItem = props => {
-  const {onPress, travel, countries, onPressDelete} = props;
+  const {onPress, travel, onPressDelete} = props;
 
-  const {name, start_at, end_at, country_codes, thumbnail_url} = React.useMemo(() => {
-    const {name, start_at, end_at, country_codes, thumbnail_url} = travel;
+  const {name, start_at, end_at, thumbnail_url} = React.useMemo(() => {
+    const {name, start_at, end_at, thumbnail_url} = travel;
     return {
       name,
       start_at,
       end_at,
-      country_codes,
       thumbnail_url,
     };
   }, [travel]);
 
-  console.log(
-    country_codes.map(country => {
-      countries.find(c => c.country_code === country)?.png;
-    }),
-  );
-
   return (
-    <TouchableOpacity onPress={onPress} style={{paddingBottom: 10}}>
-      <ImageBackground source={{uri: thumbnail_url}} style={{width: '100%', height: 200}}>
-        <TouchableOpacity
-          style={{
-            flexDirection: 'row',
-            padding: 5,
-            width: 30,
-            height: 30,
-          }}
-          onPress={onPressDelete}>
-          <Icon name="delete" color={'red'} />
-        </TouchableOpacity>
-        <View style={{flex: 1, justifyContent: 'flex-end', padding: 12}}>
-          <Text style={{color: 'white', fontSize: 24}}>{name}</Text>
-          <Text
-            style={{
-              color: 'white',
-              fontSize: 12,
-            }}>{`${start_at} ~ ${end_at}`}</Text>
-          <View style={{flexDirection: 'row', marginTop: 3}}>
-            {country_codes?.map(country => (
-              <Image
-                key={country}
-                source={{uri: countries.find(c => c.country_code === country)?.png}}
-                style={{width: 30, height: 20, marginRight: 5}}
-                resizeMode="cover"
-              />
-            ))}
+    <Surface style={styles.session}>
+      <IconButton
+        style={styles.sessionDeleteButton}
+        icon="close"
+        iconColor="#3C3C43"
+        containerColor="#F9F9F9"
+        mode="contained"
+        onPress={onPressDelete}
+      />
+      <Image source={{uri: thumbnail_url}} style={styles.sessionImage} />
+      <View style={styles.sessionContent}>
+        <View style={styles.upperContent}>
+          <View style={styles.sessionInfo}>
+            <Text style={styles.sessionName} numberOfLines={2}>
+              {name}
+            </Text>
+            <Text
+              style={styles.sessionDescription}
+              numberOfLines={2}>{`${start_at} ~ ${end_at}`}</Text>
           </View>
+          <Button style={styles.sessionOpenBtn} mode="contained" onPress={onPress}>
+            Open
+          </Button>
         </View>
-      </ImageBackground>
-    </TouchableOpacity>
+        <View style={styles.lowerContent}>
+          <Button
+            compact
+            icon="chevron-right"
+            textColor="#3C3C43"
+            contentStyle={styles.moreInfoBtn}>
+            More Info
+          </Button>
+        </View>
+      </View>
+    </Surface>
   );
+};
+
+const renderSeparator = () => {
+  return <View style={styles.separator} />;
 };
 
 export default MainScreen;
 
 const styles = StyleSheet.create({
-  safearea: {
-    flex: 1,
-  },
   container: {
     flex: 1,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
   },
-  travelButton: {
+  createTravelBtn: {
     position: 'absolute',
-    bottom: 12,
-    left: 12,
-    right: 12,
+    bottom: 10,
+    left: 10,
+    right: 10,
+    zIndex: 1,
+  },
+  createTravelBtnContent: {
+    height: 50,
+    borderRadius: 30,
+  },
+  textSection: {
+    paddingHorizontal: 11,
+    marginBottom: 23,
+  },
+  textSectionHeader: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 5,
+  },
+  textSectionDescription: {
+    fontSize: 15,
+    color: '#808080',
+  },
+  session: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 50,
+  },
+  sessionDeleteButton: {
+    position: 'absolute',
+    top: 24,
+    right: 24,
+    zIndex: 1,
+  },
+  sessionImage: {
+    width: '100%',
+    height: '55%',
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+  },
+  sessionContent: {
+    flex: 1,
+    padding: 24,
+  },
+  upperContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  lowerContent: {
+    alignItems: 'flex-end',
+  },
+  sessionInfo: {
+    flex: 1,
+    marginRight: 24,
+  },
+  sessionName: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 5,
+  },
+  sessionDescription: {
+    fontSize: 12,
+    color: '#000',
+  },
+  sessionOpenBtn: {
+    width: 100,
+    borderRadius: 30,
+    height: 50,
+    justifyContent: 'center',
+  },
+  separator: {
+    height: 18,
+    backgroundColor: 'transparent',
+  },
+  moreInfoBtn: {
+    width: 100,
+    flexDirection: 'row-reverse',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
   },
 });
