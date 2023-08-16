@@ -32,8 +32,8 @@ const MainScreen = () => {
 
   // 세션 클릭 시
   const onPressSession = session => {
-    navigation.navigate('Tab');
     setCurrentSession(session);
+    navigation.navigate('Tab');
   };
 
   // 세션 삭제

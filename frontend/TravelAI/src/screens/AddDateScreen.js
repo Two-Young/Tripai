@@ -50,11 +50,11 @@ const AddDateScreen = () => {
         ...CommonActions.setParams({refresh: true}),
         source: navigationState.routes[index].key,
       });
-      navigation.pop(2);
-      navigation.navigate('Tab');
       setCurrentSession({
         session_id: res,
       });
+      navigation.pop(2);
+      navigation.navigate('Tab');
     } catch (err) {
       console.error(err);
     } finally {

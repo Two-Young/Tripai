@@ -36,7 +36,7 @@ const AddAddressScreen = () => {
     } catch (error) {
       setSearchResult([]);
       setIsZeroResult(true);
-      throw error.response.data;
+      throw error;
     }
   };
 
@@ -71,7 +71,7 @@ const AddAddressScreen = () => {
       navigation.goBack();
     } catch (error) {
       console.error(error);
-      throw error.response.data;
+      throw error;
     }
   };
 

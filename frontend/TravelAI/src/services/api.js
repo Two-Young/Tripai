@@ -40,6 +40,7 @@ export const AxiosInterceptor = () => {
           return response;
         },
         async error => {
+          console.error(error);
           const {
             config,
             response: {status, data},
@@ -51,8 +52,8 @@ export const AxiosInterceptor = () => {
               await AsyncStorage.removeItem('user');
             }
           }
-
           if (error.response.status === 401 && !config._retry) {
+            console.log('here??');
             config._retry = true;
             const {access_token, refresh_token} = await authRefreshToken(
               user?.auth_tokens?.refresh_token?.token,
@@ -88,7 +89,7 @@ export const authGoogleSign = async idToken => {
     const response = await api.post('/auth/google/sign', {id_token: idToken});
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -97,7 +98,7 @@ export const authFacebookSign = async accessToken => {
     const response = await api.post('/auth/facebook/sign', {id_token: accessToken});
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -107,7 +108,7 @@ export const authNaverSign = async accessToken => {
     return response.data;
   } catch (error) {
     console.error(error);
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -116,7 +117,7 @@ export const authKakaoSign = async accessToken => {
     const response = await api.post('/auth/kakao/sign', {id_token: accessToken});
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -126,7 +127,7 @@ export const authRefreshToken = async refreshToken => {
     const response = await api.post('/auth/refreshToken');
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -139,7 +140,7 @@ export const locateAutoComplete = async query => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -152,7 +153,7 @@ export const locateDetail = async placeid => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -166,7 +167,7 @@ export const locateDirection = async (origin_place_id, destination_place_id) => 
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -180,7 +181,7 @@ export const locatePin = async (latitude, longitude) => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -196,7 +197,7 @@ export const locatePlacePhoto = async (reference, max_width) => {
     reactotron.log('response!! : ', response.data);
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -209,7 +210,7 @@ export const locateLocation = async place_id => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -218,7 +219,7 @@ export const locateCountries = async () => {
     const response = await api.get('/platform/locate/countries');
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -228,7 +229,8 @@ export const getSessions = async () => {
     const response = await api.get('/platform/session');
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    console.error(error);
+    throw error;
   }
 };
 
@@ -241,7 +243,7 @@ export const createSession = async (country_codes, start_at, end_at) => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -254,7 +256,7 @@ export const deleteSession = async session_id => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -269,7 +271,7 @@ export const getSchedules = async (session_id, day) => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -283,7 +285,7 @@ export const getLocations = async session_id => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -295,7 +297,7 @@ export const createLocation = async (session_id, place_id) => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -308,7 +310,7 @@ export const deleteLocation = async location_id => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -318,7 +320,7 @@ export const getBudgetList = async () => {
     const response = await api.get('/platform/budget/list');
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };
 
@@ -332,6 +334,6 @@ export const createBudget = async (sessiontoken, title, amount, currency) => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error;
   }
 };

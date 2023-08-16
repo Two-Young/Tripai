@@ -11,7 +11,6 @@ import AddCustomPlaceScreen from '../screens/AddCustomPlaceScreen';
 import AddAddressScreen from '../screens/AddAddressScreen';
 import {useRecoilState} from 'recoil';
 import userAtom from '../recoil/user/user';
-import Reactotron from 'reactotron-react-native';
 import AddScheduleScreen from '../screens/AddScheduleScreen';
 
 const Stack = createStackNavigator();
