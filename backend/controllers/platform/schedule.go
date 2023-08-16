@@ -54,9 +54,11 @@ func Schedules(c *gin.Context) {
 		resp = append(resp, schedulesResponseItem{
 			ScheduleId:     *s.ScheduleId,
 			Name:           *s.Name,
-			PhotoReference: *s.PhotoReference,
-			PlaceId:        *s.PlaceId,
-			Address:        *s.Address,
+			PhotoReference: s.PhotoReference,
+			PlaceId:        s.PlaceId,
+			Address:        s.Address,
+			Latitude:       s.Latitude,
+			Longitude:      s.Longitude,
 			StartAt:        s.StartAt.UnixMilli(),
 		})
 	}
@@ -77,12 +79,6 @@ func CreateSchedule(c *gin.Context) {
 	if err := c.ShouldBindJSON(&body); err != nil {
 		log.Error(err)
 		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	// validate body
-	if body.Name == "" {
-		util.AbortWithStrJson(c, http.StatusBadRequest, "name is required")
 		return
 	}
 
@@ -126,15 +122,35 @@ func CreateSchedule(c *gin.Context) {
 		return
 	}
 
-	// get place detail
-	cache, err := database_io.GetPlaceDetailCache(c, body.PlaceId)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
+	if body.PlaceId == "" && body.Name == "" {
+		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body: place id or name should be provided")
 		return
 	}
 
+	// get place detail
+	var placeName *string
+	var photoReference *string
+	var address *string
 	var placeId *string
+	var lat *float64
+	var lng *float64
+	if body.PlaceId != "" {
+		cache, err := database_io.GetPlaceDetailCache(c, body.PlaceId)
+		if err != nil {
+			log.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		placeName = cache.Name
+		address = cache.Address
+		photoReference = cache.PhotoReference
+		lat = cache.Latitude
+		lng = cache.Longitude
+	}
+	if body.Name != "" {
+		placeName = &body.Name
+	}
+
 	if body.PlaceId == "" {
 		placeId = nil
 	} else {
@@ -144,9 +160,10 @@ func CreateSchedule(c *gin.Context) {
 	// create schedule entity
 	scheduleId := uuid.New().String()
 	if _, err := database.DB.Exec(
-		"INSERT INTO schedules (sscid, name, photo_reference, place_id, address, day, start_at, sid) VALUES (?, ?, ?, ?, ?, ?, ?);",
-		scheduleId, body.Name, cache.PhotoReference, placeId,
-		cache.Address, dayIndex, startAt, body.SessionId,
+		"INSERT INTO schedules (sscid, name, photo_reference, place_id, address, day, latitude, longitude, start_at, memo, sid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+		scheduleId, placeName, photoReference, placeId,
+		address, dayIndex, lat, lng,
+		startAt, body.Memo, body.SessionId,
 	); err != nil {
 		var mysqlErr *mysql.MySQLError
 		if ok := errors.As(err, &mysqlErr); ok && mysqlErr.Number == 1062 {
@@ -157,6 +174,116 @@ func CreateSchedule(c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+}
+
+func EditSchedule(c *gin.Context) {
+	rawUid, ok := c.Get("uid")
+	if !ok {
+		log.Error("uid not found")
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	uid := rawUid.(string)
+
+	var body scheduleEditRequestDto
+	if err := c.ShouldBindJSON(&body); err != nil {
+		log.Error(err)
+		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	// load original schedule
+	originalSchedule, err := database_io.GetSchedule(body.ScheduleId)
+	if err != nil {
+		log.Error(err)
+		util.AbortWithStrJson(c, http.StatusBadRequest, "schedule not found")
+		return
+	}
+
+	// check if user has permission to create schedule
+	yes, err := platform.DidParticipateInSession(uid, *originalSchedule.SessionId)
+	if err != nil {
+		log.Error(err)
+		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
+		return
+	}
+	if !yes {
+		util.AbortWithStrJson(c, http.StatusForbidden, "permission denied")
+		return
+	}
+
+	// get session
+	session, err := database_io.GetSession(*originalSchedule.SessionId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// milliseconds to time
+	startAt, err := platform.ConvertDateInt64(body.StartAt)
+	if err != nil {
+		log.Error(err)
+		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid start_at")
+		return
+	}
+
+	// get day
+	sessionStartDayCode := platform.GetDayCode(*session.StartAt)
+	sessionEndDayCode := platform.GetDayCode(*session.EndAt)
+	startAtDayCode := platform.GetDayCode(startAt)
+	dayIndex := startAtDayCode - sessionStartDayCode + 1
+
+	if startAtDayCode > sessionEndDayCode || startAtDayCode < sessionStartDayCode {
+		log.Error(err)
+		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid start_at: out of session schedule range")
+		return
+	}
+
+	if body.PlaceId == "" && body.Name == "" {
+		util.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body: place id or name should be provided")
+		return
+	}
+
+	// get place detail
+	var placeName *string
+	var photoReference *string
+	var address *string
+	var placeId *string
+	var lat *float64
+	var lng *float64
+	if body.PlaceId != "" {
+		cache, err := database_io.GetPlaceDetailCache(c, body.PlaceId)
+		if err != nil {
+			log.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		placeName = cache.Name
+		address = cache.Address
+		photoReference = cache.PhotoReference
+		lat = cache.Latitude
+		lng = cache.Longitude
+	}
+	if body.Name != "" {
+		placeName = &body.Name
+	}
+	if body.PlaceId == "" {
+		placeId = nil
+	} else {
+		placeId = &body.PlaceId
+	}
+
+	// update schedule entity
+	if _, err := database.DB.Exec(
+		"UPDATE schedules SET name = ?, photo_reference = ?, place_id = ?, address = ?, day = ?, start_at = ?, memo = ? WHERE sscid = ?",
+		placeName, photoReference, placeId, address, dayIndex, lat, lng, startAt, body.Memo, body.ScheduleId); err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func DeleteSchedule(c *gin.Context) {
@@ -212,5 +339,6 @@ func UseScheduleRouter(g *gin.RouterGroup) {
 	rg := g.Group("/schedule")
 	rg.GET("", Schedules)
 	rg.PUT("", CreateSchedule)
+	rg.POST("", EditSchedule)
 	rg.DELETE("", DeleteSchedule)
 }

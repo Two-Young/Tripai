@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"travel-ai/controllers"
+	platform2 "travel-ai/controllers/platform"
 	"travel-ai/libs/crypto"
 	"travel-ai/log"
 	"travel-ai/service/database"
@@ -15,11 +16,9 @@ import (
 	"travel-ai/third_party/others"
 )
 
-const VERSION = "0.3.0"
-
 func main() {
 	log.Info("Travel AI Server is now starting...")
-	log.Info("Version: ", VERSION)
+	log.Info("Version: ", platform2.VERSION)
 
 	// Create Jwt secret key if needed
 	//crypto.PrintNewJwtSecret()

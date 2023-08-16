@@ -7,6 +7,7 @@ import (
 
 func UsePlatformRouter(r *gin.Engine) {
 	g := r.Group("/platform")
+	UseVersionRouter(g)
 	g.Use(middlewares.AuthMiddleware)
 	UseLocateRouter(g)
 	UseLocationRouter(g)
@@ -14,4 +15,5 @@ func UsePlatformRouter(r *gin.Engine) {
 	UseSessionRouter(g)
 	UseChatRouter(g)
 	UseBudgetRouter(g)
+	UseReceiptRouter(g)
 }

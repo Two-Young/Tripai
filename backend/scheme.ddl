@@ -1,4 +1,4 @@
-create table travelai.place_detail_caches
+create table place_detail_caches
 (
     place_id        varchar(255) not null
         primary key,
@@ -12,13 +12,13 @@ create table travelai.place_detail_caches
     country_code    varchar(10)  null
 );
 
-create table travelai.session_thumbnail_caches
+create table session_thumbnail_caches
 (
     keyword varchar(255) not null,
     url     varchar(255) not null
 );
 
-create table travelai.users
+create table users
 (
     uid           varchar(255) not null
         primary key,
@@ -28,7 +28,7 @@ create table travelai.users
     platform      varchar(100) not null
 );
 
-create table travelai.sessions
+create table sessions
 (
     sid           varchar(255)     not null
         primary key,
@@ -41,10 +41,10 @@ create table travelai.sessions
     unit          varchar(50)      not null,
     thumbnail_url varchar(255)     null,
     constraint sessions_users_uid_fk
-        foreign key (creator_uid) references travelai.users (uid)
+        foreign key (creator_uid) references users (uid)
 );
 
-create table travelai.countries
+create table countries
 (
     scid                varchar(255) not null
         primary key,
@@ -52,10 +52,10 @@ create table travelai.countries
     sid                 varchar(255) null,
     airline_reserve_url varchar(255) null,
     constraint countries_sessions_sid_fk
-        foreign key (sid) references travelai.sessions (sid)
+        foreign key (sid) references sessions (sid)
 );
 
-create table travelai.locations
+create table locations
 (
     lid             varchar(255) not null
         primary key,
@@ -69,45 +69,52 @@ create table travelai.locations
     constraint locations_pk
         unique (sid, place_id),
     constraint locations_sessions_sid_fk
-        foreign key (sid) references travelai.sessions (sid)
+        foreign key (sid) references sessions (sid)
 );
 
-create table travelai.receipts
+create table receipts
 (
     rid         varchar(255)    not null
         primary key,
     name        varchar(255)    null,
+    filename    varchar(255)    null,
     sid         varchar(255)    null,
     total_price float default 0 null,
     unit        varchar(20)     null,
     type        varchar(255)    null,
     constraint receipts_sessions_sid_fk
-        foreign key (sid) references travelai.sessions (sid)
+        foreign key (sid) references sessions (sid)
 );
 
-create table travelai.receipt_items
+create table receipt_items
 (
-    riid  varchar(255) not null
+    riid   varchar(255) not null
         primary key,
-    rid   varchar(255) null,
-    price double       null,
+    rid    varchar(255) null,
+    price  double       null,
+    top    int          null,
+    `left` int          null,
+    width  int          null,
+    height int          null,
     constraint receipt_items_receipts_rid_fk
-        foreign key (rid) references travelai.receipts (rid)
+        foreign key (rid) references receipts (rid)
 );
 
-create table travelai.receipt_items_users
+create table receipt_items_users
 (
-    riid varchar(255) not null,
-    uid  varchar(255) not null,
+    riid   varchar(255) not null,
+    uid    varchar(255) not null,
+    width  int          null,
+    height int          null,
     constraint receipt_items_users_pk
         unique (riid, uid),
     constraint receipt_items_users_receipt_items_riid_fk
-        foreign key (riid) references travelai.receipt_items (riid),
+        foreign key (riid) references receipt_items (riid),
     constraint receipt_items_users_users_uid_fk
-        foreign key (uid) references travelai.users (uid)
+        foreign key (uid) references users (uid)
 );
 
-create table travelai.schedules
+create table schedules
 (
     sscid           varchar(255) not null
         primary key,
@@ -116,13 +123,16 @@ create table travelai.schedules
     place_id        varchar(255) null,
     address         varchar(255) null,
     day             int          null,
+    latitude        double       null,
     start_at        datetime     null,
+    memo            longtext     null,
     sid             varchar(50)  null,
+    longitude       double       null,
     constraint schedules_sessions_sid_fk
-        foreign key (sid) references travelai.sessions (sid)
+        foreign key (sid) references sessions (sid)
 );
 
-create table travelai.table_name
+create table table_name
 (
     sscid     varchar(255) not null
         primary key,
@@ -137,18 +147,18 @@ create table travelai.table_name
     end_at    datetime     null,
     scid      varchar(255) null,
     constraint table_name_countries_scid_fk
-        foreign key (scid) references travelai.countries (scid)
+        foreign key (scid) references countries (scid)
 );
 
-create table travelai.user_sessions
+create table user_sessions
 (
     sid varchar(255) not null,
     uid varchar(255) not null,
     constraint user_sessions_pk
         unique (sid, uid),
     constraint user_sessions_sessions_sid_fk
-        foreign key (sid) references travelai.sessions (sid),
+        foreign key (sid) references sessions (sid),
     constraint user_sessions_users_uid_fk
-        foreign key (uid) references travelai.users (uid)
+        foreign key (uid) references users (uid)
 );
 

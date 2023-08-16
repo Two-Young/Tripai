@@ -22,7 +22,7 @@ func Initialize() {
 }
 
 // RequestImageToText gets text from the Vision API for an image at the given file path.
-func RequestImageToText(path string) ([]string, error) {
+func RequestImageToText(path string) ([]*pb.EntityAnnotation, error) {
 	ctx := context.Background()
 	client, err := vision.NewImageAnnotatorClient(ctx, option.WithCredentialsFile(KeyFile))
 	if err != nil {
@@ -52,11 +52,10 @@ func RequestImageToText(path string) ([]string, error) {
 		return nil, nil
 	}
 
-	processReceiptAnnotation(annotations, 10)
-
-	return nil, nil
+	return annotations, nil
 }
 
+// TODO :: preprocess image before save
 //func preprocessImage(path string) {
 //	img := gocv.IMRead(path, gocv.IMReadColor)
 //	defer img.Close()

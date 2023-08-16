@@ -110,23 +110,76 @@ type schedulesRequestDto struct {
 }
 
 type schedulesResponseItem struct {
-	ScheduleId     string `json:"schedule_id"`
-	Name           string `json:"name"`
-	PhotoReference string `json:"photo_reference"`
-	PlaceId        string `json:"place_id"`
-	Address        string `json:"address"`
-	StartAt        int64  `json:"start_at"`
+	ScheduleId     string   `json:"schedule_id"`
+	Name           string   `json:"name"`
+	PhotoReference *string  `json:"photo_reference"`
+	PlaceId        *string  `json:"place_id"`
+	Address        *string  `json:"address"`
+	Latitude       *float64 `json:"latitude"`
+	Longitude      *float64 `json:"longitude"`
+	StartAt        int64    `json:"start_at"`
 }
 
 type schedulesResponseDto []schedulesResponseItem
 
 type scheduleCreateRequestDto struct {
 	SessionId string `json:"session_id" binding:"required"`
-	PlaceId   string `json:"place_id" binding:"required"`
-	Name      string `json:"name" binding:"required"`
+	Name      string `json:"name"`
+	PlaceId   string `json:"place_id"`
 	StartAt   int64  `json:"start_at" binding:"required"`
+	Memo      string `json:"memo"`
+}
+
+type scheduleEditRequestDto struct {
+	ScheduleId string `json:"schedule_id" binding:"required"`
+	Name       string `json:"name"`
+	PlaceId    string `json:"place_id"`
+	StartAt    int64  `json:"start_at" binding:"required"`
+	Memo       string `json:"memo"`
 }
 
 type scheduleDeleteRequestDto struct {
 	ScheduleId string `json:"schedule_id" binding:"required"`
+}
+
+/* ---------------- Receipt ---------------- */
+type receiptUploadRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type receiptTextItemBoundary struct {
+	Top    int `json:"top"`
+	Left   int `json:"left"`
+	Width  int `json:"width"`
+	Height int `json:"height"`
+}
+
+type receiptTextItem struct {
+	Boundary receiptTextItemBoundary `json:"boundary"`
+	Text     string                  `json:"value"`
+}
+
+type receiptImageResolution struct {
+	Width  int `json:"width"`
+	Height int `json:"height"`
+}
+
+type receiptUploadResponseDto struct {
+	Items      []receiptTextItem      `json:"items"`
+	Resolution receiptImageResolution `json:"resolution"`
+	ReceiptId  string                 `json:"receipt_id"`
+}
+
+type receiptSelectedTextItem struct {
+	Name     string                  `json:"name"`
+	Price    int                     `json:"price"`
+	UsersId  []string                `json:"users_id"`
+	Boundary receiptTextItemBoundary `json:"boundary"`
+}
+
+type receiptSubmitRequestDto struct {
+	ReceiptId string                    `json:"receipt_id" binding:"required"`
+	Items     []receiptSelectedTextItem `json:"items" binding:"required"`
+	Name      string                    `json:"name" binding:"required"`
+	Type      string                    `json:"type" binding:"required"`
 }

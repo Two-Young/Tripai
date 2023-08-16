@@ -41,13 +41,27 @@ type LocationEntity struct {
 }
 
 type ScheduleEntity struct {
-	ScheduleId     *string    `db:"schid" json:"schedule_id"`
+	ScheduleId     *string    `db:"sscid" json:"schedule_id"`
 	Name           *string    `db:"name" json:"name"`
 	PhotoReference *string    `db:"photo_reference" json:"photo_reference"`
 	PlaceId        *string    `db:"place_id" json:"place_id"`
 	Address        *string    `db:"address" json:"address"`
+	Day            *int64     `db:"day" json:"day"`
+	Latitude       *float64   `db:"latitude" json:"latitude"`
+	Longitude      *float64   `db:"longitude" json:"longitude"`
 	StartAt        *time.Time `db:"start_at" json:"start_at"`
+	Memo           *string    `db:"memo" json:"memo"`
 	SessionId      *string    `db:"sid" json:"session_id"`
+}
+
+type ReceiptEntity struct {
+	ReceiptId  *string  `db:"rid" json:"receipt_id"`
+	Name       *string  `db:"name" json:"name"`
+	Filename   *string  `db:"filename" json:"filename"`
+	SessionId  *string  `db:"sid" json:"session_id"`
+	TotalPrice *float64 `db:"total_price" json:"total_price"`
+	Unit       *string  `db:"unit" json:"unit"`
+	Type       *string  `db:"type" json:"type"`
 }
 
 type SessionThumbnailCacheEntity struct {
