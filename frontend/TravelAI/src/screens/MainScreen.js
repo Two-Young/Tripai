@@ -9,6 +9,8 @@ import {deleteSession, getSessions} from '../services/api';
 import {useRecoilValue, useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import userAtom from '../recoil/user/user';
+import colors from '../theme/colors';
+import reactotron from 'reactotron-react-native';
 
 const MainScreen = () => {
   /* states */
@@ -89,11 +91,11 @@ const MainScreen = () => {
     if (route.params?.refresh) {
       onRefresh().finally(() => {
         navigation.dispatch({
-          ...CommonActions.setParams({refresh: false}),
+          ...CommonActions.setParams({refresh: false, source: route.key}),
         });
       });
     }
-  }, [route.params?.refresh, onRefresh]);
+  }, [route.params?.refresh]);
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
@@ -103,7 +105,7 @@ const MainScreen = () => {
         leftComponent={{text: 'HOME', style: defaultStyle.heading}}
         rightComponent={{
           icon: 'settings',
-          color: '#000',
+          color: colors.black,
         }}
       />
       <View style={styles.container}>
@@ -232,7 +234,7 @@ const styles = StyleSheet.create({
   textSectionHeader: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#000',
+    color: colors.black,
     marginBottom: 5,
   },
   textSectionDescription: {
@@ -275,12 +277,12 @@ const styles = StyleSheet.create({
   sessionName: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#000',
+    color: colors.black,
     marginBottom: 5,
   },
   sessionDescription: {
     fontSize: 12,
-    color: '#000',
+    color: colors.black,
   },
   sessionOpenBtn: {
     width: 100,

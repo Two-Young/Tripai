@@ -7,9 +7,17 @@ import {createLocation, locateAutoComplete, locateLocation} from '../services/ap
 import sessionAtom from '../recoil/session/session';
 import {useRecoilValue} from 'recoil';
 import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
-import {IconButton, Portal, Searchbar, Snackbar} from 'react-native-paper';
+import {
+  ActivityIndicator,
+  IconButton,
+  Modal,
+  Portal,
+  Searchbar,
+  Snackbar,
+} from 'react-native-paper';
 import {Header} from '@rneui/themed';
 import reactotron from 'reactotron-react-native';
+import colors from '../theme/colors';
 
 const AddPlaceScreen = () => {
   // hooks
@@ -23,6 +31,7 @@ const AddPlaceScreen = () => {
   const [searchResult, setSearchResult] = React.useState([]);
   const [isZeroResult, setIsZeroResult] = React.useState(false);
   const [dupSnackBarVisible, setDupSnackbarVisible] = React.useState(false); // snackbar visible 여부
+  const [loadingModalVisible, setLoadingModalVisible] = React.useState(false); // loading modal visible 여부
 
   // functions
   const autoCompletePlace = async keyword => {
@@ -39,13 +48,12 @@ const AddPlaceScreen = () => {
 
   const onPressListItem = async item => {
     try {
+      setLoadingModalVisible(true);
       Keyboard.dismiss();
 
       const place = await locateLocation(item.place_id);
       const {place_id} = place;
       await createLocation(currentSessionID, place_id);
-
-      reactotron.log('route.params', route.params);
 
       /* */
       navigation.dispatch({
@@ -59,6 +67,8 @@ const AddPlaceScreen = () => {
         return;
       }
       throw error;
+    } finally {
+      setLoadingModalVisible(false);
     }
   };
 
@@ -106,6 +116,11 @@ const AddPlaceScreen = () => {
           />
         </View>
         <Portal>
+          <Modal visible={loadingModalVisible} dismissable={false}>
+            <ActivityIndicator animating={true} size="large" />
+          </Modal>
+        </Portal>
+        <Portal>
           <Snackbar
             visible={dupSnackBarVisible}
             onDismiss={() => setDupSnackbarVisible(false)}
@@ -125,7 +140,7 @@ export default AddPlaceScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     paddingHorizontal: 10,
   },
 });

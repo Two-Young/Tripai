@@ -1,5 +1,6 @@
 import React from 'react';
 import {TouchableOpacity, Image, StyleSheet, Text} from 'react-native';
+import colors from '../../theme/colors';
 
 const SocialButton = ({source, onPress, style, type}) => (
   <TouchableOpacity onPress={onPress} style={[{...style}, styles.button]}>
@@ -23,7 +24,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   socialButtonText: {
-    color: '#000',
+    color: colors.black,
     marginLeft: 8,
     fontSize: 16,
   },

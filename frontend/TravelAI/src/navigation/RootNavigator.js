@@ -12,6 +12,7 @@ import AddAddressScreen from '../screens/AddAddressScreen';
 import {useRecoilState} from 'recoil';
 import userAtom from '../recoil/user/user';
 import AddScheduleScreen from '../screens/AddScheduleScreen';
+import EditScheduleScreen from '../screens/EditScheduleScreen';
 
 const Stack = createStackNavigator();
 
@@ -75,6 +76,7 @@ const RootNavigator = () => {
         <Stack.Screen name="AddCustomPlace" component={AddCustomPlaceScreen} />
         <Stack.Screen name="AddTravel" component={AddTravelScreen} />
         <Stack.Screen name="AddDate" component={AddDateScreen} />
+        <Stack.Screen name="EditSchedule" component={EditScheduleScreen} />
       </Stack.Group>
       {/* OnBoard */}
       {/* Tab */}

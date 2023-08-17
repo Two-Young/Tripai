@@ -55,9 +55,9 @@ export const AxiosInterceptor = () => {
           if (error.response.status === 401 && !config._retry) {
             console.log('here??');
             config._retry = true;
-            const {access_token, refresh_token} = await authRefreshToken(
-              user?.auth_tokens?.refresh_token?.token,
-            ); // 여기서는 예시로 함수로 받아옴
+            const res = await authRefreshToken(user?.auth_tokens?.refresh_token?.token); // 여기서는 예시로 함수로 받아옴
+            console.log(res);
+            const {access_token, refresh_token} = res;
             if (access_token) {
               setUser({...user, tokens: {access_token, refresh_token}});
               api.defaults.headers.common.Authorization = `Bearer ${access_token}`;
@@ -123,7 +123,7 @@ export const authKakaoSign = async accessToken => {
 
 export const authRefreshToken = async refreshToken => {
   try {
-    api.header['X-Refresh-Token'] = refreshToken;
+    api.head['X-Refresh-Token'] = refreshToken;
     const response = await api.post('/auth/refreshToken');
     return response.data;
   } catch (error) {
@@ -268,6 +268,49 @@ export const getSchedules = async (session_id, day) => {
         session_id,
         day,
       },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createSchedule = async ({session_id, place_id, name, start_at, memo}) => {
+  try {
+    const response = await api.put('/platform/schedule', {
+      session_id,
+      place_id,
+      name,
+      start_at,
+      memo,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteSchedule = async schedule_id => {
+  try {
+    const response = await api.delete('/platform/schedule', {
+      data: {
+        schedule_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateSchedule = async ({schedule_id, place_id, name, start_at, memo}) => {
+  try {
+    const response = await api.post('/platform/schedule', {
+      schedule_id,
+      place_id,
+      name,
+      start_at,
+      memo,
     });
     return response.data;
   } catch (error) {

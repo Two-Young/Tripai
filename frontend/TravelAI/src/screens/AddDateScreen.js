@@ -9,9 +9,13 @@ import {useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {Button, IconButton} from 'react-native-paper';
 import {Header} from '@rneui/themed';
+import colors from '../theme/colors';
+import reactotron from 'reactotron-react-native';
 
 const today = new Date();
 const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+
+const colorStyle = {color: colors.primary, textColor: colors.white};
 
 const AddDateScreen = () => {
   // states
@@ -45,16 +49,16 @@ const AddDateScreen = () => {
     try {
       setLoading(true);
       const res = await createSession(route.params.countries, firstDate, lastDate ?? firstDate);
-      const index = navigationState.routes.findIndex(r => r.name === 'Main');
+      const target = navigationState.routes[navigationState.routes.length - 3];
       navigation.dispatch({
         ...CommonActions.setParams({refresh: true}),
-        source: navigationState.routes[index].key,
-      });
-      setCurrentSession({
-        session_id: res,
+        source: target.key,
       });
       navigation.pop(2);
       navigation.navigate('Tab');
+      setCurrentSession({
+        session_id: res,
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -69,9 +73,8 @@ const AddDateScreen = () => {
       temp_marked = {
         [firstDate]: {
           startingDay: true,
-          color: '#1A73E8',
-          textColor: 'white',
           endingDay: !lastDate,
+          ...colorStyle,
         },
       };
     }
@@ -81,14 +84,14 @@ const AddDateScreen = () => {
           [lastDate]: {
             startingDay: true,
             endingDay: true,
-            color: '#1A73E8',
-            textColor: 'white',
+            color: colors.primary,
+            textColor: colors.white,
           },
         };
       } else {
         temp_marked = {
           ...temp_marked,
-          [lastDate]: {endingDay: true, color: '#1A73E8', textColor: 'white'},
+          [lastDate]: {endingDay: true, ...colorStyle},
         };
       }
     }
@@ -99,7 +102,7 @@ const AddDateScreen = () => {
       while (date < new Date(range.end)) {
         temp_marked = {
           ...temp_marked,
-          [date.toISOString().slice(0, 10)]: {color: '#1A73E8', textColor: 'white'},
+          [date.toISOString().slice(0, 10)]: {...colorStyle},
         };
         date.setDate(date.getDate() + 1);
       }
@@ -154,7 +157,7 @@ export default AddDateScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   description: {
     paddingHorizontal: 80,

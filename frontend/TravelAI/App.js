@@ -6,12 +6,13 @@ import {RecoilRoot} from 'recoil';
 import {MD3LightTheme as DefaultTheme, PaperProvider} from 'react-native-paper';
 import {AxiosInterceptor} from './src/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import colors from './src/theme/colors';
 
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#0D6EFD',
+    primary: colors.primary,
   },
 };
 

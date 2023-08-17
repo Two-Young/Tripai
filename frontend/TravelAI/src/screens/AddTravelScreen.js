@@ -16,6 +16,7 @@ import {IconButton, Searchbar, List, Checkbox, Divider, Button} from 'react-nati
 import countriesAtom from '../recoil/countries/countries';
 import {locateCountries} from '../services/api';
 import defaultStyle from '../styles/styles';
+import colors from '../theme/colors';
 
 const AddTravelScreen = () => {
   // state
@@ -229,11 +230,11 @@ const styles = StyleSheet.create({
   },
   countryListTitle: {
     fontSize: 15,
-    color: '#000',
+    color: colors.black,
   },
   selectedCountrySection: {
     height: 160,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderTopColor: '#808080',
     borderTopWidth: 1,
     padding: 10,
@@ -243,7 +244,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   selectedCountryText: {
-    color: '#000',
+    color: colors.black,
     fontSize: 16,
   },
   deleteSelectedCountryBtn: {

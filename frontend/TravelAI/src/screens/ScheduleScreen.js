@@ -1,15 +1,16 @@
-import {Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Dimensions, FlatList, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import MapView, {Marker, PROVIDER_GOOGLE, Polyline} from 'react-native-maps';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute, CommonActions} from '@react-navigation/native';
 import defaultStyle from './../styles/styles';
-import {Button, Header as HeaderRNE} from '@rneui/themed';
-import DraggableFlatList from 'react-native-draggable-flatlist';
+import {Header} from '@rneui/themed';
 import {getSchedules, getSessions, locateDirection} from '../services/api';
-import {ListItem} from '@rneui/base';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
+import {Button, Card, IconButton} from 'react-native-paper';
+import colors from '../theme/colors';
+import {DateTime} from 'luxon';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -17,30 +18,61 @@ const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 const DayButton = props => {
-  const {day, onPress} = props;
+  const {day, onPress, selected} = props;
 
   return (
     <Button
-      containerStyle={{marginHorizontal: 5}}
-      type="outline"
-      size="sm"
-      title={`Day ${day + 1}`}
-      onPress={onPress}
-    />
+      style={styles.dayBtn}
+      contentStyle={styles.dayBtnContent}
+      buttonColor={selected ? colors.primary : colors.white}
+      textColor={selected ? colors.white : colors.black}
+      mode="elevated"
+      onPress={onPress}>
+      {`Day ${day + 1}`}
+    </Button>
   );
 };
 
-const PlaceCard = props => {
-  const {place, onPressDelete} = props;
+const RightContent = props => <IconButton icon="chevron-right" iconColor="#000" />;
+
+const PlaceCard = ({item, onPress}) => {
+  const {start_at} = item;
+
+  const time = React.useMemo(() => {
+    const date = new Date(start_at);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    return `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}`;
+  }, [start_at]);
+
+  const subTitle = React.useMemo(() => {
+    const {address, memo} = item;
+    if (address && memo) {
+      return `${address} | ${memo}`;
+    } else if (address) {
+      return address;
+    } else if (memo) {
+      return memo;
+    } else {
+      return '';
+    }
+  }, [item]);
 
   return (
-    <ListItem>
-      <ListItem.Content>
-        <ListItem.Title>{place.name}</ListItem.Title>
-        <ListItem.Subtitle>{place.address}</ListItem.Subtitle>
-      </ListItem.Content>
-      <Button title="delete" size="sm" type="clear" onPress={onPressDelete} />
-    </ListItem>
+    <View style={styles.item}>
+      <View style={styles.circle} />
+      <Text style={styles.itemTimeText}>{time}</Text>
+      <Card style={{flex: 1}} right={RightContent} onPress={() => onPress(item)}>
+        <Card.Title
+          title={item?.name}
+          subtitle={subTitle}
+          subtitleStyle={{
+            color: colors.lightgray,
+          }}
+          right={RightContent}
+        />
+      </Card>
+    </View>
   );
 };
 
@@ -49,15 +81,29 @@ const ScheduleScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const currentSession = useRecoilValue(sessionAtom);
-
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
   // states
   const [days, setDays] = React.useState([]);
-  const [currentDay, setCurrentDay] = React.useState(-1);
+  const [currentIndex, setCurrentIndex] = React.useState(-1);
   const [schedules, setSchedules] = React.useState([]);
-  const [locations, setLocations] = React.useState([]);
   const [coords, setCoords] = React.useState([]); // [Place
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  // memo
+  const locations = React.useMemo(
+    () =>
+      schedules
+        .filter(s => s.place_id !== null && s.place_id !== '')
+        .map(s => ({
+          name: s.name,
+          address: s.address,
+          place_id: s.place_id,
+          latitude: s.latitude,
+          longitude: s.longitude,
+        })),
+    [schedules],
+  );
 
   const markers = React.useMemo(() => {
     return locations.map(location => {
@@ -76,14 +122,18 @@ const ScheduleScreen = () => {
 
   // functions
   const onPressDay = day => {
-    setCurrentDay(days);
+    setCurrentIndex(day);
   };
 
-  const handleAddingSchedule = React.useCallback(() => {
-    navigation.navigate('AddSchedule', {day: days[currentDay - 1]});
-  }, [navigation, currentDay, route, days]);
+  const handleAddingSchedule = () => {
+    navigation.navigate('AddSchedule', {day: days[currentIndex - 1]});
+  };
 
-  const fetchSessionsData = React.useCallback(async () => {
+  const onPressScheduleCard = item => {
+    navigation.navigate('EditSchedule', {schedule: item});
+  };
+
+  const fetchSessionsData = async () => {
     try {
       const res = await getSessions();
       const target = res.find(session => session.session_id === currentSessionID);
@@ -95,20 +145,26 @@ const ScheduleScreen = () => {
         tempDays.push(new Date(i));
       }
       setDays(tempDays);
-      setCurrentDay(1);
+      setCurrentIndex(1);
     } catch (err) {
       console.error(err);
     }
-  }, [currentSessionID, setDays, getSessions]);
+  };
 
-  const fetchPlatformScheduleData = React.useCallback(async () => {
+  const fetchPlatformScheduleData = async () => {
     try {
-      const res = await getSchedules(currentSessionID, currentDay);
-      const {data} = res;
+      const data = await getSchedules(currentSessionID, currentIndex);
+      setSchedules(data.sort((a, b) => a.start_at - b.start_at));
     } catch (err) {
       console.error(err);
     }
-  }, [currentSessionID, currentDay]);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchPlatformScheduleData();
+    setRefreshing(false);
+  };
 
   // effects
   React.useEffect(() => {
@@ -118,17 +174,10 @@ const ScheduleScreen = () => {
   }, []);
 
   React.useEffect(() => {
-    if (route.params?.place && route.params?.day) {
-      const {place, day} = route.params;
-      setLocations(prev => [...prev, place]);
+    if (currentSessionID && currentIndex > 0) {
+      fetchPlatformScheduleData(currentSessionID, currentIndex);
     }
-  }, [route.params]);
-
-  React.useEffect(() => {
-    if (currentSessionID && currentDay > 0) {
-      fetchPlatformScheduleData(currentSessionID, currentDay);
-    }
-  }, [currentSessionID, currentDay]);
+  }, [currentSessionID, currentIndex]);
 
   React.useEffect(() => {
     if (locations.length > 1) {
@@ -173,14 +222,21 @@ const ScheduleScreen = () => {
     }
   }, [markers]);
 
+  React.useEffect(() => {
+    if (route?.params?.refresh) {
+      fetchPlatformScheduleData();
+      navigation.dispatch({...CommonActions.setParams({refresh: false})});
+    }
+  }, [route?.params?.refresh]);
+
   return (
     <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
-      <HeaderRNE
+      <Header
         backgroundColor="#fff"
         barStyle="dark-content"
         rightComponent={{
           icon: 'menu',
-          color: '#000',
+          color: colors.black,
         }}
         centerComponent={{text: 'Schedule', style: defaultStyle.heading}}
       />
@@ -207,61 +263,67 @@ const ScheduleScreen = () => {
               </Marker>
             ))}
             {coords.length > 0 && (
-              <Polyline coordinates={coords} strokeWidth={4} strokeColor="red" />
+              <Polyline coordinates={coords} strokeWidth={4} strokeColor={colors.primary} />
             )}
           </MapView>
         </View>
         <FlatList
-          style={{flexGrow: 0, marginVertical: 10}}
-          containerStyle={{flex: 1}}
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.flatList}
+          contentContainerStyle={styles.dayFlatListContent}
           data={days}
           renderItem={({item, index}) => (
-            <DayButton day={index} onPress={() => onPressDay(index + 1)} />
+            <DayButton
+              day={index}
+              onPress={() => onPressDay(index + 1)}
+              selected={index === currentIndex - 1}
+            />
           )}
+          ItemSeparatorComponent={<DaySeperator />}
           keyExtractor={item => item.toString()}
         />
-        <Text>Day {currentDay}</Text>
-        <DraggableFlatList
+        <View style={{paddingHorizontal: 10}}>
+          {/*<Text style={styles.dayTitle}>Day {currentIndex}</Text>*/}
+          <Text />
+        </View>
+        <FlatList
           style={{flex: 1}}
-          containerStyle={{flex: 1}}
-          data={locations}
-          renderItem={({item, index, drag, isActive}) => (
-            <TouchableOpacity onLongPress={drag}>
-              <PlaceCard
-                place={item}
-                onPressDelete={() =>
-                  setLocations(prev => {
-                    const newLocations = [...prev];
-                    newLocations.splice(index + 1, 1);
-                    return newLocations;
-                  })
-                }
-              />
-            </TouchableOpacity>
-          )}
-          onDragEnd={({data}) => setLocations(data)}
-          keyExtractor={(item, index) => `draggable-item-${index}`}
+          contentContainerStyle={{paddingHorizontal: 10}}
+          data={schedules}
+          // data={locations}
+          renderItem={({item}) => <PlaceCard item={item} onPress={onPressScheduleCard} />}
+          keyExtractor={item => item?.schedule_id?.toString()}
           ListFooterComponent={
             <Button
-              title="Add Schedule"
-              onPress={handleAddingSchedule}
-              containerStyle={{margin: 10}}
-            />
+              mode="elevated"
+              style={styles.addScheduleBtn}
+              textColor={colors.black}
+              onPress={handleAddingSchedule}>
+              Add Schedule
+            </Button>
           }
+          refreshing={refreshing}
+          onRefresh={onRefresh}
         />
       </View>
     </SafeAreaView>
   );
 };
 
+const DaySeperator = () => {
+  return <View style={styles.daySeperator} />;
+};
+
 export default ScheduleScreen;
 
 const styles = StyleSheet.create({
+  dayBtn: {},
+  dayBtnContent: {
+    fontSize: 11,
+  },
   container: {
-    height: 400,
-    width: 400,
+    height: 300,
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
@@ -274,7 +336,50 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   markerText: {
-    color: '#fff',
+    color: colors.white,
     fontWeight: 'bold',
+  },
+  flatList: {
+    flexGrow: 0,
+  },
+  dayTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: colors.black,
+  },
+  dayFlatListContent: {
+    padding: 10,
+  },
+  daySeperator: {
+    width: 10,
+  },
+  addScheduleBtn: {
+    marginVertical: 10,
+    marginLeft: 52,
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 32,
+    marginLeft: 22,
+    borderLeftWidth: 1,
+    borderLeftColor: '#808080',
+    paddingBottom: 10,
+  },
+  circle: {
+    position: 'absolute',
+    top: '50%',
+    left: -10,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.primary,
+  },
+  itemTimeText: {
+    position: 'absolute',
+    top: '20%',
+    left: -15,
+    fontSize: 12,
+    backgroundColor: colors.white,
   },
 });

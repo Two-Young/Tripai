@@ -8,6 +8,7 @@ import {useNavigation, CommonActions, useNavigationState} from '@react-navigatio
 import {createLocation, locateDetail, locatePin} from '../services/api';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
+import colors from '../theme/colors';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -113,6 +114,6 @@ const styles = StyleSheet.create({
   addressText: {
     padding: 10,
     fontSize: 16,
-    color: '#000',
+    color: colors.black,
   },
 });

@@ -72,7 +72,7 @@ const HomeScreen = () => {
           barStyle="dark-content"
           rightComponent={{
             icon: 'menu',
-            color: '#000',
+            color: colors.black,
           }}
           centerComponent={{text: 'Home', style: defaultStyle.heading}}
         />
