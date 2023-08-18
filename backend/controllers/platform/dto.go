@@ -118,6 +118,7 @@ type schedulesResponseItem struct {
 	Latitude       *float64 `json:"latitude"`
 	Longitude      *float64 `json:"longitude"`
 	StartAt        int64    `json:"start_at"`
+	Memo           *string  `json:"memo"`
 }
 
 type schedulesResponseDto []schedulesResponseItem

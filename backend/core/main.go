@@ -21,7 +21,7 @@ func main() {
 	log.Info("Version: ", platform2.VERSION)
 
 	// Create Jwt secret key if needed
-	//crypto.PrintNewJwtSecret()
+	crypto.PrintNewJwtSecret()
 
 	// Load environment variables
 	log.Info("Initializing environments...")
