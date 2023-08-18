@@ -60,6 +60,7 @@ func Schedules(c *gin.Context) {
 			Latitude:       s.Latitude,
 			Longitude:      s.Longitude,
 			StartAt:        s.StartAt.UnixMilli(),
+			Memo:           s.Memo,
 		})
 	}
 
@@ -276,7 +277,7 @@ func EditSchedule(c *gin.Context) {
 
 	// update schedule entity
 	if _, err := database.DB.Exec(
-		"UPDATE schedules SET name = ?, photo_reference = ?, place_id = ?, address = ?, day = ?, start_at = ?, memo = ? WHERE sscid = ?",
+		"UPDATE schedules SET name = ?, photo_reference = ?, place_id = ?, address = ?, day = ?, latitude = ?, longitude = ?, start_at = ?, memo = ? WHERE sscid = ?",
 		placeName, photoReference, placeId, address, dayIndex, lat, lng, startAt, body.Memo, body.ScheduleId); err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)

@@ -20,7 +20,12 @@ func AuthMiddleware(c *gin.Context) {
 	userId, errorMap := platform.DissolveAuthToken(rawToken)
 	if errorMap != nil {
 		log.Warn(errorMap)
-		util.AbortWithErrJson(c, http.StatusUnauthorized, errors.New("all auth-dissolve methods failed"))
+		errs := make([]string, 0)
+		for _, err := range errorMap {
+			errs = append(errs, err)
+		}
+		firstErr := errs[0]
+		util.AbortWithErrJson(c, http.StatusUnauthorized, errors.New("authorization failed: "+firstErr))
 		return
 	}
 
