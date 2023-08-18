@@ -4,6 +4,7 @@ import {useRecoilState} from 'recoil';
 import userAtom from '../recoil/user/user';
 import React from 'react';
 import reactotron from 'reactotron-react-native';
+import {navigate} from '../navigation/RootNavigator';
 
 export const API_URL_PROD = 'http://43.200.219.71:10375';
 export const API_URL_DEBUG = 'http://180.226.155.13:10375/';
@@ -45,23 +46,29 @@ export const AxiosInterceptor = () => {
             config,
             response: {status, data},
           } = error;
-          if (status === 401) {
-            if (data.error === 'all auth-dissolve methods failed') {
-              setUser(null);
-              delete api.defaults.headers.common.Authorization;
-              await AsyncStorage.removeItem('user');
-            }
-          }
-          if (error.response.status === 401 && !config._retry) {
-            console.log('here??');
-            config._retry = true;
-            const res = await authRefreshToken(user?.auth_tokens?.refresh_token?.token); // 여기서는 예시로 함수로 받아옴
-            console.log(res);
-            const {access_token, refresh_token} = res;
-            if (access_token) {
-              setUser({...user, tokens: {access_token, refresh_token}});
-              api.defaults.headers.common.Authorization = `Bearer ${access_token}`;
-              return api(config);
+          if (status === 401 && !config._retry) {
+            // 토큰 만료 -> 로그아웃
+            const current_refresh_token = user?.auth_tokens?.refresh_token?.token;
+            reactotron.log(current_refresh_token);
+            if (current_refresh_token) {
+              try {
+                const res = await authRefreshToken(current_refresh_token);
+                reactotron.log(res);
+                const {access_token, refresh_token} = res;
+                if (access_token) {
+                  reactotron.log('access token valid');
+                  setUser({...user, auth_tokens: {access_token, refresh_token}});
+                  api.defaults.headers.common.Authorization = `Bearer ${access_token}`;
+                  return api(config);
+                }
+              } catch (e) {
+                reactotron.log('access token invalid');
+                setUser(null);
+                delete api.defaults.headers.common.Authorization;
+                await AsyncStorage.removeItem('user');
+                navigate('SignIn');
+                console.error(e);
+              }
             }
           }
           return Promise.reject(error);
@@ -72,6 +79,7 @@ export const AxiosInterceptor = () => {
     return () => {
       axios.interceptors.response.eject(interceptor);
       axios.defaults.headers.common.Authorization = null;
+      axios.defaults.headers.common['X-Refresh-Token'] = null;
     };
   }, [user]);
 
@@ -123,7 +131,7 @@ export const authKakaoSign = async accessToken => {
 
 export const authRefreshToken = async refreshToken => {
   try {
-    api.head['X-Refresh-Token'] = refreshToken;
+    api.defaults.headers.common['X-Refresh-Token'] = refreshToken;
     const response = await api.post('/auth/refreshToken');
     return response.data;
   } catch (error) {

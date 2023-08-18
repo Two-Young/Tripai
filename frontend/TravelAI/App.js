@@ -1,7 +1,7 @@
 import React from 'react';
 // import SplashScreen from 'react-native-splash-screen';
 import {NavigationContainer} from '@react-navigation/native';
-import {RootNavigator} from './src/navigation/RootNavigator';
+import {RootNavigator, navigationRef} from './src/navigation/RootNavigator';
 import {RecoilRoot} from 'recoil';
 import {MD3LightTheme as DefaultTheme, PaperProvider} from 'react-native-paper';
 import {AxiosInterceptor} from './src/services/api';
@@ -33,7 +33,7 @@ const App = () => {
     <RecoilRoot>
       <PaperProvider theme={theme}>
         <AxiosInterceptor />
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <RootNavigator />
         </NavigationContainer>
       </PaperProvider>

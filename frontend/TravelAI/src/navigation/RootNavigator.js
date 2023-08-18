@@ -13,8 +13,17 @@ import {useRecoilState} from 'recoil';
 import userAtom from '../recoil/user/user';
 import AddScheduleScreen from '../screens/AddScheduleScreen';
 import EditScheduleScreen from '../screens/EditScheduleScreen';
+import {createNavigationContainerRef} from '@react-navigation/native';
 
 const Stack = createStackNavigator();
+
+export const navigationRef = createNavigationContainerRef();
+
+export function navigate(name, params) {
+  if (navigationRef.isReady()) {
+    navigationRef.navigate(name, params);
+  }
+}
 
 const RootNavigator = () => {
   // states
