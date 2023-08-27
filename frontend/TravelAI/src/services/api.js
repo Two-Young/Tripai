@@ -5,6 +5,7 @@ import userAtom from '../recoil/user/user';
 import React from 'react';
 import reactotron from 'reactotron-react-native';
 import {navigate} from '../navigation/RootNavigator';
+import {Alert} from 'react-native';
 
 export const API_URL_PROD = 'http://43.200.219.71:10375';
 export const API_URL_DEBUG = 'http://180.226.155.13:10375/';
@@ -42,9 +43,7 @@ export const AxiosInterceptor = () => {
 
   React.useEffect(() => {
     let interceptor = null;
-    console.log('use effect : ', user);
     if (user) {
-      reactotron.log('user : ', user);
       setAuthHeader(user?.auth_tokens?.access_token?.token);
       setRefreshTokenHeader(user?.auth_tokens?.refresh_token?.token);
 
@@ -58,10 +57,6 @@ export const AxiosInterceptor = () => {
             config,
             response: {status, data},
           } = error;
-          reactotron.log('error: ', error);
-          reactotron.log('status: ', status);
-          reactotron.log('data: ', data);
-          reactotron.log('config: ', config);
           if (status === 401 && data?.error === 'authorization failed: Token is expired') {
             // reactotron.log('access token expired');
             if (!config._retry) {
@@ -89,9 +84,16 @@ export const AxiosInterceptor = () => {
                 // return api(config);
               } catch (e) {
                 // reactotron.log('refresh token failed');
-                setUser(null);
-                await AsyncStorage.removeItem('user');
-                navigate('SignIn');
+                Alert.alert('Session expired', 'Please sign in again.', [
+                  {
+                    text: 'OK',
+                    onPress: async () => {
+                      setUser(null);
+                      await AsyncStorage.removeItem('user');
+                      navigate('SignIn');
+                    },
+                  },
+                ]);
                 throw e;
               }
             }
