@@ -90,6 +90,7 @@ export const AxiosInterceptor = () => {
                     onPress: async () => {
                       setUser(null);
                       await AsyncStorage.removeItem('user');
+                      // TODO: replace로 바꿔야됨
                       navigate('SignIn');
                     },
                   },

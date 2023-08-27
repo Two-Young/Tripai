@@ -47,11 +47,11 @@ const PlaceCard = ({item, onPress}) => {
 
   const subTitle = React.useMemo(() => {
     const {address, memo} = item;
-    if (address && memo) {
+    if (address.length > 0 && memo.length > 0) {
       return `${address} | ${memo}`;
-    } else if (address) {
+    } else if (address.length > 0) {
       return address;
-    } else if (memo) {
+    } else if (memo.length > 0) {
       return memo;
     } else {
       return '';
@@ -66,9 +66,7 @@ const PlaceCard = ({item, onPress}) => {
         <Card.Title
           title={item?.name}
           subtitle={subTitle}
-          subtitleStyle={{
-            color: colors.lightgray,
-          }}
+          subtitleStyle={{}}
           right={RightContent}
         />
       </Card>
