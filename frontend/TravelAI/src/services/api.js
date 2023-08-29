@@ -403,23 +403,41 @@ export const deleteLocation = async location_id => {
   }
 };
 
-// platform - budget
-export const getBudgetList = async () => {
+// platform - receipt
+export const getReceipt = async receipt_id => {
   try {
-    const response = await api.get('/platform/budget/list');
+    const response = await api.get('/platform/receipt/current', {
+      params: {
+        receipt_id,
+      },
+    });
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const createBudget = async (sessiontoken, title, amount, currency) => {
+export const uploadReceipt = async ({session_id, file}) => {
   try {
-    const response = await api.post('/platform/budget', {
-      sessiontoken,
-      title,
-      amount,
-      currency,
+    const response = await api.post('/platform/receipt/upload', {
+      params: {
+        session_id,
+      },
+      data: file,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const submitReceipt = async ({receipt_id, items, name, type}) => {
+  try {
+    const response = await api.post('/platform/receipt/submit', {
+      receipt_id,
+      items,
+      name,
+      type,
     });
     return response.data;
   } catch (error) {
