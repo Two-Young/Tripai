@@ -12,7 +12,8 @@ import (
 	"travel-ai/log"
 	"travel-ai/service/database"
 	"travel-ai/service/platform"
-	"travel-ai/third_party/others"
+	"travel-ai/service/platform/database_io"
+	"travel-ai/third_party/pexels"
 )
 
 func Sessions(c *gin.Context) {
@@ -133,7 +134,7 @@ func CreateSession(c *gin.Context) {
 	sessionId := uuid.New().String()
 	sessionName := fmt.Sprintf("%s Travel", travelName)
 	// get free image url with travel topic
-	imageUrl, err := others.GetFreeImageUrlByKeyword(sessionName)
+	imageUrl, err := pexels.GetFreeImageUrlByKeyword(sessionName)
 	if err != nil {
 		log.Error(err)
 		ctx.Rollback()
@@ -322,9 +323,51 @@ func DeleteSession(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+func Currencies(c *gin.Context) {
+	var query sessionSupportedCurrenciesRequestDto
+	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query")
+		return
+	}
+
+	countriesEntities, err := database_io.GetCountriesBySessionId(query.SessionId)
+	if err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid session id")
+		return
+	}
+
+	supportedCurrencies := make(sessionSupportedCurrenciesResponseDto)
+	for _, currencyEntity := range countriesEntities {
+		cca2 := currencyEntity.CountryCode
+		if cca2 == nil {
+			log.Debug("country code is nil")
+			continue
+		}
+		country, ok := platform.CountriesMap[*cca2]
+		if !ok {
+			log.Debugf("country not found with cca2: %s", *cca2)
+			continue
+		}
+		supportedCurrencies[country.CCA2] = make([]sessionSupportedCurrenciesResponseItem, 0)
+		currencyList := supportedCurrencies[country.CCA2]
+
+		for _, currency := range country.Currencies {
+			currencyList = append(currencyList, sessionSupportedCurrenciesResponseItem{
+				CurrencyCode:   currency.Code,
+				CurrencyName:   currency.Name,
+				CurrencySymbol: currency.Symbol,
+			})
+		}
+	}
+	c.JSON(http.StatusOK, supportedCurrencies)
+}
+
 func UseSessionRouter(g *gin.RouterGroup) {
 	rg := g.Group("/session")
 	rg.GET("", Sessions)
 	rg.PUT("", CreateSession)
 	rg.DELETE("", DeleteSession)
+	rg.GET("/currencies", Currencies)
 }

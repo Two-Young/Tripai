@@ -1,6 +1,17 @@
 package util
 
-import "github.com/gin-gonic/gin"
+import (
+	"errors"
+	"github.com/gin-gonic/gin"
+)
+
+func GetUid(c *gin.Context) (string, error) {
+	rawUid, ok := c.Get("uid")
+	if !ok {
+		return "", errors.New("uid not found")
+	}
+	return rawUid.(string), nil
+}
 
 func AbortWithErrJson(c *gin.Context, code int, err error) {
 	c.AbortWithStatusJSON(code, EJ(err))
