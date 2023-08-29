@@ -1,4 +1,4 @@
-import {StyleSheet, View, FlatList} from 'react-native';
+import {StyleSheet, View, FlatList, Text} from 'react-native';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
@@ -76,12 +76,14 @@ const HomeScreen = () => {
           }}
           centerComponent={{text: 'Home', style: defaultStyle.heading}}
         />
+        <Text>Invite</Text>
         <FlatList
           data={places}
           renderItem={item => <PlaceListItem item={item.item} setArr={setPlaces} />}
           keyExtractor={item => item.location_id}
           refreshing={refreshing}
           onRefresh={onRefresh}
+          ListHeaderComponent={() => <Text style={defaultStyle.heading}>Places</Text>}
         />
         <FAB style={styles.fab} icon="plus" color="#fff" onPress={onPressAddPlace} />
       </View>

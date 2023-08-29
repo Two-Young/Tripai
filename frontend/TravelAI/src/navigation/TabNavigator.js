@@ -54,6 +54,9 @@ const TabNavigator = () => {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
+        tabBarStyle: {
+          height: 60,
+        },
       }}>
       <Tab.Screen
         name="Home"

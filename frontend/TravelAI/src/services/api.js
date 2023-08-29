@@ -5,6 +5,7 @@ import userAtom from '../recoil/user/user';
 import React from 'react';
 import reactotron from 'reactotron-react-native';
 import {navigate} from '../navigation/RootNavigator';
+import {Alert} from 'react-native';
 
 export const API_URL_PROD = 'http://43.200.219.71:10375';
 export const API_URL_DEBUG = 'http://180.226.155.13:10375/';
@@ -30,10 +31,21 @@ export const AxiosInterceptor = () => {
     }
   };
 
+  const setRefreshTokenHeader = token => {
+    if (token) {
+      reactotron.log('before refresh token : ', api.defaults.headers.common['X-Refresh-Token']);
+      api.defaults.headers.common['X-Refresh-Token'] = token;
+      reactotron.log('after refresh token : ', api.defaults.headers.common['X-Refresh-Token']);
+    } else {
+      delete api.defaults.headers.common['X-Refresh-Token'];
+    }
+  };
+
   React.useEffect(() => {
     let interceptor = null;
     if (user) {
       setAuthHeader(user?.auth_tokens?.access_token?.token);
+      setRefreshTokenHeader(user?.auth_tokens?.refresh_token?.token);
 
       // 새로운 interceptor 생성
       interceptor = api.interceptors.response.use(
@@ -41,19 +53,53 @@ export const AxiosInterceptor = () => {
           return response;
         },
         async error => {
-          console.error(error);
           const {
             config,
             response: {status, data},
           } = error;
-          if (status === 401 && !config._retry) {
-            // 토큰 만료 -> 로그아웃
-            const current_refresh_token = user?.auth_tokens?.refresh_token?.token;
-            reactotron.log(current_refresh_token);
-            if (current_refresh_token) {
+          if (status === 401 && data?.error === 'authorization failed: Token is expired') {
+            // reactotron.log('access token expired');
+            if (!config._retry) {
               try {
-                const res = await authRefreshToken(current_refresh_token);
-                reactotron.log(res);
+                config._retry = true;
+                // reactotron.log('try refresh token');
+                const res = await authRefreshToken();
+                // reactotron.log('res', res);
+                const {access_token, refresh_token} = res;
+                // setUser({...user, auth_tokens: {access_token, refresh_token}});
+                if (access_token) {
+                  // reactotron.log('access token valid');
+                  error.config.headers.Authorization = `Bearer ${access_token?.token}`;
+                }
+                if (refresh_token) {
+                  // reactotron.log('refresh token valid');
+                  error.config.headers['X-Refresh-Token'] = refresh_token?.token;
+                }
+                setUser({...user, auth_tokens: {access_token, refresh_token}});
+                await AsyncStorage.setItem(
+                  'user',
+                  JSON.stringify({...user, auth_tokens: {access_token, refresh_token}}),
+                );
+                return Promise.resolve(api.request(config));
+                // return api(config);
+              } catch (e) {
+                // reactotron.log('refresh token failed');
+                Alert.alert('Session expired', 'Please sign in again.', [
+                  {
+                    text: 'OK',
+                    onPress: async () => {
+                      setUser(null);
+                      await AsyncStorage.removeItem('user');
+                      // TODO: replace로 바꿔야됨
+                      navigate('SignIn');
+                    },
+                  },
+                ]);
+                throw e;
+              }
+            }
+            // reactotron.log(res);
+            /*
                 const {access_token, refresh_token} = res;
                 if (access_token) {
                   reactotron.log('access token valid');
@@ -61,15 +107,8 @@ export const AxiosInterceptor = () => {
                   api.defaults.headers.common.Authorization = `Bearer ${access_token}`;
                   return api(config);
                 }
-              } catch (e) {
-                reactotron.log('access token invalid');
-                setUser(null);
-                delete api.defaults.headers.common.Authorization;
-                await AsyncStorage.removeItem('user');
-                navigate('SignIn');
-                console.error(e);
-              }
-            }
+
+                */
           }
           return Promise.reject(error);
         },
@@ -131,7 +170,6 @@ export const authKakaoSign = async accessToken => {
 
 export const authRefreshToken = async refreshToken => {
   try {
-    api.defaults.headers.common['X-Refresh-Token'] = refreshToken;
     const response = await api.post('/auth/refreshToken');
     return response.data;
   } catch (error) {

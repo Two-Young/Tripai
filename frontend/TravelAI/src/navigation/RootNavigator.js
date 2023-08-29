@@ -14,6 +14,8 @@ import userAtom from '../recoil/user/user';
 import AddScheduleScreen from '../screens/AddScheduleScreen';
 import EditScheduleScreen from '../screens/EditScheduleScreen';
 import {createNavigationContainerRef} from '@react-navigation/native';
+import SplitBillScreen from '../screens/SplitBillScreen';
+import CustomSplitScreen from '../screens/CustomSplitScreen';
 
 const Stack = createStackNavigator();
 
@@ -78,6 +80,8 @@ const RootNavigator = () => {
         }}>
         <Stack.Screen name="AddPlace" component={AddPlaceScreen} />
         <Stack.Screen name="AddSchedule" component={AddScheduleScreen} />
+        <Stack.Screen name="SplitBill" component={SplitBillScreen} />
+        <Stack.Screen name="CustomSplit" component={CustomSplitScreen} />
       </Stack.Group>
       <Stack.Group />
       <Stack.Group>
