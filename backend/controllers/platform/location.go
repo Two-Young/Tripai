@@ -30,7 +30,7 @@ func Locations(c *gin.Context) {
 	}
 
 	// check if user has permission to view locations
-	yes, err := platform.DidParticipateInSession(uid, query.SessionId)
+	yes, err := platform.CheckPermissionBySessionId(uid, query.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -89,7 +89,7 @@ func CreateLocation(c *gin.Context) {
 	}
 
 	// check if user has permission to create location
-	yes, err := platform.DidParticipateInSession(uid, body.SessionId)
+	yes, err := platform.CheckPermissionBySessionId(uid, body.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -156,7 +156,7 @@ func DeleteLocation(c *gin.Context) {
 	}
 
 	// check if user has permission to create location
-	yes, err := platform.DidParticipateInSession(uid, sessionId)
+	yes, err := platform.CheckPermissionBySessionId(uid, sessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)

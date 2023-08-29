@@ -7,6 +7,7 @@ import (
 func UseTestRouter(r *gin.Engine) {
 	g := r.Group("/test")
 	UseTestTestRouter(g)
+	UseTestCurrencyRouter(g)
 	UseTextCompletionRouter(g)
 	UseCloudVisionRouter(g)
 	UseRoutesRouter(g)

@@ -12,6 +12,18 @@ create table place_detail_caches
     country_code    varchar(10)  null
 );
 
+create table receipt_item_boxes
+(
+    ribid  varchar(255) not null
+        primary key,
+    rid    varchar(255) not null,
+    text   varchar(255) not null,
+    top    int          not null,
+    `left` int          not null,
+    width  int          not null,
+    height int          not null
+);
+
 create table session_thumbnail_caches
 (
     keyword varchar(255) not null,
@@ -74,28 +86,34 @@ create table locations
 
 create table receipts
 (
-    rid         varchar(255)    not null
+    rid               varchar(255)    not null
         primary key,
-    name        varchar(255)    null,
-    filename    varchar(255)    null,
-    sid         varchar(255)    null,
-    total_price float default 0 null,
-    unit        varchar(20)     null,
-    type        varchar(255)    null,
+    name              varchar(255)    null,
+    original_filename varchar(255)    null,
+    filename          varchar(255)    null,
+    sid               varchar(255)    null,
+    total_price       float default 0 null,
+    unit              varchar(20)     null,
+    type              varchar(255)    null,
+    width             int             not null,
+    height            int             not null,
     constraint receipts_sessions_sid_fk
         foreign key (sid) references sessions (sid)
 );
 
 create table receipt_items
 (
-    riid   varchar(255) not null
+    riid         varchar(255) not null
         primary key,
-    rid    varchar(255) null,
-    price  double       null,
-    top    int          null,
-    `left` int          null,
-    width  int          null,
-    height int          null,
+    rid          varchar(255) null,
+    label        varchar(255) not null,
+    label_box_id varchar(255) null,
+    price        varchar(255) not null,
+    price_box_id varchar(255) null,
+    constraint receipt_items_receipt_item_boxes_ribid_fk
+        foreign key (label_box_id) references receipt_item_boxes (ribid),
+    constraint receipt_items_receipt_item_boxes_ribid_fk2
+        foreign key (price_box_id) references receipt_item_boxes (ribid),
     constraint receipt_items_receipts_rid_fk
         foreign key (rid) references receipts (rid)
 );
@@ -124,10 +142,10 @@ create table schedules
     address         varchar(255) null,
     day             int          null,
     latitude        double       null,
+    longitude       double       null,
     start_at        datetime     null,
     memo            longtext     null,
     sid             varchar(50)  null,
-    longitude       double       null,
     constraint schedules_sessions_sid_fk
         foreign key (sid) references sessions (sid)
 );

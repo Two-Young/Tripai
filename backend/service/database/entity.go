@@ -55,13 +55,37 @@ type ScheduleEntity struct {
 }
 
 type ReceiptEntity struct {
-	ReceiptId  *string  `db:"rid" json:"receipt_id"`
-	Name       *string  `db:"name" json:"name"`
-	Filename   *string  `db:"filename" json:"filename"`
-	SessionId  *string  `db:"sid" json:"session_id"`
-	TotalPrice *float64 `db:"total_price" json:"total_price"`
-	Unit       *string  `db:"unit" json:"unit"`
-	Type       *string  `db:"type" json:"type"`
+	ReceiptId        string  `db:"rid" json:"receipt_id"`
+	Name             string  `db:"name" json:"name"`
+	OriginalFilename string  `db:"original_filename" json:"original_filename"`
+	Filename         string  `db:"filename" json:"filename"`
+	SessionId        string  `db:"sid" json:"session_id"`
+	TotalPrice       float64 `db:"total_price" json:"total_price"`
+	Unit             string  `db:"unit" json:"unit"`
+	Type             string  `db:"type" json:"type"`
+	Width            int     `db:"width" json:"width"`
+	Height           int     `db:"height" json:"height"`
+}
+
+type ReceiptItemBoxEntity struct {
+	ReceiptItemBoxId string `db:"ribid" json:"receipt_item_box_id"`
+	Text             string `db:"text" json:"text"`
+	Top              int    `db:"top" json:"top"`
+	Left             int    `db:"left" json:"left"`
+	Width            int    `db:"width" json:"width"`
+	Height           int    `db:"height" json:"height"`
+
+	ReceiptId string `db:"rid" json:"receipt_id"`
+}
+
+type ReceiptItemEntity struct {
+	ReceiptItemId string  `db:"riid" json:"receipt_item_id"`
+	Label         string  `db:"label" json:"label"`
+	LabelBoxId    *string `db:"label_box_id" json:"label_box_id"`
+	Price         float64 `db:"price" json:"price"`
+	PriceBoxId    *string `db:"price_box_id" json:"price_box_id"`
+
+	ReceiptId string `db:"rid" json:"receipt_id"`
 }
 
 type SessionThumbnailCacheEntity struct {

@@ -77,6 +77,19 @@ type sessionDeleteRequestDto struct {
 	SessionId string `json:"session_id" binding:"required"`
 }
 
+type sessionSupportedCurrenciesRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type sessionSupportedCurrenciesResponseItem struct {
+	CurrencyCode   string `json:"currency_code"`
+	CurrencyName   string `json:"currency_name"`
+	CurrencySymbol string `json:"currency_symbol"`
+}
+
+// key: country code
+type sessionSupportedCurrenciesResponseDto map[string][]sessionSupportedCurrenciesResponseItem
+
 /* ---------------- Location ---------------- */
 type locationsRequestDto struct {
 	SessionId string `form:"session_id" binding:"required"`
@@ -144,10 +157,6 @@ type scheduleDeleteRequestDto struct {
 }
 
 /* ---------------- Receipt ---------------- */
-type receiptUploadRequestDto struct {
-	SessionId string `form:"session_id" binding:"required"`
-}
-
 type receiptTextItemBoundary struct {
 	Top    int `json:"top"`
 	Left   int `json:"left"`
@@ -155,9 +164,26 @@ type receiptTextItemBoundary struct {
 	Height int `json:"height"`
 }
 
+type receiptItemBox struct {
+	ReceiptItemBoxId string                  `json:"box_id"`
+	Text             string                  `json:"text"`
+	Boundary         receiptTextItemBoundary `json:"boundary"`
+}
+
+type receiptLabelItem struct {
+	ReceiptIemBoxId *string `json:"box_id"`
+	Text            string  `json:"text"`
+}
+
+type receiptPriceItem struct {
+	ReceiptIemBoxId *string `json:"box_id"`
+	Value           float64 `json:"value"`
+}
+
 type receiptTextItem struct {
-	Boundary receiptTextItemBoundary `json:"boundary"`
-	Text     string                  `json:"value"`
+	ReceiptItemId string           `json:"item_id"`
+	Label         receiptLabelItem `json:"label"`
+	Price         receiptPriceItem `json:"price"`
 }
 
 type receiptImageResolution struct {
@@ -165,22 +191,62 @@ type receiptImageResolution struct {
 	Height int `json:"height"`
 }
 
-type receiptUploadResponseDto struct {
+type receiptGetRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type receiptGetResponseItem struct {
+	ReceiptId string `json:"receipt_id"`
+	Name      string `json:"name"`
+}
+
+type receiptGetResponseDto []receiptGetResponseItem
+
+type receiptGetImageRequestDto struct {
+	ReceiptId string `form:"receipt_id" binding:"required"`
+}
+
+type receiptGetCurrentRequestDto struct {
+	ReceiptId string `form:"receipt_id" binding:"required"`
+}
+
+type receiptGetCurrentResponseDto struct {
+	ItemBoxes  []receiptItemBox       `json:"item_boxes"`
 	Items      []receiptTextItem      `json:"items"`
 	Resolution receiptImageResolution `json:"resolution"`
-	ReceiptId  string                 `json:"receipt_id"`
+}
+
+type receiptUploadRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type receiptSelectedBoxInfo struct {
+	Custom bool    `json:"custom" binding:"required"`
+	BoxId  *string `json:"box_id" binding:"required"`
+	Text   string  `json:"text" binding:"required"`
 }
 
 type receiptSelectedTextItem struct {
-	Name     string                  `json:"name"`
-	Price    int                     `json:"price"`
-	UsersId  []string                `json:"users_id"`
-	Boundary receiptTextItemBoundary `json:"boundary"`
+	Label receiptSelectedBoxInfo `json:"label" binding:"required"`
+	Price receiptSelectedBoxInfo `json:"price" binding:"required"`
 }
 
 type receiptSubmitRequestDto struct {
 	ReceiptId string                    `json:"receipt_id" binding:"required"`
 	Items     []receiptSelectedTextItem `json:"items" binding:"required"`
-	Name      string                    `json:"name" binding:"required"`
-	Type      string                    `json:"type" binding:"required"`
+}
+
+/* ---------------- Currency ---------------- */
+type currencyGetSupportedResponseItem struct {
+	CountryCode    string `json:"country_code"`
+	CurrencyCode   string `json:"currency_code"`
+	CurrencyName   string `json:"currency_name"`
+	CurrencySymbol string `json:"currency_symbol"`
+}
+
+type currencyGetSupportedResponseDto []currencyGetSupportedResponseItem
+
+type currencyExchangeRateRequestDto struct {
+	FromCurrencyCode string `form:"from_currency_code" binding:"required"`
+	ToCurrencyCode   string `form:"to_currency_code" binding:"required"`
 }

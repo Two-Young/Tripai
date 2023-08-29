@@ -13,7 +13,7 @@ import (
 	"travel-ai/third_party/google_cloud/cloud_vision"
 	"travel-ai/third_party/google_cloud/places"
 	"travel-ai/third_party/open_ai"
-	"travel-ai/third_party/others"
+	"travel-ai/third_party/pexels"
 )
 
 func main() {
@@ -73,7 +73,7 @@ func main() {
 	open_ai.Initialize()
 	cloud_vision.Initialize()
 	places.Initialize()
-	others.Initialize()
+	pexels.Initialize()
 
 	// Preload
 	platform.Preload()
