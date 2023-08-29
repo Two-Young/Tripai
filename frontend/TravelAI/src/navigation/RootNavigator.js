@@ -16,6 +16,7 @@ import EditScheduleScreen from '../screens/EditScheduleScreen';
 import {createNavigationContainerRef} from '@react-navigation/native';
 import SplitBillScreen from '../screens/SplitBillScreen';
 import CustomSplitScreen from '../screens/CustomSplitScreen';
+import ReceiptScreen from '../screens/ReceiptScreen';
 
 const Stack = createStackNavigator();
 
@@ -90,6 +91,7 @@ const RootNavigator = () => {
         <Stack.Screen name="AddTravel" component={AddTravelScreen} />
         <Stack.Screen name="AddDate" component={AddDateScreen} />
         <Stack.Screen name="EditSchedule" component={EditScheduleScreen} />
+        <Stack.Screen name="Receipt" component={ReceiptScreen} />
       </Stack.Group>
       {/* OnBoard */}
       {/* Tab */}

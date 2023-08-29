@@ -7,6 +7,7 @@ import {
   Keyboard,
   TextInput,
   Pressable,
+  Image,
 } from 'react-native';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -16,11 +17,19 @@ import {Button, HelperText, IconButton, List, Surface} from 'react-native-paper'
 import {useNavigation, useRoute, CommonActions} from '@react-navigation/native';
 import DatePicker from 'react-native-date-picker';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import reactotron from 'reactotron-react-native';
+import {getReceipt, uploadReceipt} from '../services/api';
+import {useRecoilValue} from 'recoil';
+import sessionAtom from '../recoil/session/session';
 
 const CustomSplitScreen = () => {
   // hooks
   const navigation = useNavigation();
   const route = useRoute();
+  const currentSession = useRecoilValue(sessionAtom);
+  const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
+
+  console.log(currentSessionID);
 
   // states
   const [name, setName] = React.useState('');
@@ -32,6 +41,7 @@ const CustomSplitScreen = () => {
   const [note, setNote] = React.useState('');
   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [receipt, setReceipt] = React.useState(null);
 
   // functions
   const handleSetAddress = () => {
@@ -43,14 +53,49 @@ const CustomSplitScreen = () => {
     setPlaceID('');
   };
 
-  const handleUploadReceipt = () => {
-    launchImageLibrary({mediaType: 'photo'}, response => {
-      console.log(response);
-    });
+  const handleUploadReceipt = async () => {
+    try {
+      const result = await launchImageLibrary({mediaType: 'photo'});
+      reactotron.log(result);
+      if (result.didCancel) {
+        return;
+      }
+      if (result.errorCode) {
+        return;
+      }
+      if (result.errorMessage) {
+        return;
+      }
+      setReceipt(result.assets ? result.assets[0].uri : null);
+    } catch (error) {
+      throw error;
+    }
     /*
     launchCamera({mediaType: 'photo'}, response => {
       console.log(response);
     });  */
+  };
+
+  const onSubmitReceipt = async () => {
+    try {
+      if (receipt) {
+        const formData = new FormData();
+        const imageUriParts = receipt.split('.');
+        const fileExtension = imageUriParts[imageUriParts.length - 1];
+        formData.append('file', {
+          uri: receipt,
+          name: `receipt.${fileExtension}`,
+          type: `image/${fileExtension}`,
+        });
+        const res = await uploadReceipt({session_id: currentSessionID, file: formData});
+
+        reactotron.log(res);
+
+        await getReceipt(res);
+      }
+    } catch (error) {
+      throw error;
+    }
   };
 
   // effects
@@ -108,61 +153,13 @@ const CustomSplitScreen = () => {
                 <Button mode="contained" onPress={handleUploadReceipt}>
                   Upload Receipt
                 </Button>
-
+                <Image source={{uri: receipt}} style={{width: 200, height: 200}} />
+                <Button mode="contained" onPress={onSubmitReceipt} />
                 <List.Accordion title="Expense List">
                   <List.Item title="First item" />
                   <List.Item title="Second item" />
                 </List.Accordion>
               </View>
-              <View>
-                <Text>Address</Text>
-                <View style={{flexDirection: 'row'}}>
-                  <Pressable style={{flex: 1}} onPress={handleSetAddress}>
-                    <View pointerEvents="none">
-                      <TextInput
-                        placeholder=""
-                        value={address}
-                        outlineColor="#000"
-                        editable={false}
-                        textBreakStrategy="highQuality"
-                      />
-                    </View>
-                  </Pressable>
-                  {address !== '' && <IconButton icon="close" onPress={onPressClearAddress} />}
-                </View>
-              </View>
-              <View>
-                <Text>Start at</Text>
-                <Pressable onPress={() => setOpen(true)}>
-                  <View pointerEvents="none">
-                    <TextInput placeholder="Type something" value={startAt} editable={false} />
-                  </View>
-                </Pressable>
-              </View>
-              <View>
-                <Text>Note</Text>
-                <Surface style={styles.surface} mode="flat">
-                  <TextInput
-                    style={{width: '100%', height: '100%', textAlignVertical: 'top'}}
-                    placeholder="Type something"
-                    value={note}
-                    onChangeText={setNote}
-                    multiline
-                    outlineColor="#000"
-                  />
-                </Surface>
-              </View>
-              <DatePicker
-                modal
-                open={open}
-                date={date}
-                mode="time"
-                onConfirm={date => {
-                  setOpen(false);
-                  setDate(date);
-                }}
-                onCancel={() => setOpen(false)}
-              />
             </View>
           </ScrollView>
           <Button mode="contained">{loading ? 'Adding...' : 'Add'}</Button>
