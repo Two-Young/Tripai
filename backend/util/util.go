@@ -4,12 +4,36 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 	"travel-ai/log"
 )
+
+func GetPublicIp() (string, error) {
+	resp, err := http.Get("http://ipinfo.io/ip")
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	ip, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	ipv4 := strings.TrimSpace(string(ip))
+
+	// check ipv4 with regex
+	ipv4_regex := `^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4})`
+	if match, _ := regexp.MatchString(ipv4_regex, ipv4); !match {
+		return "", fmt.Errorf("invalid ipv4: %v", ipv4)
+	}
+	return ipv4, nil
+}
 
 func InterfaceToStruct(src interface{}, dst interface{}) error {
 	jsonData, err := json.Marshal(src)

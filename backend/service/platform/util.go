@@ -4,12 +4,23 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math/rand"
 	"regexp"
 	"strconv"
 	"time"
 	"travel-ai/service/database"
 	"travel-ai/service/platform/database_io"
 )
+
+func GenerateUserCode() string {
+	const length = 10
+	const charset = "0123456789"
+	result := ""
+	for i := 0; i < length; i++ {
+		result += string(charset[rand.Intn(len(charset))])
+	}
+	return result
+}
 
 func ExtractNumberFromString(str string) (float64, error) {
 	re := regexp.MustCompile(`[0-9]+(\.[0-9]*)?`)

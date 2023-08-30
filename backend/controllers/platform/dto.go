@@ -250,3 +250,50 @@ type currencyExchangeRateRequestDto struct {
 	FromCurrencyCode string `form:"from_currency_code" binding:"required"`
 	ToCurrencyCode   string `form:"to_currency_code" binding:"required"`
 }
+
+/* ---------------- Friends ---------------- */
+type friendsGetResponseItem struct {
+	UserId       string `json:"user_id" binding:"required"`
+	UserCode     string `json:"user_code" binding:"required"`
+	Username     string `json:"username" binding:"required"`
+	ProfileImage string `json:"profile_image" binding:"required"`
+	AcceptedAt   int64  `json:"accepted_at" binding:"required"`
+}
+
+type friendsGetResponseDto []friendsGetResponseItem
+
+type friendsRequestRequestDto struct {
+	TargetUserId string `json:"target_user_id" binding:"required"`
+}
+
+type friendsAcceptRequestDto struct {
+	RequestedUserId string `json:"requested_user_id" binding:"required"`
+}
+
+type friendsRejectRequestDto struct {
+	RequestedUserId string `json:"requested_user_id" binding:"required"`
+}
+
+type friendsDeleteRequestDto struct {
+	TargetUserId string `json:"target_user_id" binding:"required"`
+}
+
+type friendsSearchRequestDto struct {
+	Query string `form:"query" binding:"required"`
+}
+
+type friendsSearchResponseItem struct {
+	UserId       string `json:"user_id" binding:"required"`
+	UserCode     string `json:"user_code" binding:"required"`
+	Username     string `json:"username" binding:"required"`
+	ProfileImage string `json:"profile_image" binding:"required"`
+}
+
+type friendsSearchResponseDto []friendsSearchResponseItem
+
+/* ---------------- Users ---------------- */
+type userGetProfileResponseDto struct {
+	Username            string `json:"username"`
+	ProfileImage        string `json:"profile_image"`
+	AllowNicknameSearch bool   `json:"allow_nickname_search"`
+}

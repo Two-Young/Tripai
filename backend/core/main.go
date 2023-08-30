@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
 	"os"
 	"strings"
@@ -17,6 +18,14 @@ import (
 )
 
 func main() {
+	fmt.Println(`
+████████╗██████╗ ██╗██████╗ ███████╗████████╗
+╚══██╔══╝██╔══██╗██║██╔══██╗██╔════╝╚══██╔══╝
+   ██║   ██████╔╝██║██████╔╝█████╗     ██║   
+   ██║   ██╔══██╗██║██╔═══╝ ██╔══╝     ██║   
+   ██║   ██║  ██║██║██║     ███████╗   ██║   
+   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝     ╚══════╝   ╚═╝   
+	`)
 	log.Info("Travel AI Server is now starting...")
 	log.Info("Version: ", platform2.VERSION)
 
@@ -76,7 +85,10 @@ func main() {
 	pexels.Initialize()
 
 	// Preload
-	platform.Preload()
+	if err := platform.Preload(); err != nil {
+		log.Error(err)
+		os.Exit(-3)
+	}
 
 	// Run web server with gin
 	controllers.RunGin()
