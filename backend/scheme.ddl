@@ -180,3 +180,15 @@ create table user_sessions
         foreign key (uid) references users (uid)
 );
 
+create table users_friends
+(
+    uid           varchar(255)         not null,
+    requested_uid varchar(255)         not null,
+    accepted      tinyint(1) default 0 not null,
+    primary key (uid, requested_uid),
+    constraint users_friends_users_uid_fk
+        foreign key (uid) references users (uid),
+    constraint users_friends_users_uid_fk2
+        foreign key (requested_uid) references users (uid)
+);
+

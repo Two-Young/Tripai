@@ -15,11 +15,13 @@ type SignRequestDto struct {
 }
 
 type UserInfoDto struct {
-	UserId       string `json:"user_id"`
-	Id           string `json:"id"`
-	Username     string `json:"username"`
-	ProfileImage string `json:"profile_image"`
-	Platform     string `json:"platform"`
+	UserId              string `json:"user_id"`
+	Id                  string `json:"id"`
+	UserCode            string `json:"user_code"`
+	Username            string `json:"username"`
+	ProfileImage        string `json:"profile_image"`
+	Platform            string `json:"platform"`
+	AllowNicknameSearch bool   `json:"allow_nickname_search"`
 }
 
 type SignResponseDto struct {

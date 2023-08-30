@@ -21,6 +21,8 @@ func SupportedCurrencies(c *gin.Context) {
 			})
 		}
 	}
+
+	c.JSON(http.StatusOK, supportedCurrencies)
 }
 
 func ExchangeRate(c *gin.Context) {

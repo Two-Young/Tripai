@@ -360,6 +360,8 @@ func Currencies(c *gin.Context) {
 				CurrencySymbol: currency.Symbol,
 			})
 		}
+
+		supportedCurrencies[country.CCA2] = currencyList
 	}
 	c.JSON(http.StatusOK, supportedCurrencies)
 }

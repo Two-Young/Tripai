@@ -3,11 +3,21 @@ package database
 import "time"
 
 type UserEntity struct {
-	UserId       *string `db:"uid" json:"userId"`
-	Id           *string `db:"id" json:"id"`
-	Username     *string `db:"username" json:"username"`
-	ProfileImage *string `db:"profile_image" json:"profile_image"`
-	Platform     *string `db:"platform" json:"platform"`
+	UserId              *string `db:"uid" json:"user_id"`
+	Id                  *string `db:"id" json:"id"`
+	UserCode            string  `db:"user_code" json:"user_code"`
+	Username            *string `db:"username" json:"username"`
+	ProfileImage        *string `db:"profile_image" json:"profile_image"`
+	Platform            *string `db:"platform" json:"platform"`
+	AllowNicknameSearch bool    `db:"allow_nickname_search" json:"allow_nickname_search"`
+}
+
+type FriendEntity struct {
+	UserId          string     `db:"uid" json:"user_id"`
+	RequestedUserId string     `db:"requested_uid" json:"requested_user_id"`
+	Accepted        bool       `db:"accepted" json:"accepted"`
+	RequestedAt     time.Time  `db:"requested_at" json:"requested_at"`
+	ConfirmedAt     *time.Time `db:"confirmed_at" json:"confirmed_at"`
 }
 
 type SessionEntity struct {
