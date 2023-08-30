@@ -2,8 +2,7 @@ import {StyleSheet, Linking} from 'react-native';
 import React from 'react';
 import {Button, Image, ListItem} from '@rneui/themed';
 import {API_URL_PROD, deleteLocation, locatePlacePhoto} from '../../services/api';
-
-const GOOGLE_API_KEY = 'AIzaSyDfvktC6dAf0oARSwkLrTcVwe1Vi3GEz58';
+import {arrayBufferToBase64} from '../../utils/utils';
 
 const PlaceListItem = props => {
   const {item, onPress, setArr} = props;
@@ -13,10 +12,8 @@ const PlaceListItem = props => {
 
   const getPhoto = async () => {
     try {
-      // const res = await locatePlacePhoto(photo_reference, 400);
-      setImageData(
-        `https://maps.googleapis.com/maps/api/place/photo?photo_reference=${photo_reference}&maxwidth=400&key=${GOOGLE_API_KEY}`,
-      );
+      const res = await locatePlacePhoto(photo_reference, 400);
+      setImageData(arrayBufferToBase64(res));
     } catch (err) {
       console.error(err);
     }
@@ -74,7 +71,7 @@ const PlaceListItem = props => {
       {imageData && (
         <Image
           source={{
-            uri: imageData,
+            uri: `data:image/jpeg;base64,${imageData}`,
           }}
           style={styles.photo}
         />

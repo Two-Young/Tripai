@@ -1,4 +1,5 @@
-# Travel-AI: Graduation Project - SKKU, 2023
+# Tripet: Graduation Project - SKKU, 2023
+Original Project Name (Travel-AI) has been changed as Tripet (Trip + Pet)
 
 ## Progress Plan
 
