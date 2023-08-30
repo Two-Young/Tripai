@@ -2,21 +2,27 @@ import {FlatList, StyleSheet, Text, View, Image, Alert} from 'react-native';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
-import {Header} from '@rneui/themed';
-import {Button, IconButton, Portal, Snackbar, Surface} from 'react-native-paper';
+import {Header, Icon} from '@rneui/themed';
+import {Button, IconButton, Menu, Portal, Snackbar, Surface} from 'react-native-paper';
 import defaultStyle from '../styles/styles';
-import {deleteSession, getSessions} from '../services/api';
+import {deleteSession, getCurrencies, getSessions, locateCountries} from '../services/api';
 import {useRecoilValue, useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import userAtom from '../recoil/user/user';
 import colors from '../theme/colors';
 import reactotron from 'reactotron-react-native';
+import countriesAtom from '../recoil/countries/countries';
+import currenciesAtom from '../recoil/currencies/currencies';
 
 const MainScreen = () => {
   /* states */
   const [sessions, setSessions] = React.useState([]); // 세션 목록
   const [refreshing, setRefreshing] = React.useState(false); // refresh 여부
   const [snackbarVisible, setSnackbarVisible] = React.useState(false); // snackbar visible 여부
+  const [menuVisible, setMenuVisible] = React.useState(false); // menu visible 여부
+
+  const setCountries = useSetRecoilState(countriesAtom);
+  const setCurrencies = useSetRecoilState(currenciesAtom);
 
   /* hooks */
   const navigation = useNavigation();
@@ -66,6 +72,24 @@ const MainScreen = () => {
     }
   };
 
+  const fetchCountries = async () => {
+    try {
+      const res = await locateCountries();
+      setCountries(res);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchCurrencies = async () => {
+    try {
+      const res = await getCurrencies();
+      setCurrencies(res);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // 새로고침
   const onRefresh = async () => {
     try {
@@ -80,10 +104,25 @@ const MainScreen = () => {
     }
   };
 
+  const openMenu = () => {
+    setMenuVisible(true);
+  };
+
+  const closeMenu = () => {
+    setMenuVisible(false);
+  };
+
+  const navigateToProfile = () => {
+    closeMenu();
+    navigation.navigate('Profile');
+  };
+
   /* effects */
 
   React.useEffect(() => {
     fetchSessions();
+    fetchCountries();
+    fetchCurrencies();
   }, []);
 
   // route.params.refresh가 true일 경우 새로고침을 합니다.
@@ -103,10 +142,14 @@ const MainScreen = () => {
         backgroundColor="#fff"
         barStyle="dark-content"
         leftComponent={{text: 'HOME', style: defaultStyle.heading}}
-        rightComponent={{
-          icon: 'settings',
-          color: colors.black,
-        }}
+        rightComponent={
+          <Menu
+            visible={menuVisible}
+            onDismiss={closeMenu}
+            anchor={<Icon onPress={openMenu} name="menu" />}>
+            <Menu.Item onPress={navigateToProfile} title="Profile" />
+          </Menu>
+        }
       />
       <View style={styles.container}>
         <FlatList
