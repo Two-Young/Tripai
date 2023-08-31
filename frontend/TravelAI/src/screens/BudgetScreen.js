@@ -4,11 +4,10 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
 import {Header} from '@rneui/themed';
 import colors from '../theme/colors';
-import {FAB} from 'react-native-paper';
+import {FAB, List} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
-import {useRecoilState, useRecoilValue} from 'recoil';
-import currenciesAtom from '../recoil/currencies/currencies';
-import {getCurrencies, getReceipts} from '../services/api';
+import {useRecoilValue} from 'recoil';
+import {getReceipts, getSessionCurrencies} from '../services/api';
 import sessionAtom from '../recoil/session/session';
 
 const BudgetScreen = () => {
@@ -18,27 +17,27 @@ const BudgetScreen = () => {
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
   // states
-  const [currencies, setCurrencies] = useRecoilState(currenciesAtom);
   const [receipts, setReceipts] = React.useState([]);
+  const [sessionCurrencies, setSessionCurrencies] = React.useState([]);
   const [refreshing, setRefreshing] = React.useState(false);
   const [fabState, setFabState] = React.useState({
     open: false,
   });
 
   // functions
-  const fetchCurrencies = async () => {
+  const fetchReceipts = async () => {
     try {
-      const res = await getCurrencies();
-      setCurrencies(res);
+      const res = await getReceipts(currentSessionID);
+      setReceipts(res);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const fetchReceipts = async () => {
+  const fetchSessionCurrencies = async () => {
     try {
-      const res = await getReceipts(currentSessionID);
-      setReceipts(res);
+      const res = await getSessionCurrencies(currentSessionID);
+      setSessionCurrencies(res);
     } catch (err) {
       console.error(err);
     }
@@ -65,9 +64,14 @@ const BudgetScreen = () => {
 
   // effects
   React.useEffect(() => {
-    fetchCurrencies();
     fetchReceipts();
   }, []);
+
+  React.useEffect(() => {
+    if (currentSessionID) {
+      fetchSessionCurrencies(currentSessionID);
+    }
+  }, [currentSessionID]);
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
@@ -85,16 +89,18 @@ const BudgetScreen = () => {
           <FlatList
             data={receipts}
             renderItem={({item}) => (
-              <Pressable
+              <List.Item
+                title={item?.receipt_id}
+                description={item?.name}
+                left={props => <List.Icon {...props} icon="folder" />}
                 onPress={() =>
                   navigation.navigate('Receipt', {
                     receipt_id: item.receipt_id,
                   })
-                }>
-                <Text>{item.name}</Text>
-              </Pressable>
+                }
+              />
             )}
-            keyExtractor={item => item}
+            keyExtractor={item => item?.receipt_id}
             refreshing={refreshing}
             onRefresh={onRefresh}
           />

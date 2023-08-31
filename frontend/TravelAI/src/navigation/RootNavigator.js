@@ -17,6 +17,7 @@ import {createNavigationContainerRef} from '@react-navigation/native';
 import SplitBillScreen from '../screens/SplitBillScreen';
 import CustomSplitScreen from '../screens/CustomSplitScreen';
 import ReceiptScreen from '../screens/ReceiptScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Stack = createStackNavigator();
 
@@ -74,6 +75,7 @@ const RootNavigator = () => {
       <Stack.Group>
         <Stack.Screen name="Main" component={MainScreen} />
         <Stack.Screen name="Tab" component={TabNavigator} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Group>
       <Stack.Group
         screenOptions={{
