@@ -29,7 +29,7 @@ func Schedules(c *gin.Context) {
 	}
 
 	// check if user has permission to view locations
-	yes, err := platform.CheckPermissionBySessionId(uid, query.SessionId)
+	yes, err := platform.IsSessionMember(uid, query.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -83,7 +83,7 @@ func CreateSchedule(c *gin.Context) {
 	}
 
 	// check if user has permission to create schedule
-	yes, err := platform.CheckPermissionBySessionId(uid, body.SessionId)
+	yes, err := platform.IsSessionMember(uid, body.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -201,7 +201,7 @@ func EditSchedule(c *gin.Context) {
 	}
 
 	// check if user has permission to create schedule
-	yes, err := platform.CheckPermissionBySessionId(uid, *originalSchedule.SessionId)
+	yes, err := platform.IsSessionMember(uid, *originalSchedule.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -311,7 +311,7 @@ func DeleteSchedule(c *gin.Context) {
 	}
 
 	// check if user has permission to delete location
-	yes, err := platform.CheckPermissionBySessionId(uid, *schedule.SessionId)
+	yes, err := platform.IsSessionMember(uid, *schedule.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)

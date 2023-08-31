@@ -35,7 +35,7 @@ func GetReceipts(c *gin.Context) {
 	}
 
 	// check permission to view this sessions
-	permOk, err := platform.CheckPermissionBySessionId(uid, query.SessionId)
+	permOk, err := platform.IsSessionMember(uid, query.SessionId)
 	if err != nil {
 		log.Error(err)
 		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -216,7 +216,7 @@ func UploadReceipt(c *gin.Context) {
 		return
 	}
 
-	permOk, err := platform.CheckPermissionBySessionId(uid, query.SessionId)
+	permOk, err := platform.IsSessionMember(uid, query.SessionId)
 	if err != nil {
 		log.Error(err)
 		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)

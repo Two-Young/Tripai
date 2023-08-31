@@ -26,7 +26,7 @@ func main() {
    ██║   ██║  ██║██║██║     ███████╗   ██║   
    ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝     ╚══════╝   ╚═╝   
 	`)
-	log.Info("Travel AI Server is now starting...")
+	log.Info("Tripet Server is now starting...")
 	log.Info("Version: ", platform2.VERSION)
 
 	// Create Jwt secret key if needed

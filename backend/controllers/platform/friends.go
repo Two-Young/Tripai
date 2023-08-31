@@ -35,8 +35,8 @@ func GetFriends(c *gin.Context) {
 		friends = append(friends, friendsGetResponseItem{
 			UserId:       f.UserId,
 			UserCode:     f.UserCode,
-			Username:     *f.Username,
-			ProfileImage: *f.ProfileImage,
+			Username:     f.Username,
+			ProfileImage: f.ProfileImage,
 			AcceptedAt:   f.ConfirmedAt.UnixMilli(),
 		})
 	}
@@ -297,6 +297,49 @@ func RejectFriend(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
+func GetWaitingFriendRequests(c *gin.Context) {
+	uid := c.GetString("uid")
+
+	sent, err := database_io.GetSentFriendsRequestWaitings(uid)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	received, err := database_io.GetReceivedFriendsRequestWaitings(uid)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	resp := friendsWaitingRequestsResponseDto{
+		Sent:     make([]friendsWaitingRequests, 0),
+		Received: make([]friendsWaitingRequests, 0),
+	}
+
+	for _, s := range sent {
+		resp.Sent = append(resp.Sent, friendsWaitingRequests{
+			UserId:       s.UserId,
+			Username:     s.Username,
+			ProfileImage: s.ProfileImage,
+			RequestedAt:  s.RequestedAt.UnixMilli(),
+		})
+	}
+
+	for _, r := range received {
+		resp.Received = append(resp.Received, friendsWaitingRequests{
+			UserId:       r.UserId,
+			Username:     r.Username,
+			ProfileImage: r.ProfileImage,
+			RequestedAt:  r.RequestedAt.UnixMilli(),
+		})
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
 func SearchFriend(c *gin.Context) {
 	var body friendsSearchRequestDto
 	if err := c.ShouldBindQuery(&body); err != nil {
@@ -390,6 +433,7 @@ func UseFriendsRouter(g *gin.RouterGroup) {
 	rg.POST("/request", RequestFriend)
 	rg.POST("/accept", AcceptFriend)
 	rg.POST("/reject", RejectFriend)
+	rg.GET("/waiting", GetWaitingFriendRequests)
 	rg.POST("/search", SearchFriend)
 	rg.DELETE("", DeleteFriend)
 }

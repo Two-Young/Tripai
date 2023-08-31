@@ -94,7 +94,7 @@ func SignWithNaver(c *gin.Context) {
 		if err == sql.ErrNoRows {
 			alreadyRegistered = false
 			uid = uuid.New().String()
-			userCode = platform.GenerateUserCode()
+			userCode = platform.GenerateTenLengthCode()
 			userInfo = UserInfoDto{
 				UserId:       uid,
 				Id:           naverProfile.Response.Email,
@@ -109,9 +109,8 @@ func SignWithNaver(c *gin.Context) {
 			return
 		}
 	} else {
-		uid = *userEntity.UserId
 		userInfo = UserInfoDto{
-			UserId:       *userEntity.UserId,
+			UserId:       userEntity.UserId,
 			Id:           *userEntity.Id,
 			UserCode:     userEntity.UserCode,
 			Username:     *userEntity.Username,

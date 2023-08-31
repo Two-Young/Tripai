@@ -56,6 +56,7 @@ type locateDirectionResponseDto []locateCoordinate
 /* ---------------- Session ---------------- */
 type sessionsResponseItem struct {
 	SessionId     string   `json:"session_id"`
+	SessionCode   string   `json:"session_code"`
 	CreatorUserId string   `json:"creator_user_id"`
 	Name          string   `json:"name"`
 	StartAt       string   `json:"start_at"`
@@ -89,6 +90,81 @@ type sessionSupportedCurrenciesResponseItem struct {
 
 // key: country code
 type sessionSupportedCurrenciesResponseDto map[string][]sessionSupportedCurrenciesResponseItem
+
+type sessionInviteRequestDto struct {
+	SessionId    string `json:"session_id" binding:"required"`
+	TargetUserId string `json:"target_user_id" binding:"required"`
+}
+
+type sessionInviteWaitingRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type sessionInviteWaitingResponseItem struct {
+	UserId       string `json:"user_id"`
+	Username     string `json:"username"`
+	ProfileImage string `json:"profile_image"`
+	InvitedAt    int64  `json:"invited_at"`
+}
+
+type sessionInviteWaitingResponseDto []sessionInviteWaitingResponseItem
+
+type sessionInviteRequestsResponseItem struct {
+	SessionId    string `json:"session_id"`
+	SessionCode  string `json:"session_code"`
+	SessionName  string `json:"session_name"`
+	ThumbnailUrl string `json:"thumbnail_url"`
+	InvitedAt    int64  `json:"requested_at"`
+}
+
+type sessionInviteRequestsResponseDto []sessionInviteRequestsResponseItem
+
+type sessionInviteConfirmRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
+	Accept    bool   `json:"accept" binding:"required"`
+}
+
+type sessionJoinRequestDto struct {
+	SessionCode string `json:"session_code" binding:"required"`
+}
+
+type sessionJoinRequestsRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type sessionJoinRequestsResponseItem struct {
+	UserId       string `json:"user_id"`
+	Username     string `json:"username"`
+	ProfileImage string `json:"profile_image"`
+	RequestedAt  int64  `json:"requested_at"`
+}
+
+type sessionJoinRequestsResponseDto []sessionJoinRequestsResponseItem
+
+type sessionJoinWaitingsResponseItem struct {
+	SessionId    string `json:"session_id"`
+	SessionCode  string `json:"session_code"`
+	SessionName  string `json:"session_name"`
+	ThumbnailUrl string `json:"thumbnail_url"`
+	RequestedAt  int64  `json:"requested_at"`
+}
+
+type sessionJoinWaitingsResponseDto []sessionJoinWaitingsResponseItem
+
+type sessionJoinConfirmRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
+	UserId    string `json:"user_id" binding:"required"`
+	Accept    bool   `json:"accept" binding:"required"`
+}
+
+type sessionExpelRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
+	UserId    string `json:"user_id" binding:"required"`
+}
+
+type sessionLeaveRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
+}
 
 /* ---------------- Location ---------------- */
 type locationsRequestDto struct {
@@ -255,8 +331,8 @@ type currencyExchangeRateRequestDto struct {
 type friendsGetResponseItem struct {
 	UserId       string `json:"user_id" binding:"required"`
 	UserCode     string `json:"user_code" binding:"required"`
-	Username     string `json:"username" binding:"required"`
-	ProfileImage string `json:"profile_image" binding:"required"`
+	Username     *string `json:"username" binding:"required"`
+	ProfileImage *string `json:"profile_image" binding:"required"`
 	AcceptedAt   int64  `json:"accepted_at" binding:"required"`
 }
 
@@ -276,6 +352,18 @@ type friendsRejectRequestDto struct {
 
 type friendsDeleteRequestDto struct {
 	TargetUserId string `json:"target_user_id" binding:"required"`
+}
+
+type friendsWaitingRequests struct {
+	UserId       string  `json:"user_id" binding:"required"`
+	Username     *string `json:"username" binding:"required"`
+	ProfileImage *string `json:"profile_image" binding:"required"`
+	RequestedAt  int64   `json:"requested_at" binding:"required"`
+}
+
+type friendsWaitingRequestsResponseDto struct {
+	Sent     []friendsWaitingRequests `json:"sent"`
+	Received []friendsWaitingRequests `json:"received"`
 }
 
 type friendsSearchRequestDto struct {

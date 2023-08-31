@@ -32,18 +32,23 @@ create table session_thumbnail_caches
 
 create table users
 (
-    uid           varchar(255) not null
+    uid                   varchar(255)         not null
         primary key,
-    id            varchar(255) not null,
-    username      varchar(150) not null,
-    profile_image varchar(255) null,
-    platform      varchar(100) not null
+    id                    varchar(255)         not null,
+    user_code             varchar(255)         not null comment 'use as identifier of friend recognition',
+    username              varchar(150)         not null,
+    profile_image         varchar(255)         null,
+    platform              varchar(100)         not null,
+    allow_nickname_search tinyint(1) default 1 not null,
+    constraint users_pk
+        unique (user_code)
 );
 
 create table sessions
 (
     sid           varchar(255)     not null
         primary key,
+    session_code  varchar(255)     not null,
     creator_uid   varchar(255)     not null,
     name          varchar(255)     not null,
     start_at      date             null,
@@ -52,6 +57,8 @@ create table sessions
     budget        double default 0 null,
     unit          varchar(50)      not null,
     thumbnail_url varchar(255)     null,
+    constraint sessions_pk
+        unique (session_code),
     constraint sessions_users_uid_fk
         foreign key (creator_uid) references users (uid)
 );
@@ -150,24 +157,6 @@ create table schedules
         foreign key (sid) references sessions (sid)
 );
 
-create table table_name
-(
-    sscid     varchar(255) not null
-        primary key,
-    type      varchar(255) null,
-    name      varchar(255) null,
-    image_url varchar(255) null,
-    place_id  varchar(255) null,
-    latitude  double       null,
-    longitude double       null,
-    address   varchar(255) null,
-    start_at  datetime     null,
-    end_at    datetime     null,
-    scid      varchar(255) null,
-    constraint table_name_countries_scid_fk
-        foreign key (scid) references countries (scid)
-);
-
 create table user_sessions
 (
     sid varchar(255) not null,
@@ -185,6 +174,8 @@ create table users_friends
     uid           varchar(255)         not null,
     requested_uid varchar(255)         not null,
     accepted      tinyint(1) default 0 not null,
+    requested_at  datetime             not null,
+    confirmed_at  datetime             null comment 'accepted or rejected datetime',
     primary key (uid, requested_uid),
     constraint users_friends_users_uid_fk
         foreign key (uid) references users (uid),

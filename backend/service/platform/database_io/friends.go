@@ -37,6 +37,39 @@ func GetFriendsRelationInfo(uid string) ([]*FriendInfoEntity, error) {
 	return friends, nil
 }
 
+type FriendRequestEntity struct {
+	database.UserEntity
+	RequestedAt time.Time `db:"requested_at" json:"requested_at"`
+}
+
+func GetSentFriendsRequestWaitings(uid string) ([]*FriendRequestEntity, error) {
+	var friends []*FriendRequestEntity
+	if err := database.DB.Select(&friends, `
+		SELECT u.*, uf.requested_at
+		FROM users_friends uf
+		JOIN users u ON uf.requested_uid = u.uid
+		WHERE uf.uid = ? AND uf.accepted = FALSE;`,
+		uid,
+	); err != nil {
+		return nil, err
+	}
+	return friends, nil
+}
+
+func GetReceivedFriendsRequestWaitings(uid string) ([]*FriendRequestEntity, error) {
+	var friends []*FriendRequestEntity
+	if err := database.DB.Select(&friends, `
+		SELECT u.*, uf.requested_at
+		FROM users_friends uf
+		JOIN users u ON uf.uid = u.uid
+		WHERE uf.requested_uid = ? AND uf.accepted = FALSE;`,
+		uid,
+	); err != nil {
+		return nil, err
+	}
+	return friends, nil
+}
+
 type FriendRelationInfoEntity struct {
 	UserId       *string `db:"uid" json:"user_id"`
 	Id           *string `db:"id" json:"id"`

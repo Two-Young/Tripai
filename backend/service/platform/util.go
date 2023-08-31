@@ -12,7 +12,7 @@ import (
 	"travel-ai/service/platform/database_io"
 )
 
-func GenerateUserCode() string {
+func GenerateTenLengthCode() string {
 	const length = 10
 	const charset = "0123456789"
 	result := ""
@@ -64,10 +64,49 @@ func FindSessionIdByLocationId(locationId string) (string, error) {
 	return sessionId, nil
 }
 
-func CheckPermissionBySessionId(uid string, sessionId string) (bool, error) {
+func IsWaitingForSessionJoinRequestConfirm(uid string, sessionId string) (bool, error) {
+	var count int
+	err := database.DB.QueryRow("SELECT COUNT(*) FROM session_join_requests WHERE uid = ? AND sid = ?;", uid, sessionId).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// IsWaitingForSessionInvitation checks if user is on session invitation waiting list
+func IsWaitingForSessionInvitation(uid string, sessionId string) (bool, error) {
+	var count int
+	err := database.DB.QueryRow("SELECT COUNT(*) FROM session_invitations WHERE uid = ? AND sid = ?;", uid, sessionId).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func IsSessionCreator(uid string, sessionId string) (bool, error) {
+	var creatorUid string
+	err := database.DB.QueryRow("SELECT creator_uid FROM sessions WHERE sid = ?;", sessionId).Scan(&creatorUid)
+	if err != nil {
+		return false, err
+	}
+	return uid == creatorUid, nil
+}
+
+func IsSessionMember(uid string, sessionId string) (bool, error) {
 	_, err := database.DB.Exec("SELECT * FROM user_sessions WHERE uid = ? AND sid = ?;", uid, sessionId)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func IsInvitedToSession(uid string, sessionId string) (bool, error) {
+	_, err := database.DB.Exec("SELECT * FROM session_invitations WHERE uid = ? AND sid = ?;", uid, sessionId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
 		}
 		return false, err
@@ -83,7 +122,7 @@ func CheckPermissionByReceiptId(uid string, receiptId string) (bool, error) {
 		}
 		return false, err
 	}
-	yes, err := CheckPermissionBySessionId(uid, receipt.SessionId)
+	yes, err := IsSessionMember(uid, receipt.SessionId)
 	if !yes {
 		if err != nil {
 			return false, err

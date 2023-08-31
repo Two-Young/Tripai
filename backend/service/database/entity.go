@@ -3,7 +3,7 @@ package database
 import "time"
 
 type UserEntity struct {
-	UserId              *string `db:"uid" json:"user_id"`
+	UserId              string  `db:"uid" json:"user_id"`
 	Id                  *string `db:"id" json:"id"`
 	UserCode            string  `db:"user_code" json:"user_code"`
 	Username            *string `db:"username" json:"username"`
@@ -21,15 +21,32 @@ type FriendEntity struct {
 }
 
 type SessionEntity struct {
-	SessionId     *string    `db:"sid" json:"session_id"`
+	SessionId     string     `db:"sid" json:"session_id"`
+	SessionCode   string     `db:"session_code" json:"session_code"`
 	CreatorUserId *string    `db:"creator_uid" json:"creator_user_id"`
 	Name          *string    `db:"name" json:"name"`
 	StartAt       *time.Time `db:"start_at" json:"start_at"`
 	EndAt         *time.Time `db:"end_at" json:"end_at"`
-	CreatedAt     *time.Time `db:"created_at" json:"created_at"` //timestamp
-	Budget        *float64   `db:"budget" json:"budget"`
-	Unit          *string    `db:"unit" json:"unit"` // budget unit
+	CreatedAt     time.Time  `db:"created_at" json:"created_at"` //timestamp
 	ThumbnailUrl  *string    `db:"thumbnail_url" json:"thumbnail_url"`
+}
+
+type UserSessionEntity struct {
+	SessionId string    `db:"sid" json:"session_id"`
+	UserId    string    `db:"uid" json:"user_id"`
+	JoinedAt  time.Time `db:"joined_at" json:"joined_at"`
+}
+
+type SessionInvitationEntity struct {
+	SessionId string    `db:"sid" json:"session_id"`
+	UserId    string    `db:"uid" json:"user_id"`
+	InvitedAt time.Time `db:"invited_at" json:"invited_at"`
+}
+
+type SessionJoinRequestEntity struct {
+	SessionId   string    `db:"sid" json:"session_id"`
+	UserId      string    `db:"uid" json:"user_id"`
+	RequestedAt time.Time `db:"requested_at" json:"requested_at"`
 }
 
 type CountryEntity struct {
