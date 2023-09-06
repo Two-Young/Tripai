@@ -401,6 +401,29 @@ export const confirmSessionJoinRequest = async (session_id, user_id, accept) => 
   }
 };
 
+export const expelUserFromSession = async (session_id, user_id) => {
+  try {
+    const response = await api.post('/platform/session/expel', {
+      session_id,
+      user_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const leaveSession = async session_id => {
+  try {
+    const response = await api.post('/platform/session/leave', {
+      session_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // platform - schedule
 export const getSchedules = async (session_id, day) => {
   try {
