@@ -6,7 +6,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 const DefaultCurrencyScreen = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container} />
+      <SafeAreaView edges={['bottom']} style={defaultStyle.container} />
     </TouchableWithoutFeedback>
   );
 };

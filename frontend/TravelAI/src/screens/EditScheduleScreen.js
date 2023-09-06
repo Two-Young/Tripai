@@ -159,7 +159,7 @@ const EditScheduleScreen = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
         <HeaderRNE
           backgroundColor={colors.white}
           barStyle="dark-content"

@@ -50,51 +50,49 @@ const AddTravelScreen = () => {
   }, [countries]);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
-        <Header
-          backgroundColor="#fff"
-          barStyle="dark-content"
-          leftComponent={
-            <IconButton
-              mode="contained"
-              icon="chevron-left"
-              iconColor="#000"
-              onPress={() => navigation.goBack()}
-            />
-          }
-          centerComponent={{text: 'Choose the countries', style: defaultStyle.heading}}
-        />
-        <View style={styles.container}>
-          <Text style={styles.description}>
-            Choose all the countries you want to add to your trip
-          </Text>
-          <View style={styles.searchbarWrapper}>
-            <Searchbar placeholder="Search the country" value={search} onChangeText={setSearch} />
-          </View>
-          <FlatList
-            removeClippedSubviews
-            initialNumToRender={20}
-            data={countries.filter(country =>
-              country.common_name.toLowerCase().includes(search.toLowerCase()),
-            )}
-            keyExtractor={item => item?.country_code}
-            renderItem={({item}) => (
-              <CountryListItem item={item} selected={selected} setSelected={setSelected} />
-            )}
-            disableVirtualization={false}
+    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
+      <Header
+        backgroundColor="#fff"
+        barStyle="dark-content"
+        leftComponent={
+          <IconButton
+            mode="contained"
+            icon="chevron-left"
+            iconColor="#000"
+            onPress={() => navigation.goBack()}
           />
-          {selected.length > 0 && (
-            <SelectedCountrySection
-              countries={countries}
-              selected={selected}
-              setSelected={setSelected}
-              onPress={onPressNext}
-            />
-          )}
+        }
+        centerComponent={{text: 'Choose the countries', style: defaultStyle.heading}}
+      />
+      <View style={styles.container}>
+        <Text style={styles.description}>
+          Choose all the countries you want to add to your trip
+        </Text>
+        <View style={styles.searchbarWrapper}>
+          <Searchbar placeholder="Search the country" value={search} onChangeText={setSearch} />
         </View>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+        <FlatList
+          removeClippedSubviews
+          initialNumToRender={20}
+          data={countries.filter(country =>
+            country.common_name.toLowerCase().includes(search.toLowerCase()),
+          )}
+          keyExtractor={item => item?.country_code}
+          renderItem={({item}) => (
+            <CountryListItem item={item} selected={selected} setSelected={setSelected} />
+          )}
+          disableVirtualization={false}
+        />
+        {selected.length > 0 && (
+          <SelectedCountrySection
+            countries={countries}
+            selected={selected}
+            setSelected={setSelected}
+            onPress={onPressNext}
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -106,7 +104,7 @@ const CountryListItem = ({item, selected, setSelected}) => {
   const leftComponent = () => <MemoizedFlags item={item} />;
 
   const rightComponent = () => (
-    <Checkbox
+    <Checkbox.Android
       status={checked ? 'checked' : 'unchecked'}
       onPress={() => {
         if (checked) {
@@ -217,7 +215,7 @@ const styles = StyleSheet.create({
   flag: {
     width: 45,
     height: 30,
-    objectFit: 'contain',
+    objectFit: 'cover',
     borderWidth: 1,
     borderColor: '#808080',
     borderRadius: 5,

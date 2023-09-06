@@ -4,7 +4,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 const ChatScreen = () => {
   return (
-    <SafeAreaView edges={['top', 'bottom']}>
+    <SafeAreaView edges={['bottom']}>
       <View>
         <Text>ChatScreen</Text>
       </View>

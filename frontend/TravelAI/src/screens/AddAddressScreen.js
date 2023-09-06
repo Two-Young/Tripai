@@ -96,7 +96,7 @@ const AddAddressScreen = () => {
 
   return (
     <Pressable onPress={Keyboard.dismiss} style={{flex: 1}}>
-      <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
         <HeaderRNE
           backgroundColor="#fff"
           barStyle="dark-content"
