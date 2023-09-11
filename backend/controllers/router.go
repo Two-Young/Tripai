@@ -36,6 +36,7 @@ func SetupRouter() *gin.Engine {
 	controller2.UseTestRouter(r)
 	controller3.UsePlatformRouter(r)
 	UseAssetRouter(r)
+	UseSocket(r)
 	return r
 }
 

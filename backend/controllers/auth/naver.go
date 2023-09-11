@@ -3,6 +3,7 @@ package auth
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -91,7 +92,7 @@ func SignWithNaver(c *gin.Context) {
 	)
 	result := database.DB.QueryRowx("SELECT * FROM users WHERE id = ? AND platform = ?", naverProfile.Response.Email, NAVER)
 	if err := result.StructScan(&userEntity); err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			alreadyRegistered = false
 			uid = uuid.New().String()
 			userCode = platform.GenerateTenLengthCode()
@@ -109,6 +110,7 @@ func SignWithNaver(c *gin.Context) {
 			return
 		}
 	} else {
+		uid = userEntity.UserId
 		userInfo = UserInfoDto{
 			UserId:       userEntity.UserId,
 			Id:           *userEntity.Id,
@@ -121,7 +123,7 @@ func SignWithNaver(c *gin.Context) {
 
 	if !alreadyRegistered {
 		// create user
-		if err := database.DB.QueryRowx("INSERT INTO users(uid, id, user_code, username, profile_image, platform) VALUES(?, ?, ?, ?, ?)",
+		if err := database.DB.QueryRowx("INSERT INTO users(uid, id, user_code, username, profile_image, platform) VALUES(?, ?, ?, ?, ?, ?)",
 			userInfo.UserId, userInfo.Id, userInfo.UserCode, userInfo.Username, userInfo.ProfileImage, userInfo.Platform).Err(); err != nil {
 			log.Error(err)
 			util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to create user")

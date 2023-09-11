@@ -10,6 +10,7 @@ func GetUid(c *gin.Context) (string, error) {
 	if !ok {
 		return "", errors.New("uid not found")
 	}
+
 	return rawUid.(string), nil
 }
 

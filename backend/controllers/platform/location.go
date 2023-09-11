@@ -14,13 +14,7 @@ import (
 )
 
 func Locations(c *gin.Context) {
-	rawUid, ok := c.Get("uid")
-	if !ok {
-		log.Error("uid not found")
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-	uid := rawUid.(string)
+	uid := c.GetString("uid")
 
 	var query locationsRequestDto
 	if err := c.ShouldBindQuery(&query); err != nil {

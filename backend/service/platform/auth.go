@@ -49,6 +49,10 @@ func dissolveWithPlatformToken(rawToken string) (string, error) {
 	}
 
 	userId := cliams["uid"].(string)
+	if len(userId) == 0 {
+		return "", errors.New("uid empty")
+	}
+
 	return userId, nil
 }
 

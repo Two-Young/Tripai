@@ -18,13 +18,7 @@ import (
 )
 
 func Sessions(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
+	uid := c.GetString("uid")
 	sessions := make([]database.SessionEntity, 0)
 	if err := database.DB.Select(&sessions, "SELECT sessions.* "+
 		"FROM sessions "+
@@ -49,7 +43,7 @@ func Sessions(c *gin.Context) {
 		respItems = append(respItems, sessionsResponseItem{
 			SessionId:     s.SessionId,
 			SessionCode:   s.SessionCode,
-			CreatorUserId: *s.CreatorUserId,
+			CreatorUserId: s.CreatorUserId,
 			Name:          *s.Name,
 			StartAt:       s.StartAt.Format("2006-01-02"),
 			EndAt:         s.EndAt.Format("2006-01-02"),
@@ -63,12 +57,7 @@ func Sessions(c *gin.Context) {
 }
 
 func CreateSession(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var body sessionCreateRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -146,7 +135,7 @@ func CreateSession(c *gin.Context) {
 	if err := database_io.InsertSessionTx(tx, database.SessionEntity{
 		SessionId:     sessionId,
 		SessionCode:   platform.GenerateTenLengthCode(),
-		CreatorUserId: &uid,
+		CreatorUserId: uid,
 		Name:          &sessionName,
 		StartAt:       &startAt,
 		EndAt:         &endAt,
@@ -154,6 +143,17 @@ func CreateSession(c *gin.Context) {
 		ThumbnailUrl:  &imageUrl,
 	}); err != nil {
 		log.Error(err)
+		log.Debug("debug")
+		log.Debug(database.SessionEntity{
+			SessionId:     sessionId,
+			SessionCode:   platform.GenerateTenLengthCode(),
+			CreatorUserId: uid,
+			Name:          &sessionName,
+			StartAt:       &startAt,
+			EndAt:         &endAt,
+			CreatedAt:     time.Now(),
+			ThumbnailUrl:  &imageUrl,
+		})
 		_ = tx.Rollback()
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -195,12 +195,7 @@ func CreateSession(c *gin.Context) {
 }
 
 func DeleteSession(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var body sessionDeleteRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -372,12 +367,7 @@ func Currencies(c *gin.Context) {
 }
 
 func InviteSession(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var body sessionInviteRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -394,19 +384,12 @@ func InviteSession(c *gin.Context) {
 		return
 	}
 
-	// check if user has permission to invite
-	if sessionEntity.CreatorUserId == nil {
-		log.Error("creator user id is nil")
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
 	if uid == body.TargetUserId {
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "permission denied: you cannot invite yourself")
 		return
 	}
 
-	if uid != *sessionEntity.CreatorUserId {
+	if uid != sessionEntity.CreatorUserId {
 		util2.AbortWithStrJson(c, http.StatusForbidden, "permission denied: you are not owner of this session")
 		return
 	}
@@ -495,12 +478,7 @@ func InviteSession(c *gin.Context) {
 
 // SessionInviteWaitings 특정 세션이 대기 중인 유저 초대 목록
 func SessionInviteWaitings(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var query sessionInviteWaitingRequestDto
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -548,12 +526,7 @@ func SessionInviteWaitings(c *gin.Context) {
 
 // SessionInviteRequests 특정 유저가 받은 세션 초대 목록
 func SessionInviteRequests(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	requests, err := database_io.GetWaitingSessionInvitedSessions(uid)
 	if err != nil {

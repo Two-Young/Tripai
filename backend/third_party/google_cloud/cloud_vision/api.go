@@ -5,6 +5,7 @@ import (
 	pb "cloud.google.com/go/vision/v2/apiv1/visionpb"
 	"context"
 	"google.golang.org/api/option"
+	"image"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -30,7 +31,7 @@ func RequestImageToText(path string) ([]*pb.EntityAnnotation, error) {
 	}
 	defer client.Close()
 
-	// preprocess image
+	// TODO :: preprocess image
 	//preprocessImage(path)
 
 	f, err := os.Open(path)
@@ -55,41 +56,111 @@ func RequestImageToText(path string) ([]*pb.EntityAnnotation, error) {
 	return annotations, nil
 }
 
-// TODO :: preprocess image before save
-//func preprocessImage(path string) {
-//	img := gocv.IMRead(path, gocv.IMReadColor)
-//	defer img.Close()
-//
-//	gray := gocv.NewMat()
-//	defer gray.Close()
-//
-//	gocv.CvtColor(img, &gray, gocv.ColorBGRToGray)
-//	blurred := gocv.NewMat()
-//	defer blurred.Close()
-//
-//	gocv.GaussianBlur(gray, &blurred, image.Point{X: 5, Y: 5}, 0, 0, gocv.BorderDefault)
-//	edged := gocv.NewMat()
-//	defer edged.Close()
-//
-//	gocv.Canny(blurred, &edged, 30, 150)
-//	contours := gocv.FindContours(edged, gocv.RetrievalExternal, gocv.ChainApproxSimple)
-//	for _, contour := range contours.P() {
-//		rect := gocv.BoundingRect(contour)
-//		gocv.Rectangle(&img, rect, color.RGBA{0, 0, 255, 0}, 2)
-//	}
-//
-//	mask := gocv.NewMatWithSize(img.Rows(), img.Cols(), gocv.MatTypeCV8U)
-//	defer mask.Close()
-//
-//	gocv.DrawContours(&mask, contours, -1, color.RGBA{255, 255, 255, 0}, -1)
-//
-//	result := gocv.NewMat()
-//	defer result.Close()
-//	img.CopyToWithMask(&result, mask)
-//
-//	newFileName := util.AppendFilename(path, "_preprocessed")
-//	gocv.IMWrite(newFileName, result)
-//}
+func PreprocessImage(img image.Image) (image.Image, error) {
+	//ctx := context.Background()
+	//client, err := vision.NewImageAnnotatorClient(ctx, option.WithCredentialsFile(KeyFile))
+	//if err != nil {
+	//	return nil, err
+	//}
+	//defer client.Close()
+	//
+	//// save img as temp file
+	//filepath, _ := util.GenerateTempFilePath()
+	//if err := util.SaveImageFileAsPng(img, filepath, false); err != nil {
+	//	return nil, err
+	//}
+	//f, err := os.Open(filepath)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//defer func() {
+	//	if err := f.Close(); err != nil {
+	//		return
+	//	}
+	//	// delete temp file
+	//	if err := os.Remove(filepath); err != nil {
+	//		log.Error(err)
+	//		return
+	//	}
+	//}()
+	//
+	//// load img from temp file
+	//pbImage, err := vision.NewImageFromReader(f)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//// 1. match bound edge & crop
+	//cropHints, err := client.CropHints(ctx, pbImage, nil)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//if len(cropHints.CropHints) == 0 {
+	//	log.Debug("No crop hints found.")
+	//	return nil, nil
+	//}
+	//
+	//type cropHint struct {
+	//	Confidence float32
+	//	Vertices   []*pb.Vertex
+	//}
+	//
+	//// filter valid crop hints
+	//validCropHints := make([]cropHint, 0)
+	//for _, hint := range cropHints.CropHints {
+	//	vertices := hint.BoundingPoly.Vertices
+	//	if len(vertices) != 4 {
+	//		continue
+	//	}
+	//
+	//	// sort vertices by y position & x position
+	//	sort.Slice(vertices, func(i, j int) bool {
+	//		if vertices[i].Y == vertices[j].Y {
+	//			return vertices[i].X < vertices[j].X
+	//		}
+	//		return vertices[i].Y < vertices[j].Y
+	//	})
+	//
+	//	validCropHints = append(validCropHints, cropHint{
+	//		Confidence: hint.Confidence,
+	//		Vertices:   vertices,
+	//	})
+	//}
+	//
+	//if len(validCropHints) == 0 {
+	//	return nil, fmt.Errorf("no valid crop hints found")
+	//}
+	//
+	//// pick most confident crop hint
+	//sort.Slice(validCropHints, func(i, j int) bool {
+	//	return validCropHints[i].Confidence > validCropHints[j].Confidence
+	//})
+	//
+	//hint := validCropHints[0]
+	//log.Debugf("Crop hint confidence: %v", hint.Confidence)
+	//log.Debugf("Crop hint bounding polygon: %v", hint.Vertices)
+	//vertices := make([]util.Vertex, 0)
+	//for _, v := range hint.Vertices {
+	//	vertices = append(vertices, util.Vertex{
+	//		X: int(v.X),
+	//		Y: int(v.Y),
+	//	})
+	//}
+	//
+	//croppedImg, err := util.CropSquare(img, vertices)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	//croppedImg, err := opencv.CropReceiptSubImage(img, 50, 200, 100)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//// 2. clear noise
+	//return croppedImg, nil
+	return nil, nil
+}
 
 func processReceiptAnnotation(annotations []*pb.EntityAnnotation, yTolerance int32) {
 	// sort annotations by y position

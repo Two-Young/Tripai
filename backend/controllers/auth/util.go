@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"github.com/golang-jwt/jwt"
 	"os"
 	"time"
@@ -16,9 +17,13 @@ const (
 	FACEBOOK  = "FACEBOOK"
 )
 
-func CreateAuthToken(uid string) (*authTokenBundle, error) {
+func CreateAuthToken(uid string) (*AuthTokenBundle, error) {
 	var err error
-	atd := &authTokenBundle{}
+	atd := &AuthTokenBundle{}
+
+	if uid == "" {
+		return nil, errors.New("uid empty")
+	}
 
 	// load jwt secret from env
 	jwtAccessSecretKey := os.Getenv("JWT_ACCESS_SECRET")

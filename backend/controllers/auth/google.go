@@ -3,6 +3,7 @@ package auth
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -66,7 +67,7 @@ func SignWithGoogle(c *gin.Context) {
 	)
 	result := database.DB.QueryRowx("SELECT * FROM users WHERE id = ? AND platform = ?", googleCredentials.Email, GOOGLE)
 	if err := result.StructScan(&userEntity); err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			alreadyRegistered = false
 			uid = uuid.New().String()
 			userCode = platform.GenerateTenLengthCode()
@@ -84,6 +85,7 @@ func SignWithGoogle(c *gin.Context) {
 			return
 		}
 	} else {
+		uid = userEntity.UserId
 		userInfo = UserInfoDto{
 			UserId:       userEntity.UserId,
 			Id:           *userEntity.Id,

@@ -2,6 +2,7 @@ package database_io
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"travel-ai/log"
 	"travel-ai/service/database"
@@ -15,7 +16,7 @@ var (
 func GetPlaceDetailCache(ctx context.Context, placeId string) (*database.PlaceDetailCacheEntity, error) {
 	// check for cache
 	cache, err := ReadPlaceDetailCachesByPlaceId(ctx, placeId)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Warn(err)
 	}
 	if cache == nil {

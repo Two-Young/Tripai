@@ -17,12 +17,7 @@ import (
 )
 
 func GetUserProfile(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	// get user entity
 	userEntity, err := database_io.GetUser(uid)
@@ -42,12 +37,7 @@ func GetUserProfile(c *gin.Context) {
 }
 
 func EditUserProfile(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	formUsername := c.PostForm("username")
 	formAllowNicknameSearch := c.PostForm("allow_nickname_search")

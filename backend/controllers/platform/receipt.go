@@ -20,12 +20,7 @@ import (
 )
 
 func GetReceipts(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var query receiptGetRequestDto
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -65,12 +60,7 @@ func GetReceipts(c *gin.Context) {
 }
 
 func GetReceiptImage(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var query receiptGetImageRequestDto
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -122,12 +112,7 @@ func GetReceiptImage(c *gin.Context) {
 }
 
 func GetCurrentReceipt(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var query receiptGetCurrentRequestDto
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -202,12 +187,7 @@ func GetCurrentReceipt(c *gin.Context) {
 }
 
 func UploadReceipt(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var query receiptUploadRequestDto
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -336,12 +316,7 @@ func UploadReceipt(c *gin.Context) {
 }
 
 func SubmitReceipt(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var body receiptSubmitRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {

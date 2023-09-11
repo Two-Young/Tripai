@@ -5,7 +5,7 @@ type authToken struct {
 	ExpiresAt int64  `json:"expires_at"`
 }
 
-type authTokenBundle struct {
+type AuthTokenBundle struct {
 	AccessToken  authToken `json:"access_token"`
 	RefreshToken authToken `json:"refresh_token"`
 }
@@ -25,7 +25,7 @@ type UserInfoDto struct {
 }
 
 type SignResponseDto struct {
-	AuthTokens authTokenBundle `json:"auth_tokens"`
+	AuthTokens AuthTokenBundle `json:"auth_tokens"`
 	UserInfo   UserInfoDto     `json:"user_info"`
 }
 

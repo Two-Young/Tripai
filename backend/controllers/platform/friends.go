@@ -11,12 +11,7 @@ import (
 )
 
 func GetFriends(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	friendsEntity, err := database_io.GetFriendsRelationInfo(uid)
 	if err != nil {
@@ -43,12 +38,7 @@ func GetFriends(c *gin.Context) {
 }
 
 func RequestFriend(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var body friendsRequestRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -144,12 +134,7 @@ func RequestFriend(c *gin.Context) {
 }
 
 func AcceptFriend(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var body friendsAcceptRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -228,12 +213,7 @@ func AcceptFriend(c *gin.Context) {
 }
 
 func RejectFriend(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var body friendsRejectRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -369,12 +349,7 @@ func SearchFriend(c *gin.Context) {
 }
 
 func DeleteFriend(c *gin.Context) {
-	uid, err := util2.GetUid(c)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	uid := c.GetString("uid")
 
 	var body friendsDeleteRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {

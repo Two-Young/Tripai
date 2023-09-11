@@ -3,9 +3,15 @@ package util
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/google/uuid"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -33,6 +39,75 @@ func GetPublicIp() (string, error) {
 		return "", fmt.Errorf("invalid ipv4: %v", ipv4)
 	}
 	return ipv4, nil
+}
+
+// GenerateTempFilePath generates a temporary file path and filename.
+func GenerateTempFilePath() (string, string) {
+	tempId := uuid.New().String()
+	rootDir := GetRootDirectory()
+	dest := filepath.Join(rootDir, "/temp/", tempId)
+	return dest, tempId
+}
+
+func SaveImageFileAsPng(image image.Image, dest string, allowOverwrite bool) error {
+	// check if dest is occupied
+	if _, err := os.Stat(dest); !errors.Is(err, os.ErrNotExist) {
+		if allowOverwrite {
+			if err := os.Remove(dest); err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("file already exists: %v", dest)
+		}
+	}
+	f, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if err = png.Encode(f, image); err != nil {
+		return err
+	}
+	return nil
+}
+
+func SaveImageFileAsJpeg(image image.Image, dest string, allowOverwrite bool) error {
+	// check if dest is occupied
+	if _, err := os.Stat(dest); !errors.Is(err, os.ErrNotExist) {
+		if allowOverwrite {
+			if err := os.Remove(dest); err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("file already exists: %v", dest)
+		}
+	}
+	f, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if err = jpeg.Encode(f, image, nil); err != nil {
+		return err
+	}
+	return nil
+}
+
+func OpenFileAsImage(path string) (image.Image, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return img, nil
 }
 
 func InterfaceToStruct(src interface{}, dst interface{}) error {

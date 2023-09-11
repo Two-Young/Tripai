@@ -23,7 +23,7 @@ type FriendEntity struct {
 type SessionEntity struct {
 	SessionId     string     `db:"sid" json:"session_id"`
 	SessionCode   string     `db:"session_code" json:"session_code"`
-	CreatorUserId *string    `db:"creator_uid" json:"creator_user_id"`
+	CreatorUserId string     `db:"creator_uid" json:"creator_user_id"`
 	Name          *string    `db:"name" json:"name"`
 	StartAt       *time.Time `db:"start_at" json:"start_at"`
 	EndAt         *time.Time `db:"end_at" json:"end_at"`
