@@ -1,16 +1,19 @@
-import {FlatList, StyleSheet, Text, View, Image, Alert} from 'react-native';
+import {FlatList, StyleSheet, Text, View, Image, Alert, TouchableOpacity} from 'react-native';
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
+// import {SafeAreaView} from 'react-native-safe-area-context';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
-import {Header} from '@rneui/themed';
+// import {Header} from '@rneui/themed';
 import {Button, IconButton, Portal, Snackbar, Surface} from 'react-native-paper';
-import defaultStyle from '../styles/styles';
+// import defaultStyle from '../styles/styles';
 import {deleteSession, getSessions} from '../services/api';
 import {useRecoilValue, useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import userAtom from '../recoil/user/user';
 import colors from '../theme/colors';
-import reactotron from 'reactotron-react-native';
+// import reactotron from 'reactotron-react-native';
+import SafeArea from '../component/molecules/SafeArea';
+// import {backIcon} from '../assets/images';
+import CustomHeader from '../component/molecules/Header';
 
 const MainScreen = () => {
   /* states */
@@ -98,16 +101,24 @@ const MainScreen = () => {
   }, [route.params?.refresh]);
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
-      <Header
-        backgroundColor="#fff"
-        barStyle="dark-content"
-        leftComponent={{text: 'HOME', style: defaultStyle.heading}}
+    // <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+    <SafeArea>
+      <CustomHeader title={'WELCOME'} />
+      {/* <Header
+        backgroundColor={colors.primary}
+        barStyle="light-content"
+        leftComponent={() => (
+          <TouchableOpacity>
+            <Image source={backIcon} style={}/>
+          </TouchableOpacity>
+        )}
+        centerComponent={{text: 'WELCOME', style: defaultStyle.heading}}
         rightComponent={{
-          icon: 'settings',
-          color: colors.black,
+          icon: 'menu',
+          color: colors.white,
         }}
-      />
+      /> */}
+
       <View style={styles.container}>
         <FlatList
           contentContainerStyle={{paddingBottom: 100}}
@@ -149,7 +160,7 @@ const MainScreen = () => {
           </Snackbar>
         </Portal>
       </View>
-    </SafeAreaView>
+    </SafeArea>
   );
 };
 

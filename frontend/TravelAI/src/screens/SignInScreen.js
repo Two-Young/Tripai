@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {View, Text, StyleSheet, ImageBackground} from 'react-native';
+import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {StackActions, useNavigation} from '@react-navigation/native';
 import colors from '../theme/colors';
 import SocialButton from '../component/atoms/SocialButton';
@@ -13,6 +13,15 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useRecoilState} from 'recoil';
 import userAtom from '../recoil/user/user';
+import {STYLES} from '../styles/Stylesheets';
+import {mainLogo} from '../assets/images';
+import {
+  socialFacebookIcon,
+  socialGoogleIcon,
+  socialKakaoIcon,
+  socialNaverIcon,
+} from '../assets/images';
+import {Fonts} from '../theme';
 
 function SignInScreen(props) {
   // states
@@ -34,53 +43,65 @@ function SignInScreen(props) {
     }
   };
 
+  const socialObjs = useMemo(
+    () => [
+      {
+        type: 'Google',
+        source: socialGoogleIcon,
+        onPress: () => socialGoogleSignIn().then(storeUserData),
+      },
+      {
+        type: 'Facebook',
+        source: socialFacebookIcon,
+        onPress: () => socialFacebookSignIn().then(storeUserData),
+      },
+      {
+        type: 'Naver',
+        source: socialNaverIcon,
+        onPress: () => socialNaverSignIn().then(storeUserData),
+      },
+      {
+        type: 'Kakao',
+        source: socialKakaoIcon,
+        onPress: () => socialKakaoSignin().then(storeUserData),
+      },
+    ],
+    [],
+  );
+
   return (
     <SafeAreaView edges={['bottom']} style={styles.safearea}>
-      <ImageBackground
-        style={styles.imageBackground}
-        source={{
-          uri: 'https://i.pinimg.com/564x/7f/6c/95/7f6c9555512ca982521941cba9de20d9.jpg',
-        }}>
-        <View style={styles.container}>
-          <View style={styles.titleBox}>
-            <Text style={styles.title}>Please log in to securely store your valuable records.</Text>
-          </View>
-          <View style={styles.socialBox}>
-            <SocialButton
-              style={{marginBottom: 10}}
-              source={{
-                uri: 'https://pixlok.com/wp-content/uploads/2021/04/Google-Icon-PNG.jpg',
-              }}
-              onPress={() => socialGoogleSignIn().then(storeUserData)}
-              type="Google"
-            />
-            <SocialButton
-              style={{marginBottom: 10}}
-              source={{
-                uri: 'https://marcas-logos.net/wp-content/uploads/2020/01/Facebook-Novo-Logo.jpg',
-              }}
-              onPress={() => socialFacebookSignIn().then(storeUserData)}
-              type="Facebook"
-            />
-            <SocialButton
-              style={{marginBottom: 10}}
-              source={{
-                uri: 'https://clova-phinf.pstatic.net/MjAxODAzMjlfOTIg/MDAxNTIyMjg3MzM3OTAy.WkiZikYhauL1hnpLWmCUBJvKjr6xnkmzP99rZPFXVwgg.mNH66A47eL0Mf8G34mPlwBFKP0nZBf2ZJn5D4Rvs8Vwg.PNG/image.png',
-              }}
-              onPress={() => socialNaverSignIn().then(storeUserData)}
-              type="Naver"
-            />
-            <SocialButton
-              style={{marginBottom: 10}}
-              source={{
-                uri: 'https://i.pinimg.com/564x/4f/b5/ab/4fb5abad387bab970b9fa4e1fafb7401.jpg',
-              }}
-              onPress={() => socialKakaoSignin().then(storeUserData)}
-              type="Kakao"
-            />
+      <View style={styles.container}>
+        <View style={[STYLES.FLEX(1), STYLES.SPACE_BETWEEN]}>
+          <View style={STYLES.FLEX(1)} />
+          <Image source={mainLogo} style={styles.mainLogo} />
+          <View style={[STYLES.FLEX(1), STYLES.JUSTIFY_CENTER]}>
+            <Text style={styles.subTitle}>{'Ai 기반의\n여행플래닝 플랫폼'}</Text>
           </View>
         </View>
-      </ImageBackground>
+        <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
+          <View style={styles.line} />
+          <Text style={styles.connectText}>connect with</Text>
+          <View style={styles.line} />
+        </View>
+        <View
+          style={[
+            STYLES.FLEX_ROW_ALIGN_CENTER,
+            STYLES.SPACE_AROUND,
+            STYLES.WIDTH_100,
+            STYLES.MARGIN_TOP(30),
+          ]}>
+          {socialObjs.map((socialObj, index) => (
+            <SocialButton key={socialObj.type + index} {...socialObj} />
+          ))}
+        </View>
+        <View style={[STYLES.FLEX_ROW, STYLES.FLEX_END]}>
+          <Text style={[styles.signUpText, STYLES.MARGIN_TOP(30)]}>Don't have an account? </Text>
+          <TouchableOpacity>
+            <Text style={styles.signUpButtonText}>Sign up</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -90,31 +111,41 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
-  imageBackground: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
   container: {
     flex: 1,
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 84,
-    paddingBottom: 50,
+    paddingBottom: 30,
   },
-  titleBox: {
-    flex: 1,
-    alignItems: 'center',
+  mainLogo: {
+    width: 180,
+    height: 93,
+    resizeMode: 'contain',
   },
-  title: {
-    color: colors.white,
-    fontSize: 26,
-    fontWeight: 'bold',
+  subTitle: {
+    ...Fonts.Bold(22),
     textAlign: 'center',
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E2D6D6',
+  },
+  connectText: {
+    marginHorizontal: 12,
+    ...Fonts.Regular(16),
   },
   socialBox: {
     flex: 1,
     width: '100%',
     justifyContent: 'center',
+  },
+  signUpText: {
+    ...Fonts.Regular(16),
+  },
+  signUpButtonText: {
+    ...Fonts.Bold(16),
+    color: '#801C1C',
   },
 });
 
