@@ -3,16 +3,17 @@ import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import {Header, Icon} from '@rneui/themed';
-import {Button, IconButton, Menu, Portal, Snackbar, Surface} from 'react-native-paper';
+import {Button, IconButton, Portal, Snackbar, Surface} from 'react-native-paper';
 import defaultStyle from '../styles/styles';
 import {deleteSession, getCurrencies, getSessions, locateCountries} from '../services/api';
 import {useRecoilValue, useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import userAtom from '../recoil/user/user';
 import colors from '../theme/colors';
-import reactotron from 'reactotron-react-native';
 import countriesAtom from '../recoil/countries/countries';
 import currenciesAtom from '../recoil/currencies/currencies';
+import MenuDrawer from '../component/organisms/MenuDrawer';
+import _ from 'lodash';
 
 const MainScreen = () => {
   /* states */
@@ -84,7 +85,7 @@ const MainScreen = () => {
   const fetchCurrencies = async () => {
     try {
       const res = await getCurrencies();
-      setCurrencies(res);
+      setCurrencies(res.sort((a, b) => a.currency_code.localeCompare(b.currency_code)));
     } catch (err) {
       console.error(err);
     }
@@ -106,25 +107,6 @@ const MainScreen = () => {
 
   const openMenu = () => {
     setMenuVisible(true);
-  };
-
-  const closeMenu = () => {
-    setMenuVisible(false);
-  };
-
-  const navigateToProfile = () => {
-    closeMenu();
-    navigation.navigate('Profile');
-  };
-
-  const navigateToDefaultCurrency = () => {
-    closeMenu();
-    navigation.navigate('DefaultCurrency');
-  };
-
-  const navigateToManageFriends = () => {
-    closeMenu();
-    navigation.navigate('ManageFriends');
   };
 
   /* effects */
@@ -149,21 +131,13 @@ const MainScreen = () => {
   return (
     <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
       <Header
-        backgroundColor="#fff"
-        barStyle="dark-content"
-        leftComponent={{text: 'HOME', style: defaultStyle.heading}}
-        rightComponent={
-          <Menu
-            visible={menuVisible}
-            onDismiss={closeMenu}
-            anchor={<Icon onPress={openMenu} name="menu" />}>
-            <Menu.Item onPress={navigateToProfile} title="Profile" />
-            <Menu.Item onPress={navigateToDefaultCurrency} title="Default Currency" />
-            <Menu.Item onPress={navigateToProfile} title="Profile" />
-          </Menu>
-        }
+        backgroundColor={colors.primary}
+        barStyle="light-content"
+        centerComponent={{text: 'WELCOME', style: defaultStyle.heading}}
+        rightComponent={<Icon onPress={openMenu} name="menu" color={colors.white} />}
       />
       <View style={styles.container}>
+        <Text>{JSON.stringify(user)}</Text>
         <FlatList
           contentContainerStyle={{paddingBottom: 100}}
           showsVerticalScrollIndicator={false}
@@ -203,6 +177,7 @@ const MainScreen = () => {
             Delete Success!
           </Snackbar>
         </Portal>
+        <MenuDrawer visible={menuVisible} setVisible={setMenuVisible} />
       </View>
     </SafeAreaView>
   );

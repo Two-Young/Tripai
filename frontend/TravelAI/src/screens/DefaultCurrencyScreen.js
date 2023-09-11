@@ -17,7 +17,6 @@ import currenciesAtom from '../recoil/currencies/currencies';
 import {Checkbox, Divider, IconButton, List, Searchbar} from 'react-native-paper';
 import countriesAtom from '../recoil/countries/countries';
 import {Header} from '@rneui/themed';
-import SocialButton from './../component/atoms/SocialButton';
 
 const DefaultCurrencyScreen = () => {
   // hooks
@@ -31,17 +30,12 @@ const DefaultCurrencyScreen = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView edges={['bottom']} style={defaultStyle.container} />
+      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
         <Header
-          backgroundColor="#fff"
-          barStyle="dark-content"
+          backgroundColor={colors.primary}
+          barStyle="light-content"
           leftComponent={
-            <IconButton
-              mode="contained"
-              icon="chevron-left"
-              iconColor="#000"
-              onPress={() => navigation.goBack()}
-            />
+            <IconButton icon="arrow-left" iconColor={colors.white} onPress={navigation.goBack} />
           }
           centerComponent={{text: 'Choose the countries', style: defaultStyle.heading}}
         />
@@ -53,7 +47,6 @@ const DefaultCurrencyScreen = () => {
               onChangeText={setSearchQuery}
             />
           </View>
-          <Text>DefaultCurrencyScreen</Text>
           <FlatList
             data={currencies}
             renderItem={item => (
