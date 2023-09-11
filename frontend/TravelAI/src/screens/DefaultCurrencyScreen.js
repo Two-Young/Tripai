@@ -1,12 +1,4 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableWithoutFeedback,
-  Keyboard,
-  FlatList,
-  Image,
-} from 'react-native';
+import {StyleSheet, View, Keyboard, FlatList, Image, Pressable} from 'react-native';
 import React from 'react';
 import defaultStyle from '../styles/styles';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -29,7 +21,7 @@ const DefaultCurrencyScreen = () => {
   const [searchQuery, setSearchQuery] = React.useState('');
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    <Pressable style={styles.container} onPress={Keyboard.dismiss} accessible={false}>
       <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
         <Header
           backgroundColor={colors.primary}
@@ -37,7 +29,7 @@ const DefaultCurrencyScreen = () => {
           leftComponent={
             <IconButton icon="arrow-left" iconColor={colors.white} onPress={navigation.goBack} />
           }
-          centerComponent={{text: 'Choose the countries', style: defaultStyle.heading}}
+          centerComponent={{text: 'Choose the currency', style: defaultStyle.heading}}
         />
         <View style={styles.container}>
           <View style={styles.searchbarWrapper}>
@@ -68,7 +60,7 @@ const DefaultCurrencyScreen = () => {
           />
         </View>
       </SafeAreaView>
-    </TouchableWithoutFeedback>
+    </Pressable>
   );
 };
 
