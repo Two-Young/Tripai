@@ -318,6 +318,112 @@ export const getSessionCurrencies = async session_id => {
   }
 };
 
+export const inviteSession = async (session_id, target_user_id) => {
+  try {
+    const response = await api.post('/platform/session/invite', {
+      session_id,
+      target_user_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSessionInvitationWaitingList = async session_id => {
+  try {
+    const response = await api.get('/platform/session/waiting', {
+      params: {
+        session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const confirmSessionInvitation = async (session_id, accept) => {
+  try {
+    const response = await api.post('/platform/session/invite-confirm', {
+      session_id,
+      accept,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const joinSession = async session_code => {
+  try {
+    const response = await api.post('/platform/session/join', {
+      session_code,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSessionJoinRequests = async session_id => {
+  try {
+    const response = await api.get('/platform/session/join-requests', {
+      params: {
+        session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSessionJoinWaitings = async () => {
+  try {
+    const response = await api.get('/platform/session/join-waitings');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const confirmSessionJoinRequest = async (session_id, user_id, accept) => {
+  try {
+    const response = await api.post('/platform/session/join-confirm', {
+      session_id,
+      user_id,
+      accept,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const expelUserFromSession = async (session_id, user_id) => {
+  try {
+    const response = await api.post('/platform/session/expel', {
+      session_id,
+      user_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const leaveSession = async session_id => {
+  try {
+    const response = await api.post('/platform/session/leave', {
+      session_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // platform - schedule
 export const getSchedules = async (session_id, day) => {
   try {
@@ -514,7 +620,7 @@ export const getCurrenciesExchangeInfo = async ({from_currency_code, to_currency
 // friends
 export const getFriends = async () => {
   try {
-    const response = await api.get('/platform/friend');
+    const response = await api.get('/platform/friends');
     return response.data;
   } catch (error) {
     throw error;
@@ -545,6 +651,26 @@ export const rejectFriends = async target_user_id => {
   try {
     const response = await api.post('/platform/friends/reject', {
       target_user_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getFriendsRequest = async () => {
+  try {
+    const response = await api.get('/platform/friends/waiting');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const searchFriends = async query => {
+  try {
+    const response = await api.post('/platform/friends/search', {
+      query,
     });
     return response.data;
   } catch (error) {

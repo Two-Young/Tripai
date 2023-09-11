@@ -8,7 +8,7 @@ const defaultStyle = StyleSheet.create({
     backgroundColor: colors.white,
   },
   heading: {
-    color: colors.black,
+    color: colors.white,
     fontSize: 24,
     fontWeight: 'bold',
   },

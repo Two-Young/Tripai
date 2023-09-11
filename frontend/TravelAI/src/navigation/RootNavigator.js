@@ -18,6 +18,8 @@ import SplitBillScreen from '../screens/SplitBillScreen';
 import CustomSplitScreen from '../screens/CustomSplitScreen';
 import ReceiptScreen from '../screens/ReceiptScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import DefaultCurrencyScreen from '../screens/DefaultCurrencyScreen';
+import FriendsScreen from '../screens/FriendsScreen';
 
 const Stack = createStackNavigator();
 
@@ -76,6 +78,8 @@ const RootNavigator = () => {
         <Stack.Screen name="Main" component={MainScreen} />
         <Stack.Screen name="Tab" component={TabNavigator} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="DefaultCurrency" component={DefaultCurrencyScreen} />
+        <Stack.Screen name="Friends" component={FriendsScreen} />
       </Stack.Group>
       <Stack.Group
         screenOptions={{

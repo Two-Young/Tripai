@@ -112,7 +112,7 @@ const AddDateScreen = () => {
 
   // rendering
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
       <Header
         backgroundColor="#fff"
         barStyle="dark-content"

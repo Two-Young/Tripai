@@ -68,7 +68,7 @@ const ReceiptScreen = () => {
   }, [route.params?.receipt_id]);
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
       <View style={styles.container}>
         <ImageBackground
           style={{

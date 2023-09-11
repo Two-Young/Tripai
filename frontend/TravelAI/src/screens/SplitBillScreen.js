@@ -64,7 +64,7 @@ const SplitBillScreen = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
         <View style={styles.container}>
           <Header
             backgroundColor="#fff"

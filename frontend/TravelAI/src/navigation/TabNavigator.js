@@ -1,49 +1,62 @@
 import React from 'react';
+import {Image, StyleSheet} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import BudgetScreen from '../screens/BudgetScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
 import ChatScreen from '../screens/ChatScreen';
 import colors from '../theme/colors';
-import {Icon} from '@rneui/themed';
+import homeIcon from '../assets/images/home.png';
+import scheduleIcon from '../assets/images/schedule.png';
+import chatIcon from '../assets/images/chat.png';
+import budgetIcon from '../assets/images/bill.png';
 
 const Tab = createBottomTabNavigator();
 
 const HomeIcon = ({focused}) => {
   return (
-    <Icon
-      name="home"
-      type="font-awesome-5"
-      size={24}
-      color={focused ? colors.primary : colors.grey}
+    <Image
+      source={homeIcon}
+      style={{
+        ...styles.homeIcon,
+        tintColor: focused ? colors.primary : colors.grey,
+      }}
     />
   );
 };
 
 const ScheduleIcon = ({focused}) => {
   return (
-    <Icon
-      name="calendar"
-      type="font-awesome-5"
-      size={24}
-      color={focused ? colors.primary : colors.grey}
+    <Image
+      source={scheduleIcon}
+      style={{
+        ...styles.scheduleIcon,
+        tintColor: focused ? colors.primary : colors.grey,
+      }}
     />
   );
 };
 
 const ChatIcon = ({focused}) => {
   return (
-    <Icon name="chatbox" type="ionicon" size={24} color={focused ? colors.primary : colors.grey} />
+    <Image
+      source={chatIcon}
+      style={{
+        ...styles.chatIcon,
+        tintColor: focused ? colors.primary : colors.grey,
+      }}
+    />
   );
 };
 
 const BudgetIcon = ({focused}) => {
   return (
-    <Icon
-      name="money-check"
-      type="font-awesome-5"
-      size={20}
-      color={focused ? colors.primary : colors.grey}
+    <Image
+      source={budgetIcon}
+      style={{
+        ...styles.budgetIcon,
+        tintColor: focused ? colors.primary : colors.grey,
+      }}
     />
   );
 };
@@ -91,3 +104,26 @@ const TabNavigator = () => {
 };
 
 export default TabNavigator;
+
+const styles = StyleSheet.create({
+  homeIcon: {
+    width: 26,
+    height: 27,
+    resizeMode: 'contain',
+  },
+  scheduleIcon: {
+    width: 29,
+    height: 26,
+    resizeMode: 'contain',
+  },
+  chatIcon: {
+    width: 29,
+    height: 29,
+    resizeMode: 'contain',
+  },
+  budgetIcon: {
+    width: 27,
+    height: 27,
+    resizeMode: 'contain',
+  },
+});

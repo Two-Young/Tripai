@@ -23,6 +23,10 @@ Original Project Name (Travel-AI) has been changed as Tripet (Trip + Pet)
 - [ ] Users can interact with GPT as voice input to resolve their troubles during travel.
 - [ ] Users can translate with foreigners in real-time.
 
+## API Lists
+
+- [move to notion](https://dear-knife-508.notion.site/New-API-265f13a33fcb4daba56197eeaa21bad2?pvs=4)
+
 ## Members
 
 - 2017311067, software, YoungHoon Jo (Back-end)

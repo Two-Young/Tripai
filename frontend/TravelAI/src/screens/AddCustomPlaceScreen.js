@@ -70,7 +70,7 @@ const AddCustomPlaceScreen = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
         <HeaderRNE />
         <Text style={styles.addressText}>{locationInfo ?? ''}</Text>
         <View style={defaultStyle.container}>

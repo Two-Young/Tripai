@@ -64,7 +64,7 @@ const HomeScreen = () => {
   }, [route.params?.place, currentSessionID]);
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
       <View style={defaultStyle.container}>
         <Header
           backgroundColor="#fff"
