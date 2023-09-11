@@ -117,6 +117,16 @@ const MainScreen = () => {
     navigation.navigate('Profile');
   };
 
+  const navigateToDefaultCurrency = () => {
+    closeMenu();
+    navigation.navigate('DefaultCurrency');
+  };
+
+  const navigateToManageFriends = () => {
+    closeMenu();
+    navigation.navigate('ManageFriends');
+  };
+
   /* effects */
 
   React.useEffect(() => {
@@ -147,6 +157,8 @@ const MainScreen = () => {
             visible={menuVisible}
             onDismiss={closeMenu}
             anchor={<Icon onPress={openMenu} name="menu" />}>
+            <Menu.Item onPress={navigateToProfile} title="Profile" />
+            <Menu.Item onPress={navigateToDefaultCurrency} title="Default Currency" />
             <Menu.Item onPress={navigateToProfile} title="Profile" />
           </Menu>
         }
