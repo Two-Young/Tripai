@@ -24,12 +24,6 @@ const HomeScreen = () => {
   const [refreshing, setRefreshing] = React.useState(false);
 
   // functions
-  const onPressAddPlace = () => {
-    navigation.navigate('AddPlace', {
-      routeKey: route?.key,
-    });
-  };
-
   const fetchPlaces = async () => {
     const res = await getLocations(currentSessionID);
     setPlaces(res);
@@ -48,7 +42,12 @@ const HomeScreen = () => {
     }
   };
 
-  // effects
+  const onPressAddPlace = () => {
+    navigation.navigate('AddPlace', {
+      routeKey: route?.key,
+    });
+  };
+
   React.useEffect(() => {
     if (currentSession) {
       fetchPlaces();
@@ -65,7 +64,7 @@ const HomeScreen = () => {
   }, [route.params?.place, currentSessionID]);
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
       <View style={defaultStyle.container}>
         <Header
           backgroundColor="#fff"

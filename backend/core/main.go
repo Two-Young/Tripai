@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
 	"os"
 	"strings"
@@ -13,11 +14,19 @@ import (
 	"travel-ai/third_party/google_cloud/cloud_vision"
 	"travel-ai/third_party/google_cloud/places"
 	"travel-ai/third_party/open_ai"
-	"travel-ai/third_party/others"
+	"travel-ai/third_party/pexels"
 )
 
 func main() {
-	log.Info("Travel AI Server is now starting...")
+	fmt.Println(`
+████████╗██████╗ ██╗██████╗ ███████╗████████╗
+╚══██╔══╝██╔══██╗██║██╔══██╗██╔════╝╚══██╔══╝
+   ██║   ██████╔╝██║██████╔╝█████╗     ██║   
+   ██║   ██╔══██╗██║██╔═══╝ ██╔══╝     ██║   
+   ██║   ██║  ██║██║██║     ███████╗   ██║   
+   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝     ╚══════╝   ╚═╝   
+	`)
+	log.Info("Tripet Server is now starting...")
 	log.Info("Version: ", platform2.VERSION)
 
 	// Create Jwt secret key if needed
@@ -73,10 +82,13 @@ func main() {
 	open_ai.Initialize()
 	cloud_vision.Initialize()
 	places.Initialize()
-	others.Initialize()
+	pexels.Initialize()
 
 	// Preload
-	platform.Preload()
+	if err := platform.Preload(); err != nil {
+		log.Error(err)
+		os.Exit(-3)
+	}
 
 	// Run web server with gin
 	controllers.RunGin()

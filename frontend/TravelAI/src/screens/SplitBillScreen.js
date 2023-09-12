@@ -12,7 +12,7 @@ import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
 import {Header} from '@rneui/themed';
-import {Button, IconButton, Surface} from 'react-native-paper';
+import {Button, IconButton, SegmentedButtons, Surface} from 'react-native-paper';
 import {useNavigation, useRoute, CommonActions} from '@react-navigation/native';
 import DatePicker from 'react-native-date-picker';
 
@@ -31,6 +31,7 @@ const SplitBillScreen = () => {
   const [note, setNote] = React.useState('');
   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [type, setType] = React.useState('');
 
   // functions
   const handleSetAddress = () => {
@@ -63,7 +64,7 @@ const SplitBillScreen = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView edges={['top', 'bottom']} style={defaultStyle.container}>
+      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
         <View style={styles.container}>
           <Header
             backgroundColor="#fff"
@@ -96,8 +97,13 @@ const SplitBillScreen = () => {
                   value={totalAmount}
                   onChangeText={setTotalAmount}
                   outlineColor="#000"
+                  inputMode="numeric"
                   keyboardType="numeric"
                 />
+              </View>
+              <View>
+                <Text>Type</Text>
+                <SegmentedButtons value={type} onValueChange={setType} buttons={[]} />
               </View>
               <View>
                 <Text>Address</Text>

@@ -11,6 +11,7 @@ import (
 	controller3 "travel-ai/controllers/platform"
 	controller2 "travel-ai/controllers/test"
 	"travel-ai/log"
+	"travel-ai/service/platform"
 )
 
 func ping(c *gin.Context) {
@@ -34,15 +35,14 @@ func SetupRouter() *gin.Engine {
 	controller.UseAuthRouter(r)
 	controller2.UseTestRouter(r)
 	controller3.UsePlatformRouter(r)
+	UseAssetRouter(r)
 	return r
 }
 
 func RunGin() {
-	AppServerPort := os.Getenv("APP_SERVER_PORT")
-
-	log.Infof("Starting server on port on %d...", AppServerPort)
+	log.Infof("Starting server on port on %s...", platform.AppServerPort)
 	r := SetupRouter()
-	if err := r.Run(fmt.Sprintf(":%s", AppServerPort)); err != nil {
+	if err := r.Run(fmt.Sprintf(":%s", platform.AppServerPort)); err != nil {
 		log.Fatal(err)
 		os.Exit(-3)
 	}

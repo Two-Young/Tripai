@@ -16,4 +16,7 @@ func UsePlatformRouter(r *gin.Engine) {
 	UseChatRouter(g)
 	UseBudgetRouter(g)
 	UseReceiptRouter(g)
+	UseCurrencyRouter(g)
+	UseFriendsRouter(g)
+	UseUserRouter(g)
 }

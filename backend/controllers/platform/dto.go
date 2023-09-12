@@ -56,6 +56,7 @@ type locateDirectionResponseDto []locateCoordinate
 /* ---------------- Session ---------------- */
 type sessionsResponseItem struct {
 	SessionId     string   `json:"session_id"`
+	SessionCode   string   `json:"session_code"`
 	CreatorUserId string   `json:"creator_user_id"`
 	Name          string   `json:"name"`
 	StartAt       string   `json:"start_at"`
@@ -74,6 +75,94 @@ type sessionCreateRequestDto struct {
 }
 
 type sessionDeleteRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
+}
+
+type sessionSupportedCurrenciesRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type sessionSupportedCurrenciesResponseItem struct {
+	CurrencyCode   string `json:"currency_code"`
+	CurrencyName   string `json:"currency_name"`
+	CurrencySymbol string `json:"currency_symbol"`
+}
+
+// key: country code
+type sessionSupportedCurrenciesResponseDto map[string][]sessionSupportedCurrenciesResponseItem
+
+type sessionInviteRequestDto struct {
+	SessionId    string `json:"session_id" binding:"required"`
+	TargetUserId string `json:"target_user_id" binding:"required"`
+}
+
+type sessionInviteWaitingRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type sessionInviteWaitingResponseItem struct {
+	UserId       string `json:"user_id"`
+	Username     string `json:"username"`
+	ProfileImage string `json:"profile_image"`
+	InvitedAt    int64  `json:"invited_at"`
+}
+
+type sessionInviteWaitingResponseDto []sessionInviteWaitingResponseItem
+
+type sessionInviteRequestsResponseItem struct {
+	SessionId    string `json:"session_id"`
+	SessionCode  string `json:"session_code"`
+	SessionName  string `json:"session_name"`
+	ThumbnailUrl string `json:"thumbnail_url"`
+	InvitedAt    int64  `json:"requested_at"`
+}
+
+type sessionInviteRequestsResponseDto []sessionInviteRequestsResponseItem
+
+type sessionInviteConfirmRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
+	Accept    bool   `json:"accept" binding:"required"`
+}
+
+type sessionJoinRequestDto struct {
+	SessionCode string `json:"session_code" binding:"required"`
+}
+
+type sessionJoinRequestsRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type sessionJoinRequestsResponseItem struct {
+	UserId       string `json:"user_id"`
+	Username     string `json:"username"`
+	ProfileImage string `json:"profile_image"`
+	RequestedAt  int64  `json:"requested_at"`
+}
+
+type sessionJoinRequestsResponseDto []sessionJoinRequestsResponseItem
+
+type sessionJoinWaitingsResponseItem struct {
+	SessionId    string `json:"session_id"`
+	SessionCode  string `json:"session_code"`
+	SessionName  string `json:"session_name"`
+	ThumbnailUrl string `json:"thumbnail_url"`
+	RequestedAt  int64  `json:"requested_at"`
+}
+
+type sessionJoinWaitingsResponseDto []sessionJoinWaitingsResponseItem
+
+type sessionJoinConfirmRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
+	UserId    string `json:"user_id" binding:"required"`
+	Accept    bool   `json:"accept" binding:"required"`
+}
+
+type sessionExpelRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
+	UserId    string `json:"user_id" binding:"required"`
+}
+
+type sessionLeaveRequestDto struct {
 	SessionId string `json:"session_id" binding:"required"`
 }
 
@@ -144,10 +233,6 @@ type scheduleDeleteRequestDto struct {
 }
 
 /* ---------------- Receipt ---------------- */
-type receiptUploadRequestDto struct {
-	SessionId string `form:"session_id" binding:"required"`
-}
-
 type receiptTextItemBoundary struct {
 	Top    int `json:"top"`
 	Left   int `json:"left"`
@@ -155,9 +240,26 @@ type receiptTextItemBoundary struct {
 	Height int `json:"height"`
 }
 
+type receiptItemBox struct {
+	ReceiptItemBoxId string                  `json:"box_id"`
+	Text             string                  `json:"text"`
+	Boundary         receiptTextItemBoundary `json:"boundary"`
+}
+
+type receiptLabelItem struct {
+	ReceiptIemBoxId *string `json:"box_id"`
+	Text            string  `json:"text"`
+}
+
+type receiptPriceItem struct {
+	ReceiptIemBoxId *string `json:"box_id"`
+	Value           float64 `json:"value"`
+}
+
 type receiptTextItem struct {
-	Boundary receiptTextItemBoundary `json:"boundary"`
-	Text     string                  `json:"value"`
+	ReceiptItemId string           `json:"item_id"`
+	Label         receiptLabelItem `json:"label"`
+	Price         receiptPriceItem `json:"price"`
 }
 
 type receiptImageResolution struct {
@@ -165,22 +267,121 @@ type receiptImageResolution struct {
 	Height int `json:"height"`
 }
 
-type receiptUploadResponseDto struct {
+type receiptGetRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type receiptGetResponseItem struct {
+	ReceiptId string `json:"receipt_id"`
+	Name      string `json:"name"`
+}
+
+type receiptGetResponseDto []receiptGetResponseItem
+
+type receiptGetImageRequestDto struct {
+	ReceiptId string `form:"receipt_id" binding:"required"`
+}
+
+type receiptGetCurrentRequestDto struct {
+	ReceiptId string `form:"receipt_id" binding:"required"`
+}
+
+type receiptGetCurrentResponseDto struct {
+	ItemBoxes  []receiptItemBox       `json:"item_boxes"`
 	Items      []receiptTextItem      `json:"items"`
 	Resolution receiptImageResolution `json:"resolution"`
-	ReceiptId  string                 `json:"receipt_id"`
+}
+
+type receiptUploadRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type receiptSelectedBoxInfo struct {
+	Custom bool    `json:"custom" binding:"required"`
+	BoxId  *string `json:"box_id" binding:"required"`
+	Text   string  `json:"text" binding:"required"`
 }
 
 type receiptSelectedTextItem struct {
-	Name     string                  `json:"name"`
-	Price    int                     `json:"price"`
-	UsersId  []string                `json:"users_id"`
-	Boundary receiptTextItemBoundary `json:"boundary"`
+	Label receiptSelectedBoxInfo `json:"label" binding:"required"`
+	Price receiptSelectedBoxInfo `json:"price" binding:"required"`
 }
 
 type receiptSubmitRequestDto struct {
 	ReceiptId string                    `json:"receipt_id" binding:"required"`
 	Items     []receiptSelectedTextItem `json:"items" binding:"required"`
-	Name      string                    `json:"name" binding:"required"`
-	Type      string                    `json:"type" binding:"required"`
+}
+
+/* ---------------- Currency ---------------- */
+type currencyGetSupportedResponseItem struct {
+	CountryCode    string `json:"country_code"`
+	CurrencyCode   string `json:"currency_code"`
+	CurrencyName   string `json:"currency_name"`
+	CurrencySymbol string `json:"currency_symbol"`
+}
+
+type currencyGetSupportedResponseDto []currencyGetSupportedResponseItem
+
+type currencyExchangeRateRequestDto struct {
+	FromCurrencyCode string `form:"from_currency_code" binding:"required"`
+	ToCurrencyCode   string `form:"to_currency_code" binding:"required"`
+}
+
+/* ---------------- Friends ---------------- */
+type friendsGetResponseItem struct {
+	UserId       string `json:"user_id" binding:"required"`
+	UserCode     string `json:"user_code" binding:"required"`
+	Username     *string `json:"username" binding:"required"`
+	ProfileImage *string `json:"profile_image" binding:"required"`
+	AcceptedAt   int64  `json:"accepted_at" binding:"required"`
+}
+
+type friendsGetResponseDto []friendsGetResponseItem
+
+type friendsRequestRequestDto struct {
+	TargetUserId string `json:"target_user_id" binding:"required"`
+}
+
+type friendsAcceptRequestDto struct {
+	RequestedUserId string `json:"requested_user_id" binding:"required"`
+}
+
+type friendsRejectRequestDto struct {
+	RequestedUserId string `json:"requested_user_id" binding:"required"`
+}
+
+type friendsDeleteRequestDto struct {
+	TargetUserId string `json:"target_user_id" binding:"required"`
+}
+
+type friendsWaitingRequests struct {
+	UserId       string  `json:"user_id" binding:"required"`
+	Username     *string `json:"username" binding:"required"`
+	ProfileImage *string `json:"profile_image" binding:"required"`
+	RequestedAt  int64   `json:"requested_at" binding:"required"`
+}
+
+type friendsWaitingRequestsResponseDto struct {
+	Sent     []friendsWaitingRequests `json:"sent"`
+	Received []friendsWaitingRequests `json:"received"`
+}
+
+type friendsSearchRequestDto struct {
+	Query string `form:"query" binding:"required"`
+}
+
+type friendsSearchResponseItem struct {
+	UserId       string `json:"user_id" binding:"required"`
+	UserCode     string `json:"user_code" binding:"required"`
+	Username     string `json:"username" binding:"required"`
+	ProfileImage string `json:"profile_image" binding:"required"`
+}
+
+type friendsSearchResponseDto []friendsSearchResponseItem
+
+/* ---------------- Users ---------------- */
+type userGetProfileResponseDto struct {
+	Username            string `json:"username"`
+	ProfileImage        string `json:"profile_image"`
+	AllowNicknameSearch bool   `json:"allow_nickname_search"`
 }

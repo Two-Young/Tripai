@@ -16,6 +16,10 @@ import EditScheduleScreen from '../screens/EditScheduleScreen';
 import {createNavigationContainerRef} from '@react-navigation/native';
 import SplitBillScreen from '../screens/SplitBillScreen';
 import CustomSplitScreen from '../screens/CustomSplitScreen';
+import ReceiptScreen from '../screens/ReceiptScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import DefaultCurrencyScreen from '../screens/DefaultCurrencyScreen';
+import FriendsScreen from '../screens/FriendsScreen';
 
 const Stack = createStackNavigator();
 
@@ -73,6 +77,9 @@ const RootNavigator = () => {
       <Stack.Group>
         <Stack.Screen name="Main" component={MainScreen} />
         <Stack.Screen name="Tab" component={TabNavigator} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="DefaultCurrency" component={DefaultCurrencyScreen} />
+        <Stack.Screen name="Friends" component={FriendsScreen} />
       </Stack.Group>
       <Stack.Group
         screenOptions={{
@@ -90,6 +97,7 @@ const RootNavigator = () => {
         <Stack.Screen name="AddTravel" component={AddTravelScreen} />
         <Stack.Screen name="AddDate" component={AddDateScreen} />
         <Stack.Screen name="EditSchedule" component={EditScheduleScreen} />
+        <Stack.Screen name="Receipt" component={ReceiptScreen} />
       </Stack.Group>
       {/* OnBoard */}
       {/* Tab */}

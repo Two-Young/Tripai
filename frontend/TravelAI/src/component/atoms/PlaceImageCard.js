@@ -1,18 +1,16 @@
 import {ImageBackground, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import {PropTypes} from 'prop-types';
-
-const GOOGLE_API_KEY = 'AIzaSyDfvktC6dAf0oARSwkLrTcVwe1Vi3GEz58';
+import {locatePlacePhoto} from '../../services/api';
+import {arrayBufferToBase64} from '../../utils/utils';
 
 const PlaceImageCard = ({name, photo_reference}) => {
   const [imageData, setImageData] = React.useState(null);
 
   const getPhoto = async () => {
     try {
-      // const res = await locatePlacePhoto(photo_reference, 400);
-      setImageData(
-        `https://maps.googleapis.com/maps/api/place/photo?photo_reference=${photo_reference}&maxwidth=400&key=${GOOGLE_API_KEY}`,
-      );
+      const res = await locatePlacePhoto(photo_reference, 400);
+      setImageData(arrayBufferToBase64(res));
     } catch (err) {
       console.error(err);
     }
@@ -25,7 +23,7 @@ const PlaceImageCard = ({name, photo_reference}) => {
   return (
     <ImageBackground
       source={{
-        uri: imageData,
+        uri: `data:image/jpeg;base64,${imageData}`,
       }}
       style={{
         width: 156,

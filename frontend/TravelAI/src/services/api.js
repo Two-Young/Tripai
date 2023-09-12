@@ -168,7 +168,7 @@ export const authKakaoSign = async accessToken => {
   }
 };
 
-export const authRefreshToken = async refreshToken => {
+export const authRefreshToken = async () => {
   try {
     const response = await api.post('/auth/refreshToken');
     return response.data;
@@ -240,7 +240,6 @@ export const locatePlacePhoto = async (reference, max_width) => {
       },
       responseType: 'arraybuffer',
     });
-    reactotron.log('response!! : ', response.data);
     return response.data;
   } catch (error) {
     throw error;
@@ -299,6 +298,125 @@ export const deleteSession = async session_id => {
       data: {
         session_id,
       },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSessionCurrencies = async session_id => {
+  try {
+    const response = await api.get('/platform/session/currencies', {
+      params: {
+        session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const inviteSession = async (session_id, target_user_id) => {
+  try {
+    const response = await api.post('/platform/session/invite', {
+      session_id,
+      target_user_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSessionInvitationWaitingList = async session_id => {
+  try {
+    const response = await api.get('/platform/session/waiting', {
+      params: {
+        session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const confirmSessionInvitation = async (session_id, accept) => {
+  try {
+    const response = await api.post('/platform/session/invite-confirm', {
+      session_id,
+      accept,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const joinSession = async session_code => {
+  try {
+    const response = await api.post('/platform/session/join', {
+      session_code,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSessionJoinRequests = async session_id => {
+  try {
+    const response = await api.get('/platform/session/join-requests', {
+      params: {
+        session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSessionJoinWaitings = async () => {
+  try {
+    const response = await api.get('/platform/session/join-waitings');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const confirmSessionJoinRequest = async (session_id, user_id, accept) => {
+  try {
+    const response = await api.post('/platform/session/join-confirm', {
+      session_id,
+      user_id,
+      accept,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const expelUserFromSession = async (session_id, user_id) => {
+  try {
+    const response = await api.post('/platform/session/expel', {
+      session_id,
+      user_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const leaveSession = async session_id => {
+  try {
+    const response = await api.post('/platform/session/leave', {
+      session_id,
     });
     return response.data;
   } catch (error) {
@@ -403,23 +521,192 @@ export const deleteLocation = async location_id => {
   }
 };
 
-// platform - budget
-export const getBudgetList = async () => {
+// platform - receipt
+export const getReceipt = async receipt_id => {
   try {
-    const response = await api.get('/platform/budget/list');
+    const response = await api.get('/platform/receipt/current', {
+      params: {
+        receipt_id,
+      },
+    });
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const createBudget = async (sessiontoken, title, amount, currency) => {
+export const getReceiptImage = async receipt_id => {
   try {
-    const response = await api.post('/platform/budget', {
-      sessiontoken,
-      title,
-      amount,
-      currency,
+    const response = await api.get('/platform/receipt/image', {
+      params: {
+        receipt_id,
+      },
+      responseType: 'arraybuffer',
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getReceipts = async session_id => {
+  try {
+    const response = await api.get('/platform/receipt', {
+      params: {
+        session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const uploadReceipt = async ({session_id, file}) => {
+  try {
+    console.log(session_id, file);
+    const response = await api.post('/platform/receipt/upload', file, {
+      params: {
+        session_id,
+      },
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const submitReceipt = async ({receipt_id, items, name, type}) => {
+  try {
+    const response = await api.post('/platform/receipt/submit', {
+      receipt_id,
+      items,
+      name,
+      type,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// platform - currency
+export const getCurrencies = async () => {
+  try {
+    const response = await api.get('/platform/currency');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getCurrenciesExchangeInfo = async ({from_currency_code, to_currency_code}) => {
+  try {
+    const response = await api.get('/platform/currency/exchange', {
+      params: {
+        from_currency_code,
+        to_currency_code,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// friends
+export const getFriends = async () => {
+  try {
+    const response = await api.get('/platform/friends');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const requestFriends = async target_user_id => {
+  try {
+    const response = await api.post('/platform/friends/request');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const acceptFriends = async requested_user_id => {
+  try {
+    const response = await api.post('/platform/friends/accept', {
+      requested_user_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const rejectFriends = async target_user_id => {
+  try {
+    const response = await api.post('/platform/friends/reject', {
+      target_user_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getFriendsRequest = async () => {
+  try {
+    const response = await api.get('/platform/friends/waiting');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const searchFriends = async query => {
+  try {
+    const response = await api.post('/platform/friends/search', {
+      query,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteFriends = async target_user_id => {
+  try {
+    const response = await api.delete('/platform/friends', {
+      data: {
+        target_user_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// user
+export const getProfile = async () => {
+  try {
+    const response = await api.get('/platform/user/profile');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateProfile = async formData => {
+  try {
+    const response = await api.post('/platform/user/profile', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
     return response.data;
   } catch (error) {

@@ -14,13 +14,12 @@ import (
 )
 
 func Schedules(c *gin.Context) {
-	rawUid, ok := c.Get("uid")
-	if !ok {
-		log.Error("uid not found")
+	uid, err := util.GetUid(c)
+	if err != nil {
+		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-	uid := rawUid.(string)
 
 	var query schedulesRequestDto
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -30,7 +29,7 @@ func Schedules(c *gin.Context) {
 	}
 
 	// check if user has permission to view locations
-	yes, err := platform.DidParticipateInSession(uid, query.SessionId)
+	yes, err := platform.IsSessionMember(uid, query.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -84,7 +83,7 @@ func CreateSchedule(c *gin.Context) {
 	}
 
 	// check if user has permission to create schedule
-	yes, err := platform.DidParticipateInSession(uid, body.SessionId)
+	yes, err := platform.IsSessionMember(uid, body.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -202,7 +201,7 @@ func EditSchedule(c *gin.Context) {
 	}
 
 	// check if user has permission to create schedule
-	yes, err := platform.DidParticipateInSession(uid, *originalSchedule.SessionId)
+	yes, err := platform.IsSessionMember(uid, *originalSchedule.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -312,7 +311,7 @@ func DeleteSchedule(c *gin.Context) {
 	}
 
 	// check if user has permission to delete location
-	yes, err := platform.DidParticipateInSession(uid, *schedule.SessionId)
+	yes, err := platform.IsSessionMember(uid, *schedule.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)

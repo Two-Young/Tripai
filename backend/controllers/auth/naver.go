@@ -11,6 +11,7 @@ import (
 	"travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
+	"travel-ai/service/platform"
 )
 
 func SignWithNaver(c *gin.Context) {
@@ -84,6 +85,7 @@ func SignWithNaver(c *gin.Context) {
 	var (
 		userEntity database.UserEntity
 		uid        string
+		userCode   string
 		returnCode int
 		userInfo   UserInfoDto
 	)
@@ -92,9 +94,11 @@ func SignWithNaver(c *gin.Context) {
 		if err == sql.ErrNoRows {
 			alreadyRegistered = false
 			uid = uuid.New().String()
+			userCode = platform.GenerateTenLengthCode()
 			userInfo = UserInfoDto{
 				UserId:       uid,
 				Id:           naverProfile.Response.Email,
+				UserCode:     userCode,
 				Username:     naverProfile.Response.Name,
 				ProfileImage: naverProfile.Response.Profile,
 				Platform:     NAVER,
@@ -105,10 +109,10 @@ func SignWithNaver(c *gin.Context) {
 			return
 		}
 	} else {
-		uid = *userEntity.UserId
 		userInfo = UserInfoDto{
-			UserId:       *userEntity.UserId,
+			UserId:       userEntity.UserId,
 			Id:           *userEntity.Id,
+			UserCode:     userEntity.UserCode,
 			Username:     *userEntity.Username,
 			ProfileImage: *userEntity.ProfileImage,
 			Platform:     *userEntity.Platform,
@@ -117,8 +121,8 @@ func SignWithNaver(c *gin.Context) {
 
 	if !alreadyRegistered {
 		// create user
-		if err := database.DB.QueryRowx("INSERT INTO users(uid, id, username, profile_image, platform) VALUES(?, ?, ?, ?, ?)",
-			userInfo.UserId, userInfo.Id, userInfo.Username, userInfo.ProfileImage, userInfo.Platform).Err(); err != nil {
+		if err := database.DB.QueryRowx("INSERT INTO users(uid, id, user_code, username, profile_image, platform) VALUES(?, ?, ?, ?, ?)",
+			userInfo.UserId, userInfo.Id, userInfo.UserCode, userInfo.Username, userInfo.ProfileImage, userInfo.Platform).Err(); err != nil {
 			log.Error(err)
 			util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to create user")
 		}
