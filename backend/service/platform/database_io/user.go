@@ -8,9 +8,7 @@ import (
 func GetUser(uid string) (*database.UserEntity, error) {
 	var userEntity database.UserEntity
 	if err := database.DB.Get(&userEntity, `
-		SELECT uid, username, profile_image, platform
-		FROM users
-		WHERE uid = ?;`,
+		SELECT * FROM users WHERE uid = ?;`,
 		uid,
 	); err != nil {
 		return nil, err

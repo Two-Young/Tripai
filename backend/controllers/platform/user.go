@@ -3,7 +3,6 @@ package platform
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -14,6 +13,8 @@ import (
 	"travel-ai/service/platform"
 	"travel-ai/service/platform/database_io"
 	"travel-ai/util"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetUserProfile(c *gin.Context) {
@@ -56,33 +57,28 @@ func EditUserProfile(c *gin.Context) {
 	}
 
 	file, _ := c.FormFile("profile_image")
-	if file == nil {
-		log.Error("profile_image not found on form")
-		util2.AbortWithStrJson(c, http.StatusBadRequest, "profile_image not found on form")
-		return
-	}
+	profileImageUrl := ""
+	if file != nil {
+		// regard as "profile image update"
+		dest := filepath.Join(util.GetRootDirectory(), "files", "users", uid, "profile_image")
+		cache_code := platform.GenerateTenLengthCode()
+		profileImageUrl = fmt.Sprintf("http://%s:%s/asset/profile-image?user_id=%s&v=%s",
+			platform.AppServerHost, platform.AppServerPort, uid, cache_code)
 
-	//fileuuid := uuid.New().String()
-	//filename := file.Filename
-	//extension := filepath.Ext(filename)
+		// check profile image already exists
+		if _, err := os.Stat(dest); !errors.Is(err, os.ErrNotExist) {
+			if err := os.Remove(dest); err != nil {
+				log.Error(err)
+				util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
+				return
+			}
+		}
 
-	dest := filepath.Join(util.GetRootDirectory(), "files", "users", uid, "profile_image")
-	profileImageUrl := fmt.Sprintf("http://%s:%s/asset/profile-image?user_id=%s",
-		platform.AppServerHost, platform.AppServerPort, uid)
-
-	// check profile image already exists
-	if _, err := os.Stat(dest); !errors.Is(err, os.ErrNotExist) {
-		if err := os.Remove(dest); err != nil {
+		if err := c.SaveUploadedFile(file, dest); err != nil {
 			log.Error(err)
 			util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
 			return
 		}
-	}
-
-	if err := c.SaveUploadedFile(file, dest); err != nil {
-		log.Error(err)
-		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
-		return
 	}
 
 	// get user entity
@@ -96,7 +92,9 @@ func EditUserProfile(c *gin.Context) {
 	// update user entity
 	userEntity.Username = &formUsername
 	userEntity.AllowNicknameSearch = allowNicknameSearch
-	userEntity.ProfileImage = &profileImageUrl
+	if profileImageUrl != "" {
+		userEntity.ProfileImage = &profileImageUrl
+	}
 
 	tx, err := database.DB.BeginTx(c, nil)
 	if err != nil {
