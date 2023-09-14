@@ -660,10 +660,10 @@ export const acceptFriends = async requested_user_id => {
   }
 };
 
-export const rejectFriends = async target_user_id => {
+export const rejectFriends = async requested_user_id => {
   try {
     const response = await api.post('/platform/friends/reject', {
-      target_user_id,
+      requested_user_id,
     });
     return response.data;
   } catch (error) {

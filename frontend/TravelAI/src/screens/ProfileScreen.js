@@ -37,6 +37,10 @@ const ProfileScreen = () => {
     return username.length > 0;
   }, [username]);
 
+  const isProfileImageChanged = React.useMemo(() => {
+    return profileImage !== userInfo?.profile_image;
+  }, [profileImage, userInfo?.profile_image]);
+
   // functions
   const fetchProfile = async () => {
     try {
@@ -71,11 +75,13 @@ const ProfileScreen = () => {
       const formData = new FormData();
       const imageUriParts = profileImage.split('.');
       const fileExtension = imageUriParts[imageUriParts.length - 1];
-      formData.append('profile_image', {
-        uri: profileImage,
-        name: `profile.${fileExtension}`,
-        type: `image/${fileExtension}`,
-      });
+      if (isProfileImageChanged) {
+        formData.append('profile_image', {
+          uri: profileImage,
+          name: `profile.${fileExtension}`,
+          type: `image/${fileExtension}`,
+        });
+      }
       formData.append('username', username);
       formData.append('allow_nickname_search', nicknameSearch);
       await updateProfile(formData);

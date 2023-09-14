@@ -6,13 +6,13 @@ import Modal from 'react-native-modal';
 import upperProfile from '../../assets/images/upper_profile.png';
 import {navigate} from '../../navigation/RootNavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useRecoilValue} from 'recoil';
+import {useRecoilState} from 'recoil';
 import userAtom from '../../recoil/user/user';
 
 const MenuDrawer = props => {
   const {visible, setVisible} = props;
 
-  const user = useRecoilValue(userAtom);
+  const [user, setUser] = useRecoilState(userAtom);
 
   const userName = React.useMemo(() => user?.user_info?.username, [user]);
   const userImage = React.useMemo(() => user?.user_info?.profile_image, [user]);
@@ -39,7 +39,15 @@ const MenuDrawer = props => {
   const logout = () => {
     onClose();
     AsyncStorage.clear();
+    setUser(null);
   };
+
+  // effects
+  React.useEffect(() => {
+    if (user === null) {
+      navigate('SignIn');
+    }
+  }, [user]);
 
   return (
     <Modal

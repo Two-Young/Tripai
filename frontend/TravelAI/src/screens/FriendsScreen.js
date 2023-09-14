@@ -1,4 +1,4 @@
-import {FlatList, StyleSheet, Text, View} from 'react-native';
+import {FlatList, StyleSheet, Text, View, Alert} from 'react-native';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
@@ -22,6 +22,7 @@ const FriendsScreen = () => {
   const [friends, setFriends] = React.useState([]);
   const [receivedFriendsRequest, setReceivedFriendsRequest] = React.useState([]);
   const [sentFriendsRequest, setSentFriendsRequest] = React.useState([]);
+  const [refresh, setRefresh] = React.useState(true);
 
   // functions
   const onPressAdd = () => {
@@ -47,25 +48,50 @@ const FriendsScreen = () => {
     }
   };
 
-  const acceptFriendRequest = async user_id => {
+  const requestAlert = async (title, description, okFunc) => {
+    Alert.alert(title, description, [
+      {
+        text: 'Cancel',
+        onPress: () => {},
+        style: 'cancel',
+      },
+      {
+        text: 'OK',
+        onPress: async () => okFunc(),
+      },
+    ]);
+  };
+
+  const deleteFriendConfirm = async user_id => {
+    try {
+      await deleteFriends(user_id);
+      setRefresh(true);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const acceptFriendRequestConfirm = async user_id => {
     try {
       const data = await acceptFriends(user_id);
+      setRefresh(true);
     } catch (err) {
       console.error(err);
     }
   };
-
-  const rejectFriendRequest = async user_id => {
+  const rejectFriendRequestConfirm = async user_id => {
     try {
       const data = await rejectFriends(user_id);
+      setRefresh(true);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const cancelFriendRequest = async user_id => {
+  const cancelFriendRequestConfirm = async user_id => {
     try {
       const data = await cancelFriends(user_id);
+      setRefresh(true);
     } catch (err) {
       console.error(err);
     }
@@ -73,14 +99,17 @@ const FriendsScreen = () => {
 
   // effects
   React.useEffect(() => {
-    fetchFriends();
-    fetchFriendsWaiting();
-  }, []);
+    if (refresh) {
+      setRefresh(false);
+      fetchFriends();
+      fetchFriendsWaiting();
+    }
+  }, [refresh]);
 
   return (
     <SafeAreaView edges={['top, bottom']} style={defaultStyle.container}>
       <Header centerComponent={<Text style={defaultStyle.headerTitle}>Friends</Text>} />
-      <View style={defaultStyle.container}>
+      <View style={styles.container}>
         <Text>Friends Screen</Text>
         <FlatList
           data={friends}
@@ -88,7 +117,19 @@ const FriendsScreen = () => {
             <List.Item
               title={item.username}
               left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-              right={props => <List.Icon {...props} icon="delete" />}
+              right={props => (
+                <IconButton
+                  {...props}
+                  icon="delete"
+                  onPress={() =>
+                    requestAlert(
+                      'Delete Friend',
+                      `Are you sure you want to delete ${item.username} as a friend?`,
+                      () => deleteFriendConfirm(item.user_id),
+                    )
+                  }
+                />
+              )}
             />
           )}
         />
@@ -101,11 +142,27 @@ const FriendsScreen = () => {
               left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
               right={props => (
                 <View style={{flexDirection: 'row'}}>
-                  <IconButton {...props} icon="check" />
+                  <IconButton
+                    {...props}
+                    icon="check"
+                    onPress={() =>
+                      requestAlert(
+                        'Accept Friend Request',
+                        `Are you sure you want to accept ${item.username}'s friend request?`,
+                        () => acceptFriendRequestConfirm(item.user_id),
+                      )
+                    }
+                  />
                   <IconButton
                     {...props}
                     icon="delete"
-                    onPress={() => rejectFriendRequest(item.user_id)}
+                    onPress={() =>
+                      requestAlert(
+                        'Reject Friend Request',
+                        `Are you sure you want to reject ${item.username}'s friend request?`,
+                        () => rejectFriendRequestConfirm(item.user_id),
+                      )
+                    }
                   />
                 </View>
               )}
@@ -123,7 +180,13 @@ const FriendsScreen = () => {
                 <IconButton
                   {...props}
                   icon="delete"
-                  onPress={() => cancelFriendRequest(item.user_id)}
+                  onPress={() =>
+                    requestAlert(
+                      'Cancel Friend Request',
+                      `Are you sure you want to cancel ${item.username}'s friend request?`,
+                      () => cancelFriendRequestConfirm(item.user_id),
+                    )
+                  }
                 />
               )}
             />
@@ -138,6 +201,10 @@ const FriendsScreen = () => {
 export default FriendsScreen;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
   fab: {
     position: 'absolute',
     margin: 16,
