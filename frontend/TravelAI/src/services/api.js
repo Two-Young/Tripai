@@ -8,10 +8,10 @@ import {navigate} from '../navigation/RootNavigator';
 import {Alert} from 'react-native';
 
 export const API_URL_PROD = 'http://43.200.219.71:10375';
-export const API_URL_DEBUG = 'http://180.226.155.13:10375/';
+export const API_URL_DEBUG = 'http://1.237.25.170:10375/';
 
 const api = axios.create({
-  baseURL: API_URL_PROD,
+  baseURL: API_URL_DEBUG,
   timeout: 10000,
 });
 
@@ -629,7 +629,20 @@ export const getFriends = async () => {
 
 export const requestFriends = async target_user_id => {
   try {
-    const response = await api.post('/platform/friends/request');
+    const response = await api.post('/platform/friends/request', {
+      target_user_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const cancelFriends = async target_user_id => {
+  try {
+    const response = await api.post('/platform/friends/cancel', {
+      target_user_id,
+    });
     return response.data;
   } catch (error) {
     throw error;
@@ -658,7 +671,7 @@ export const rejectFriends = async target_user_id => {
   }
 };
 
-export const getFriendsRequest = async () => {
+export const getFriendsWaiting = async () => {
   try {
     const response = await api.get('/platform/friends/waiting');
     return response.data;
@@ -669,8 +682,8 @@ export const getFriendsRequest = async () => {
 
 export const searchFriends = async query => {
   try {
-    const response = await api.post('/platform/friends/search', {
-      query,
+    const response = await api.post('/platform/friends/search', null, {
+      params: {query},
     });
     return response.data;
   } catch (error) {

@@ -10,7 +10,6 @@ import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {Button, Card, IconButton} from 'react-native-paper';
 import colors from '../theme/colors';
-import {DateTime} from 'luxon';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -46,15 +45,12 @@ const PlaceCard = ({item, onPress}) => {
   }, [start_at]);
 
   const subTitle = React.useMemo(() => {
-    const {address, memo} = item;
-    if (address.length > 0 && memo.length > 0) {
-      return `${address} | ${memo}`;
-    } else if (address.length > 0) {
-      return address;
-    } else if (memo.length > 0) {
-      return memo;
-    } else {
+    const {address, memo} = item || {};
+
+    if (address === null && memo === null) {
       return '';
+    } else {
+      return `${address ?? ''} | ${memo ?? ''}`;
     }
   }, [item]);
 

@@ -62,7 +62,7 @@ const MenuDrawer = props => {
         </View>
         <Drawer.Item label="Profile" onPress={navigateToProfile} icon="star" />
         <Drawer.Item label="Default Currency" onPress={navigateToDefaultCurrency} icon="star" />
-        <Drawer.Item label="People" onPress={navigateToDefaultCurrency} icon="star" />
+        <Drawer.Item label="People" onPress={navigateToPeople} icon="star" />
         <Drawer.Item label="Logout" onPress={logout} icon="star" />
       </Drawer.Section>
     </Modal>

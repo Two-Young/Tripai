@@ -10,6 +10,7 @@ import {getLocations} from '../services/api';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {FAB} from 'react-native-paper';
+import _ from 'lodash';
 
 const HomeScreen = () => {
   // hooks
@@ -49,10 +50,10 @@ const HomeScreen = () => {
   };
 
   React.useEffect(() => {
-    if (currentSession) {
+    if (currentSessionID && !_.isEmpty(currentSession)) {
       fetchPlaces();
     }
-  }, [currentSession]);
+  }, [currentSession, currentSessionID]);
 
   React.useEffect(() => {
     if (route.params?.place && currentSessionID) {
