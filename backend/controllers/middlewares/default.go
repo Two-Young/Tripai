@@ -5,6 +5,6 @@ import (
 )
 
 func DefaultMiddleware(c *gin.Context) {
-	//log.Debug(c.Request.Method, c.Request.URL.String())
+	// log.Debug(c.Request.Method, c.Request.URL.String())
 	c.Next()
 }

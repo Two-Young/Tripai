@@ -1,13 +1,14 @@
 package platform
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
 	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
 	"travel-ai/service/platform/database_io"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetFriends(c *gin.Context) {
@@ -35,6 +36,8 @@ func GetFriends(c *gin.Context) {
 			AcceptedAt:   f.ConfirmedAt.UnixMilli(),
 		})
 	}
+
+	c.JSON(http.StatusOK, friends)
 }
 
 func RequestFriend(c *gin.Context) {
@@ -108,6 +111,7 @@ func RequestFriend(c *gin.Context) {
 			log.Error(err)
 			_ = tx.Rollback()
 			c.AbortWithStatus(http.StatusInternalServerError)
+			return
 		}
 	} else {
 		// create a new request
@@ -121,7 +125,74 @@ func RequestFriend(c *gin.Context) {
 			log.Error(err)
 			_ = tx.Rollback()
 			c.AbortWithStatus(http.StatusInternalServerError)
+			return
 		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
+}
+
+func CancelFriendRequest(c *gin.Context) {
+	uid := c.GetString("uid")
+
+	var body friendsRequestCancelRequestDto
+	if err := c.ShouldBindJSON(&body); err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	relations, err := database_io.GetSingleFriendRelationInfo(uid, body.TargetUserId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+
+	alreadyFriend := false
+	iSentToOpposite := false
+	for _, r := range relations {
+		if r.Accepted {
+			alreadyFriend = true
+			break
+		} else if r.RequestedUserId == uid {
+			iSentToOpposite = true
+			break
+		}
+	}
+
+	// check if the user is already a friend
+	if alreadyFriend {
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "already friend")
+		return
+	}
+
+	// check if the I sent a request
+	if !iSentToOpposite {
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "no request from me: abnormal request")
+		return
+	}
+
+	tx, err := database.DB.BeginTxx(c, nil)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// delete the request
+	if err := database_io.DeleteFriendRelationTx(tx, body.TargetUserId, uid); err != nil {
+		log.Error(err)
+		_ = tx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -201,6 +272,7 @@ func AcceptFriend(c *gin.Context) {
 		log.Error(err)
 		_ = tx.Rollback()
 		c.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -321,14 +393,14 @@ func GetWaitingFriendRequests(c *gin.Context) {
 }
 
 func SearchFriend(c *gin.Context) {
-	var body friendsSearchRequestDto
-	if err := c.ShouldBindQuery(&body); err != nil {
+	var query friendsSearchRequestDto
+	if err := c.ShouldBindQuery(&query); err != nil {
 		log.Error(err)
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query")
 		return
 	}
 
-	users, err := database_io.GetFriendByKeyword(body.Query)
+	users, err := database_io.GetFriendByKeyword(query.Query)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -406,6 +478,7 @@ func UseFriendsRouter(g *gin.RouterGroup) {
 	rg := g.Group("/friends")
 	rg.GET("", GetFriends)
 	rg.POST("/request", RequestFriend)
+	rg.POST("/cancel", CancelFriendRequest)
 	rg.POST("/accept", AcceptFriend)
 	rg.POST("/reject", RejectFriend)
 	rg.GET("/waiting", GetWaitingFriendRequests)

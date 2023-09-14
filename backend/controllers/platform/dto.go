@@ -96,6 +96,11 @@ type sessionInviteRequestDto struct {
 	TargetUserId string `json:"target_user_id" binding:"required"`
 }
 
+type sessionInviteCancelRequestDto struct {
+	SessionId    string `json:"session_id" binding:"required"`
+	TargetUserId string `json:"target_user_id" binding:"required"`
+}
+
 type sessionInviteWaitingRequestDto struct {
 	SessionId string `form:"session_id" binding:"required"`
 }
@@ -126,6 +131,10 @@ type sessionInviteConfirmRequestDto struct {
 
 type sessionJoinRequestDto struct {
 	SessionCode string `json:"session_code" binding:"required"`
+}
+
+type sessionJoinCancelRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
 }
 
 type sessionJoinRequestsRequestDto struct {
@@ -344,6 +353,10 @@ type friendsRequestRequestDto struct {
 
 type friendsAcceptRequestDto struct {
 	RequestedUserId string `json:"requested_user_id" binding:"required"`
+}
+
+type friendsRequestCancelRequestDto struct {
+	TargetUserId string `json:"target_user_id" binding:"required"`
 }
 
 type friendsRejectRequestDto struct {

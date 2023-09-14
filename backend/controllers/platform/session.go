@@ -3,8 +3,6 @@ package platform
 import (
 	"database/sql"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
 	"sort"
 	"strings"
@@ -15,6 +13,9 @@ import (
 	"travel-ai/service/platform"
 	"travel-ai/service/platform/database_io"
 	"travel-ai/third_party/pexels"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func Sessions(c *gin.Context) {
@@ -225,6 +226,7 @@ func DeleteSession(c *gin.Context) {
 		}
 		log.Error(err)
 		c.AbortWithStatus(http.StatusForbidden)
+		return
 	}
 
 	if uid != creatorUid {
@@ -476,6 +478,77 @@ func InviteSession(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+func CancelSessionInvite(c *gin.Context) {
+	uid := c.GetString("uid")
+
+	var body sessionInviteCancelRequestDto
+	if err := c.ShouldBindJSON(&body); err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	// check if user has permission to cancel invitation
+	var creatorUid string
+	if err := database.DB.Get(
+		&creatorUid,
+		"SELECT creator_uid FROM sessions WHERE sid = ?",
+		body.SessionId,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid session id")
+			return
+		}
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if uid != creatorUid {
+		util2.AbortWithStrJson(c, http.StatusForbidden, "permission denied: you are not owner of this session")
+		return
+	}
+	
+	// check if user is invited
+	yes, err := platform.IsWaitingForSessionInvitation(body.TargetUserId, body.SessionId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if !yes {
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "permission denied: target user is not invited to this session")
+		return
+	}
+
+	tx, err := database.DB.BeginTx(c, nil)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// delete invitation
+	if err := database_io.DeleteSessionInvitationTx(tx, database.SessionInvitationEntity{
+		SessionId: body.SessionId,
+		UserId:    body.TargetUserId,
+	}); err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// commit
+	if err := tx.Commit(); err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}	
+
+	c.Status(http.StatusOK)
+}
+
 // SessionInviteWaitings 특정 세션이 대기 중인 유저 초대 목록
 func SessionInviteWaitings(c *gin.Context) {
 	uid := c.GetString("uid")
@@ -705,6 +778,55 @@ func JoinSession(c *gin.Context) {
 		}
 	}
 
+	if err := tx.Commit(); err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func CancelSessionJoin(c *gin.Context) {
+	uid := c.GetString("uid")
+	var body sessionJoinCancelRequestDto
+	if err := c.ShouldBindJSON(&body); err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	// check if user has permission to cancel request
+	yes, err := platform.IsWaitingForSessionJoinRequestConfirm(uid, body.SessionId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	if !yes {
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "permission denied: you are not waiting for confirmation")
+		return
+	}
+
+	tx, err := database.DB.BeginTx(c, nil)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// delete request
+	if err := database_io.DeleteSessionJoinRequestTx(tx, database.SessionJoinRequestEntity{
+		SessionId:   body.SessionId,
+		UserId:      uid,
+		RequestedAt: time.Now(),
+	}); err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// commit
 	if err := tx.Commit(); err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -983,11 +1105,13 @@ func UseSessionRouter(g *gin.RouterGroup) {
 	rg.GET("/currencies", Currencies)
 
 	rg.POST("/invite", InviteSession)
+	rg.POST("/invite-cancel", CancelSessionInvite)
 	rg.GET("/invite-waitings", SessionInviteWaitings) // session waits
 	rg.GET("/invite-requests", SessionInviteRequests) // user waits
 	rg.POST("/invite-confirm", ConfirmSessionInvite)
 
 	rg.POST("/join", JoinSession)
+	rg.POST("/join-cancel", CancelSessionJoin)
 	rg.GET("/join-requests", SessionJoinRequests) // session waits
 	rg.GET("/join-waitings", SessionJoinWaitings) // user waits
 	rg.POST("/join-confirm", ConfirmSessionJoin)

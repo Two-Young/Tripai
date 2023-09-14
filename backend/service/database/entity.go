@@ -18,6 +18,7 @@ type FriendEntity struct {
 	Accepted        bool       `db:"accepted" json:"accepted"`
 	RequestedAt     time.Time  `db:"requested_at" json:"requested_at"`
 	ConfirmedAt     *time.Time `db:"confirmed_at" json:"confirmed_at"`
+	AllowNicknameSearch bool    `db:"allow_nickname_search" json:"allow_nickname_search"`
 }
 
 type SessionEntity struct {

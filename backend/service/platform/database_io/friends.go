@@ -2,19 +2,14 @@ package database_io
 
 import (
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	"time"
 	"travel-ai/service/database"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type FriendInfoEntity struct {
-	UserId       string  `db:"uid" json:"user_id"`
-	Id           *string `db:"id" json:"id"`
-	UserCode     string  `db:"user_code" json:"user_code"`
-	Username     *string `db:"username" json:"username"`
-	ProfileImage *string `db:"profile_image" json:"profile_image"`
-	Platform     *string `db:"platform" json:"platform"`
-
+	database.UserEntity
 	ConfirmedAt *time.Time `db:"confirmed_at" json:"confirmed_at"`
 }
 
@@ -42,7 +37,7 @@ type FriendRequestEntity struct {
 	RequestedAt time.Time `db:"requested_at" json:"requested_at"`
 }
 
-func GetSentFriendsRequestWaitings(uid string) ([]*FriendRequestEntity, error) {
+func GetReceivedFriendsRequestWaitings(uid string) ([]*FriendRequestEntity, error) {
 	var friends []*FriendRequestEntity
 	if err := database.DB.Select(&friends, `
 		SELECT u.*, uf.requested_at
@@ -56,7 +51,7 @@ func GetSentFriendsRequestWaitings(uid string) ([]*FriendRequestEntity, error) {
 	return friends, nil
 }
 
-func GetReceivedFriendsRequestWaitings(uid string) ([]*FriendRequestEntity, error) {
+func GetSentFriendsRequestWaitings(uid string) ([]*FriendRequestEntity, error) {
 	var friends []*FriendRequestEntity
 	if err := database.DB.Select(&friends, `
 		SELECT u.*, uf.requested_at
@@ -71,12 +66,7 @@ func GetReceivedFriendsRequestWaitings(uid string) ([]*FriendRequestEntity, erro
 }
 
 type FriendRelationInfoEntity struct {
-	UserId       *string `db:"uid" json:"user_id"`
-	Id           *string `db:"id" json:"id"`
-	UserCode     *string `db:"user_code" json:"user_code"`
-	Username     *string `db:"username" json:"username"`
-	ProfileImage *string `db:"profile_image" json:"profile_image"`
-	Platform     *string `db:"platform" json:"platform"`
+	database.UserEntity
 
 	RequestedUserId string     `db:"requested_uid" json:"requested_user_id"`
 	Accepted        bool       `db:"accepted" json:"accepted"`
@@ -87,15 +77,15 @@ type FriendRelationInfoEntity struct {
 func GetSingleFriendRelationInfo(uid string, targetUid string) ([]*FriendRelationInfoEntity, error) {
 	var friends []*FriendRelationInfoEntity
 	if err := database.DB.Select(&friends, `
-		SELECT u.*, uf.confirmed_at, uf.requested_uid
+		SELECT u.*, uf.requested_uid, uf.accepted, uf.requested_at, uf.confirmed_at
 		FROM users_friends uf
 		JOIN users u ON uf.requested_uid = u.uid
 		WHERE uf.uid = ? AND uf.requested_uid = ?
 		UNION
-		SELECT u.*, uf.confirmed_at, uf.requested_uid
+		SELECT u.*, uf.requested_uid, uf.accepted, uf.requested_at, uf.confirmed_at
 		FROM users_friends uf
 		JOIN users u ON uf.uid = u.uid
-		WHERE uf.requested_uid = ? AND uf.uid = ?;`,
+		WHERE uf.uid = ? AND uf.requested_uid = ?;`,
 		uid, targetUid, targetUid, uid,
 	); err != nil {
 		return nil, err

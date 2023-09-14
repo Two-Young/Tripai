@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
 	"os"
 	"strings"
 	"travel-ai/controllers"
@@ -15,16 +14,18 @@ import (
 	"travel-ai/third_party/google_cloud/places"
 	"travel-ai/third_party/open_ai"
 	"travel-ai/third_party/pexels"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	fmt.Println(`
-████████╗██████╗ ██╗██████╗ ███████╗████████╗
-╚══██╔══╝██╔══██╗██║██╔══██╗██╔════╝╚══██╔══╝
-   ██║   ██████╔╝██║██████╔╝█████╗     ██║   
-   ██║   ██╔══██╗██║██╔═══╝ ██╔══╝     ██║   
-   ██║   ██║  ██║██║██║     ███████╗   ██║   
-   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝     ╚══════╝   ╚═╝   
+	████████╗██████╗ ██╗██████╗  █████╗ ██╗
+	╚══██╔══╝██╔══██╗██║██╔══██╗██╔══██╗██║
+	   ██║   ██████╔╝██║██████╔╝███████║██║
+	   ██║   ██╔══██╗██║██╔═══╝ ██╔══██║██║
+	   ██║   ██║  ██║██║██║     ██║  ██║██║
+	   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝  ╚═╝╚═╝
 	`)
 	log.Info("Tripet Server is now starting...")
 	log.Info("Version: ", platform2.VERSION)
