@@ -1,26 +1,27 @@
-import {FlatList, StyleSheet, Text, View, Image, Alert} from 'react-native';
+import {FlatList, StyleSheet, Text, View, Alert} from 'react-native';
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
-import {Header, Icon} from '@rneui/themed';
-import {Button, IconButton, Portal, Snackbar, Surface} from 'react-native-paper';
-import defaultStyle from '../styles/styles';
+import {IconButton, Portal, Snackbar} from 'react-native-paper';
 import {deleteSession, getCurrencies, getSessions, locateCountries} from '../services/api';
 import {useRecoilValue, useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import userAtom from '../recoil/user/user';
 import colors from '../theme/colors';
+import SafeArea from '../component/molecules/SafeArea';
 import countriesAtom from '../recoil/countries/countries';
 import currenciesAtom from '../recoil/currencies/currencies';
-import MenuDrawer from '../component/organisms/MenuDrawer';
-import _ from 'lodash';
+import {STYLES} from '../styles/Stylesheets';
+import CustomHeader from '../component/molecules/CustomHeader';
+import TravelItem from '../component/molecules/TravelItem';
+import {Fonts} from '../theme';
+import LinearGradient from 'react-native-linear-gradient';
 
 const MainScreen = () => {
   /* states */
   const [sessions, setSessions] = React.useState([]); // 세션 목록
   const [refreshing, setRefreshing] = React.useState(false); // refresh 여부
   const [snackbarVisible, setSnackbarVisible] = React.useState(false); // snackbar visible 여부
-  const [menuVisible, setMenuVisible] = React.useState(false); // menu visible 여부
+  // const [menuVisible, setMenuVisible] = React.useState(false); // menu visible 여부
 
   const setCountries = useSetRecoilState(countriesAtom);
   const setCurrencies = useSetRecoilState(currenciesAtom);
@@ -105,9 +106,9 @@ const MainScreen = () => {
     }
   };
 
-  const openMenu = () => {
-    setMenuVisible(true);
-  };
+  // const openMenu = () => {
+  //   setMenuVisible(true);
+  // };
 
   /* effects */
 
@@ -129,114 +130,53 @@ const MainScreen = () => {
   }, [route.params?.refresh]);
 
   return (
-    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-      <Header
-        backgroundColor={colors.primary}
-        barStyle="light-content"
-        centerComponent={{text: 'WELCOME', style: defaultStyle.heading}}
-        rightComponent={<Icon onPress={openMenu} name="menu" color={colors.white} />}
-      />
-      <View style={styles.container}>
-        <Text>{JSON.stringify(user)}</Text>
-        <FlatList
-          contentContainerStyle={{paddingBottom: 100}}
-          showsVerticalScrollIndicator={false}
-          data={sessions}
-          ListHeaderComponent={
-            <View style={styles.textSection}>
-              <Text style={styles.textSectionHeader}>Hello, {userName}</Text>
-              <Text style={styles.textSectionDescription}>What travel do you want to manage?</Text>
-            </View>
-          }
-          renderItem={({item}) => (
-            <TravelItem
-              travel={item}
-              onPress={() => onPressSession(item)}
-              onPressDelete={() => onPressDeleteSession(item)}
-            />
-          )}
-          ItemSeparatorComponent={renderSeparator}
-          keyExtractor={item => item.session_id}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-        />
-        <Button
-          style={styles.createTravelBtn}
-          contentStyle={styles.createTravelBtnContent}
-          mode="contained"
-          onPress={onPressCreateNewTravel}>
-          Create New Travel
-        </Button>
-        <Portal>
-          <Snackbar
-            visible={snackbarVisible}
-            onDismiss={() => setSnackbarVisible(false)}
-            action={{
-              label: 'Close',
-            }}>
-            Delete Success!
-          </Snackbar>
-        </Portal>
-        <MenuDrawer visible={menuVisible} setVisible={setMenuVisible} />
-      </View>
-    </SafeAreaView>
-  );
-};
-
-const TravelItem = props => {
-  const {onPress, travel, onPressDelete} = props;
-
-  const {name, start_at, end_at, thumbnail_url} = React.useMemo(() => {
-    const {name, start_at, end_at, thumbnail_url} = travel;
-    return {
-      name,
-      start_at,
-      end_at,
-      thumbnail_url,
-    };
-  }, [travel]);
-
-  return (
-    <Surface style={styles.session}>
-      <IconButton
-        style={styles.sessionDeleteButton}
-        icon="close"
-        iconColor="#3C3C43"
-        containerColor="#F9F9F9"
-        mode="contained"
-        onPress={onPressDelete}
-      />
-      <Image source={{uri: thumbnail_url}} style={styles.sessionImage} />
-      <View style={styles.sessionContent}>
-        <View style={styles.upperContent}>
-          <View style={styles.sessionInfo}>
-            <Text style={styles.sessionName} numberOfLines={2}>
-              {name}
-            </Text>
-            <Text
-              style={styles.sessionDescription}
-              numberOfLines={2}>{`${start_at} ~ ${end_at}`}</Text>
+    <SafeArea bottom={{inactive: true}}>
+      <CustomHeader title={'WELCOME'} leftComponent={<View />} />
+      <FlatList
+        contentContainerStyle={[STYLES.PADDING_BOTTOM(10)]}
+        showsVerticalScrollIndicator={false}
+        data={sessions}
+        ListHeaderComponent={
+          <View style={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_VERTICAL(10)]}>
+            <Text style={[STYLES.MARGIN_TOP(3), styles.textSectionHeader]}>Hello, {userName}</Text>
+            <Text style={styles.textSectionDescription}>What travel do you want to manage?</Text>
           </View>
-          <Button style={styles.sessionOpenBtn} mode="contained" onPress={onPress}>
-            Open
-          </Button>
-        </View>
-        <View style={styles.lowerContent}>
-          <Button
-            compact
-            icon="chevron-right"
-            textColor="#3C3C43"
-            contentStyle={styles.moreInfoBtn}>
-            More Info
-          </Button>
-        </View>
-      </View>
-    </Surface>
+        }
+        renderItem={({item}) => (
+          <TravelItem
+            travel={item}
+            onPress={() => onPressSession(item)}
+            onPressDelete={() => onPressDeleteSession(item)}
+          />
+        )}
+        keyExtractor={item => item.session_id}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+      />
+      <LinearGradient
+        colors={['#ffffff00', '#ffffff']}
+        useAngle={true}
+        angle={180}
+        style={[styles.bottomGradient]}>
+        <IconButton
+          icon="plus-circle"
+          iconColor={colors.primary}
+          size={40}
+          onPress={onPressCreateNewTravel}
+        />
+      </LinearGradient>
+      <Portal>
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => setSnackbarVisible(false)}
+          action={{
+            label: 'Close',
+          }}>
+          Delete Success!
+        </Snackbar>
+      </Portal>
+    </SafeArea>
   );
-};
-
-const renderSeparator = () => {
-  return <View style={styles.separator} />;
 };
 
 export default MainScreen;
@@ -257,72 +197,23 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 30,
   },
-  textSection: {
-    paddingHorizontal: 11,
-    marginBottom: 23,
-  },
   textSectionHeader: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    marginTop: 13,
+    ...Fonts.Bold(24),
     color: colors.black,
     marginBottom: 5,
   },
   textSectionDescription: {
-    fontSize: 15,
+    ...Fonts.Light(15),
     color: '#808080',
   },
-  session: {
-    width: '100%',
-    aspectRatio: 1,
-    borderRadius: 50,
-  },
-  sessionDeleteButton: {
+  bottomGradient: {
     position: 'absolute',
-    top: 24,
-    right: 24,
-    zIndex: 1,
-  },
-  sessionImage: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
     width: '100%',
-    height: '55%',
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-  },
-  sessionContent: {
-    flex: 1,
-    padding: 24,
-  },
-  upperContent: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  lowerContent: {
-    alignItems: 'flex-end',
-  },
-  sessionInfo: {
-    flex: 1,
-    marginRight: 24,
-  },
-  sessionName: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: colors.black,
-    marginBottom: 5,
-  },
-  sessionDescription: {
-    fontSize: 12,
-    color: colors.black,
-  },
-  sessionOpenBtn: {
-    width: 100,
-    borderRadius: 30,
-    height: 50,
-    justifyContent: 'center',
-  },
-  separator: {
-    height: 18,
-    backgroundColor: 'transparent',
+    height: 80,
+    bottom: 0,
   },
   moreInfoBtn: {
     width: 100,

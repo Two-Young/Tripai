@@ -1,3 +1,4 @@
+import colors from './colors';
 import metrics from './metrics';
 
 const size = {
@@ -50,6 +51,51 @@ const type = {
   base: 'Roboto',
   bold: 'Roboto-Bold',
   emphasis: 'Helvetica-Oblique',
+};
+
+export const Light = (number, fontFamily = 'Poppins') => {
+  return {
+    fontFamily: `${fontFamily}-Light`,
+    ...(number > 0 && {fontSize: number}),
+    color: colors.black,
+    // ...(number > 0 && {lineHeight: number}),
+  };
+};
+
+export const Regular = (number, fontFamily = 'Poppins') => {
+  return {
+    fontFamily: `${fontFamily}-Regular`,
+    ...(number > 0 && {fontSize: number}),
+    color: colors.black,
+    // ...(number > 0 && {lineHeight: number}),
+  };
+};
+
+export const Medium = (number, fontFamily = 'Poppins') => {
+  return {
+    fontFamily: `${fontFamily}-Medium`,
+    ...(number > 0 && {fontSize: number}),
+    color: colors.black,
+    // ...(number > 0 && {lineHeight: number}),
+  };
+};
+
+export const Bold = (number, fontFamily = 'Poppins') => {
+  return {
+    fontFamily: `${fontFamily}-Bold`,
+    ...(number > 0 && {fontSize: number}),
+    color: colors.black,
+    // ...(number > 0 && {lineHeight: number}),
+  };
+};
+
+export const SemiBold = (number, fontFamily = 'Poppins') => {
+  return {
+    fontFamily: `${fontFamily}-SemiBold`,
+    ...(number > 0 && {fontSize: number}),
+    color: colors.black,
+    // ...(number > 0 && {lineHeight: number}),
+  };
 };
 
 export default {size, weight, type};

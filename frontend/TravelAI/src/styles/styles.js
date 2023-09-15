@@ -8,6 +8,7 @@ const defaultStyle = StyleSheet.create({
     backgroundColor: colors.white,
   },
   heading: {
+    marginTop: -14,
     color: colors.white,
     fontSize: 24,
     fontWeight: 'bold',

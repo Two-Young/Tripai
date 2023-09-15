@@ -1,6 +1,6 @@
 import React from 'react';
 import {createStackNavigator, TransitionPresets} from '@react-navigation/stack';
-import SignInScreen from '../screens/SignInScreen';
+import SignInScreen from '../screens/SignInScreen.js';
 import TabNavigator from './TabNavigator';
 import AddPlaceScreen from '../screens/AddPlaceScreen';
 import MainScreen from '../screens/MainScreen';

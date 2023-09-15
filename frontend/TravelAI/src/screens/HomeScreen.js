@@ -11,6 +11,8 @@ import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {FAB} from 'react-native-paper';
 import _ from 'lodash';
+import SafeArea from '../component/molecules/SafeArea';
+import CustomHeader from '../component/molecules/CustomHeader';
 
 const HomeScreen = () => {
   // hooks
@@ -65,17 +67,9 @@ const HomeScreen = () => {
   }, [route.params?.place, currentSessionID]);
 
   return (
-    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
+    <SafeArea>
+      <CustomHeader title={'HOME'} />
       <View style={defaultStyle.container}>
-        <Header
-          backgroundColor="#fff"
-          barStyle="dark-content"
-          rightComponent={{
-            icon: 'menu',
-            color: colors.black,
-          }}
-          centerComponent={{text: 'Home', style: defaultStyle.heading}}
-        />
         <Text>Invite</Text>
         <FlatList
           data={places}
@@ -87,7 +81,7 @@ const HomeScreen = () => {
         />
         <FAB style={styles.fab} icon="plus" color="#fff" onPress={onPressAddPlace} />
       </View>
-    </SafeAreaView>
+    </SafeArea>
   );
 };
 
