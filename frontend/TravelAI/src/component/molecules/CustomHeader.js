@@ -32,7 +32,7 @@ const CustomHeader = ({backgroundColor, leftComponent, title, rightComponent}) =
             <IconButton
               icon={'arrow-left'}
               iconColor="white"
-              onPress={navigation.goBack()}
+              onPress={() => {}}
               style={styles.iconButton}
             />
           )}

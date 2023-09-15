@@ -1,25 +1,20 @@
 import {StyleSheet, Text, View} from 'react-native';
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
-import {Header} from '@rneui/themed';
+import SafeArea from '../component/molecules/SafeArea';
+import CustomHeader from '../component/molecules/CustomHeader';
+import defaultStyle from '../styles/styles';
 
 const ChatScreen = () => {
   const navigation = useNavigation();
 
   return (
-    <SafeAreaView edges={['bottom']}>
-      <Header
-        leftComponent={{
-          icon: 'menu',
-          onPress: () => navigation.openDrawer(),
-        }}
-        centerComponent={{text: 'Chat', style: {fontSize: 20}}}
-      />
-      <View style={styles.container}>
-        <Text>ChatScreen</Text>
+    <SafeArea>
+      <CustomHeader title={'AI CHAT'} />
+      <View style={defaultStyle.container}>
+        <Text>CHAT SCREEN</Text>
       </View>
-    </SafeAreaView>
+    </SafeArea>
   );
 };
 

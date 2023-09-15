@@ -1,6 +1,5 @@
 import {StyleSheet, Text, View, FlatList, Pressable} from 'react-native';
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
 import {Header} from '@rneui/themed';
 import colors from '../theme/colors';
@@ -9,6 +8,8 @@ import {useNavigation} from '@react-navigation/native';
 import {useRecoilValue} from 'recoil';
 import {getReceipts, getSessionCurrencies} from '../services/api';
 import sessionAtom from '../recoil/session/session';
+import SafeArea from '../component/molecules/SafeArea';
+import CustomHeader from '../component/molecules/CustomHeader';
 
 const BudgetScreen = () => {
   // hooks
@@ -74,7 +75,8 @@ const BudgetScreen = () => {
   }, [currentSessionID]);
 
   return (
-    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
+    <SafeArea>
+      <CustomHeader title={'BUDGET'} />
       <View style={defaultStyle.container}>
         <Header
           backgroundColor="#fff"
@@ -122,7 +124,7 @@ const BudgetScreen = () => {
           fabStyle={styles.fab}
         />
       </View>
-    </SafeAreaView>
+    </SafeArea>
   );
 };
 

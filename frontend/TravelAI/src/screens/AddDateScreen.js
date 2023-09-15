@@ -110,6 +110,8 @@ const AddDateScreen = () => {
     setMarked(temp_marked);
   }, [firstDate, lastDate]);
 
+  reactotron.log(marked);
+
   // rendering
   return (
     <SafeAreaView edges={['bottom']} style={defaultStyle.container}>

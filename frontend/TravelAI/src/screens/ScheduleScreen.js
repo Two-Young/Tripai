@@ -1,16 +1,20 @@
 import {Dimensions, FlatList, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import MapView, {Marker, PROVIDER_GOOGLE, Polyline} from 'react-native-maps';
 import {useNavigation, useRoute, CommonActions} from '@react-navigation/native';
-import defaultStyle from './../styles/styles';
-import {Header} from '@rneui/themed';
 import {getSchedules, getSessions, locateDirection} from '../services/api';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {Button, Card, IconButton} from 'react-native-paper';
 import colors from '../theme/colors';
-import {DateTime} from 'luxon';
+import SafeArea from '../component/molecules/SafeArea';
+import CustomHeader from '../component/molecules/CustomHeader';
+import {CalendarProvider, WeekCalendar} from 'react-native-calendars';
+import reactotron from 'reactotron-react-native';
+import dayjs from 'dayjs';
+import {STYLES} from '../styles/Stylesheets';
+import {Fonts} from '../theme';
+import PlaceCard from '../component/atoms/PlaceCard';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -23,7 +27,8 @@ const DayButton = props => {
   return (
     <Button
       style={styles.dayBtn}
-      contentStyle={styles.dayBtnContent}
+      // contentStyle={styles.dayBtnContent}
+      // labelStyle={styles.dayBtnContent}
       buttonColor={selected ? colors.primary : colors.white}
       textColor={selected ? colors.white : colors.black}
       mode="elevated"
@@ -33,46 +38,46 @@ const DayButton = props => {
   );
 };
 
-const RightContent = props => <IconButton icon="chevron-right" iconColor="#000" />;
+// const RightContent = props => <IconButton icon="chevron-right" iconColor="#000" />;
 
-const PlaceCard = ({item, onPress}) => {
-  const {start_at} = item;
+// const PlaceCard = ({item, onPress}) => {
+//   const {start_at} = item;
 
-  const time = React.useMemo(() => {
-    const date = new Date(start_at);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    return `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}`;
-  }, [start_at]);
+//   const time = React.useMemo(() => {
+//     const date = new Date(start_at);
+//     const hours = date.getHours();
+//     const minutes = date.getMinutes();
+//     return `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}`;
+//   }, [start_at]);
 
-  const subTitle = React.useMemo(() => {
-    const {address, memo} = item;
-    if (address.length > 0 && memo.length > 0) {
-      return `${address} | ${memo}`;
-    } else if (address.length > 0) {
-      return address;
-    } else if (memo.length > 0) {
-      return memo;
-    } else {
-      return '';
-    }
-  }, [item]);
+//   const subTitle = React.useMemo(() => {
+//     const {address, memo} = item;
+//     if (address?.length > 0 && memo?.length > 0) {
+//       return `${address} | ${memo}`;
+//     } else if (address?.length > 0) {
+//       return address;
+//     } else if (memo?.length > 0) {
+//       return memo;
+//     } else {
+//       return '';
+//     }
+//   }, [item]);
 
-  return (
-    <View style={styles.item}>
-      <View style={styles.circle} />
-      <Text style={styles.itemTimeText}>{time}</Text>
-      <Card style={{flex: 1}} right={RightContent} onPress={() => onPress(item)}>
-        <Card.Title
-          title={item?.name}
-          subtitle={subTitle}
-          subtitleStyle={{}}
-          right={RightContent}
-        />
-      </Card>
-    </View>
-  );
-};
+//   return (
+//     <View style={styles.item}>
+//       <View style={styles.circle} />
+//       <Text style={styles.itemTimeText}>{time}</Text>
+//       <Card style={{flex: 1}} right={RightContent} onPress={() => onPress(item)}>
+//         <Card.Title
+//           title={item?.name}
+//           subtitle={subTitle}
+//           subtitleStyle={{}}
+//           right={RightContent}
+//         />
+//       </Card>
+//     </View>
+//   );
+// };
 
 const ScheduleScreen = () => {
   // hooks
@@ -81,12 +86,16 @@ const ScheduleScreen = () => {
   const currentSession = useRecoilValue(sessionAtom);
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
+  reactotron.log({currentSession});
+
   // states
   const [days, setDays] = React.useState([]);
   const [currentIndex, setCurrentIndex] = React.useState(-1);
   const [schedules, setSchedules] = React.useState([]);
   const [coords, setCoords] = React.useState([]); // [Place
   const [refreshing, setRefreshing] = React.useState(false);
+
+  reactotron.log(days);
 
   // memo
   const locations = React.useMemo(
@@ -227,98 +236,122 @@ const ScheduleScreen = () => {
     }
   }, [route?.params?.refresh]);
 
-  return (
-    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-      <Header
-        backgroundColor="#fff"
-        barStyle="dark-content"
-        rightComponent={{
-          icon: 'menu',
-          color: colors.black,
-        }}
-        centerComponent={{text: 'Schedule', style: defaultStyle.heading}}
-      />
-      <View style={defaultStyle.container}>
-        <View style={styles.container}>
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            provider={PROVIDER_GOOGLE}
-            initialRegion={{
-              latitude: 37.5779,
-              longitude: 126.9768,
-              latitudeDelta: LATITUDE_DELTA,
-              longitudeDelta: LONGITUDE_DELTA,
-            }}>
-            {markers.map((marker, index) => (
-              <Marker
-                key={'marker-' + index}
-                coordinate={marker.coordinate ?? {latitude: 0, longitude: 0}}
-                title={marker.title}>
-                <View style={styles.marker}>
-                  <Text style={styles.markerText}>{index + 1}</Text>
-                </View>
-              </Marker>
-            ))}
-            {coords.length > 0 && (
-              <Polyline coordinates={coords} strokeWidth={4} strokeColor={colors.primary} />
-            )}
-          </MapView>
-        </View>
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.flatList}
-          contentContainerStyle={styles.dayFlatListContent}
-          data={days}
-          renderItem={({item, index}) => (
-            <DayButton
-              day={index}
-              onPress={() => onPressDay(index + 1)}
-              selected={index === currentIndex - 1}
-            />
-          )}
-          ItemSeparatorComponent={<DaySeperator />}
-          keyExtractor={item => item.toString()}
-        />
-        <View style={{paddingHorizontal: 10}}>
-          {/*<Text style={styles.dayTitle}>Day {currentIndex}</Text>*/}
-          <Text />
-        </View>
-        <FlatList
-          style={{flex: 1}}
-          contentContainerStyle={{paddingHorizontal: 10}}
-          data={schedules}
-          // data={locations}
-          renderItem={({item}) => <PlaceCard item={item} onPress={onPressScheduleCard} />}
-          keyExtractor={item => item?.schedule_id?.toString()}
-          ListFooterComponent={
-            <Button
-              mode="elevated"
-              style={styles.addScheduleBtn}
-              textColor={colors.black}
-              onPress={handleAddingSchedule}>
-              Add Schedule
-            </Button>
-          }
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-        />
-      </View>
-    </SafeAreaView>
-  );
-};
+  reactotron.log({schedules});
 
-const DaySeperator = () => {
-  return <View style={styles.daySeperator} />;
+  return (
+    <SafeArea>
+      <CustomHeader title={'SCHEDULE'} />
+      <FlatList
+        ListHeaderComponent={
+          <>
+            <View
+              style={[
+                STYLES.WIDTH_100,
+                STYLES.MARGIN_TOP(4),
+                STYLES.HEIGHT(48),
+                {backgroundColor: 'green'},
+              ]}>
+              <CalendarProvider date={dayjs().format('YYYY-MM-DD')}>
+                <WeekCalendar
+                  testID={'containder'}
+                  hideDayNames={true}
+                  firstDay={1}
+                  // allowShadow={false}
+                  // markedDates={{
+                  //   [currentSession.start_at]: {
+                  //     startingDay: true,
+                  //     endingDay: false,
+                  //     color: colors.primary,
+                  //     textColor: colors.white,
+                  //   },
+                  //   [currentSession.end_at]: {
+                  //     endingDay: true,
+                  //     color: colors.primary,
+                  //     textColor: colors.white,
+                  //   },
+                  // }}
+                />
+              </CalendarProvider>
+            </View>
+            <View style={[STYLES.WIDTH_100, STYLES.HEIGHT(160), {backgroundColor: 'red'}]}>
+              <MapView
+                ref={mapRef}
+                style={styles.map}
+                provider={PROVIDER_GOOGLE}
+                initialRegion={{
+                  latitude: 37.5779,
+                  longitude: 126.9768,
+                  latitudeDelta: LATITUDE_DELTA,
+                  longitudeDelta: LONGITUDE_DELTA,
+                }}>
+                {markers.map((marker, index) => (
+                  <Marker
+                    key={'marker-' + index}
+                    coordinate={marker.coordinate ?? {latitude: 0, longitude: 0}}
+                    title={marker.title}>
+                    <View style={styles.marker}>
+                      <Text style={styles.markerText}>{index + 1}</Text>
+                    </View>
+                  </Marker>
+                ))}
+                {coords.length > 0 && (
+                  <Polyline coordinates={coords} strokeWidth={4} strokeColor={colors.primary} />
+                )}
+              </MapView>
+            </View>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.flatList}
+              contentContainerStyle={styles.dayFlatListContent}
+              data={days}
+              renderItem={({item, index}) => (
+                <DayButton
+                  day={index}
+                  onPress={() => onPressDay(index + 1)}
+                  selected={index === currentIndex - 1}
+                />
+              )}
+              ItemSeparatorComponent={<View style={[STYLES.WIDTH(10)]} />}
+              keyExtractor={item => item.toString()}
+            />
+          </>
+        }
+        style={{flex: 1}}
+        // contentContainerStyle={{paddingHorizontal: 10}}
+        data={schedules}
+        // data={locations}
+        renderItem={({item}) => <PlaceCard item={item} onPress={onPressScheduleCard} />}
+        keyExtractor={item => item?.schedule_id?.toString()}
+        ListFooterComponent={
+          <Button
+            mode="elevated"
+            style={styles.addScheduleBtn}
+            textColor={colors.black}
+            onPress={handleAddingSchedule}>
+            Add Schedule
+          </Button>
+        }
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+      />
+    </SafeArea>
+  );
 };
 
 export default ScheduleScreen;
 
 const styles = StyleSheet.create({
-  dayBtn: {},
+  dayBtn: {
+    // paddingVertical: 6,
+    // paddingHorizontal: 16,
+  },
   dayBtnContent: {
-    fontSize: 11,
+    margin: 0,
+    padding: 0,
+    ...Fonts.SemiBold(11),
+    backgroundColor: 'red',
+    // borderRadius: 0,
   },
   container: {
     height: 300,

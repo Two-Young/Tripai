@@ -20,7 +20,7 @@ const SafeArea = ({top, bottom, children}) => {
     <>
       <SafeAreaView edges={['top']} style={styles.top}>
         <StatusBar
-          barStyle={top?.barStyle ?? 'dark-content'}
+          barStyle={top?.barStyle ?? 'light-content'}
           translucent={true}
           backgroundColor={'transparent'}
         />
