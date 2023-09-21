@@ -368,6 +368,48 @@ func Currencies(c *gin.Context) {
 	c.JSON(http.StatusOK, supportedCurrencies)
 }
 
+func SessionMembers(c *gin.Context) {
+	uid := c.GetString("uid")
+
+	var query sessionMembersRequestDto
+	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query")
+		return
+	}
+
+	// check if user has permission to see members
+	yes, err := platform.IsSessionMember(uid, query.SessionId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	if !yes {
+		util2.AbortWithStrJson(c, http.StatusForbidden, "permission denied: you are not member of this session")
+		return
+	}
+
+	members, err := database_io.GetSessionMembers(query.SessionId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	resp := make(sessionMembersResponseDto, 0)
+	for _, member := range members {
+		resp = append(resp, sessionMembersResponseItem{
+			UserId:       member.UserId,
+			Username:     *member.Username,
+			ProfileImage: *member.ProfileImage,
+			JoinedAt:    member.JoinedAt.UnixMilli(),
+		})
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
 func InviteSession(c *gin.Context) {
 	uid := c.GetString("uid")
 
@@ -666,7 +708,7 @@ func ConfirmSessionInvite(c *gin.Context) {
 		return
 	}
 
-	if body.Accept {
+	if *body.Accept {
 		// add user to session
 		if err := database_io.InsertUserToSessionTx(tx, database.UserSessionEntity{
 			SessionId: body.SessionId,
@@ -840,7 +882,7 @@ func CancelSessionJoin(c *gin.Context) {
 func SessionJoinRequests(c *gin.Context) {
 	uid := c.GetString("uid")
 	var query sessionJoinRequestsRequestDto
-	if err := c.ShouldBindJSON(&query); err != nil {
+	if err := c.ShouldBindQuery(&query); err != nil {
 		log.Error(err)
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query")
 		return
@@ -964,7 +1006,7 @@ func ConfirmSessionJoin(c *gin.Context) {
 		return
 	}
 
-	if body.Accept {
+	if *body.Accept {
 		// add user to session
 		if err := database_io.InsertUserToSessionTx(tx, database.UserSessionEntity{
 			SessionId: body.SessionId,
@@ -1070,6 +1112,26 @@ func LeaveSession(c *gin.Context) {
 		return
 	}
 
+	// get session members
+	members, err := database_io.GetSessionMembers(body.SessionId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// check if user is owner of session
+	yes, err = platform.IsSessionCreator(uid, body.SessionId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	if yes {
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "permission denied: you are owner of this session, so you must transfer ownership before leave")
+		return
+	}
+
 	tx, err := database.DB.BeginTx(c, nil)
 	if err != nil {
 		log.Error(err)
@@ -1088,6 +1150,11 @@ func LeaveSession(c *gin.Context) {
 		return
 	}
 
+	// TODO :: delete session if no member
+	if len(members) == 1 {
+		// delete session
+	}
+
 	if err := tx.Commit(); err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -1103,6 +1170,7 @@ func UseSessionRouter(g *gin.RouterGroup) {
 	rg.PUT("", CreateSession)
 	rg.DELETE("", DeleteSession)
 	rg.GET("/currencies", Currencies)
+	rg.GET("/members", SessionMembers)
 
 	rg.POST("/invite", InviteSession)
 	rg.POST("/invite-cancel", CancelSessionInvite)
