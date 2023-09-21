@@ -42,6 +42,11 @@ const MenuDrawer = props => {
     setUser(null);
   };
 
+  const navigateToMySessionRequest = () => {
+    onClose();
+    navigate('MyRequest');
+  };
+
   // effects
   React.useEffect(() => {
     if (user === null) {
@@ -71,6 +76,7 @@ const MenuDrawer = props => {
         <Drawer.Item label="Profile" onPress={navigateToProfile} icon="star" />
         <Drawer.Item label="Default Currency" onPress={navigateToDefaultCurrency} icon="star" />
         <Drawer.Item label="People" onPress={navigateToPeople} icon="star" />
+        <Drawer.Item label="My Request" onPress={navigateToMySessionRequest} icon="star" />
         <Drawer.Item label="Logout" onPress={logout} icon="star" />
       </Drawer.Section>
     </Modal>

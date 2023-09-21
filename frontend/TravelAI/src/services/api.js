@@ -11,7 +11,7 @@ export const API_URL_PROD = 'http://43.200.219.71:10375';
 export const API_URL_DEBUG = 'http://1.237.25.170:10375/';
 
 const api = axios.create({
-  baseURL: API_URL_PROD,
+  baseURL: API_URL_DEBUG,
   timeout: 10000,
 });
 
@@ -318,6 +318,19 @@ export const getSessionCurrencies = async session_id => {
   }
 };
 
+export const getSessionMembers = async session_id => {
+  try {
+    const response = await api.get('/platform/session/members', {
+      params: {
+        session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const inviteSession = async (session_id, target_user_id) => {
   try {
     const response = await api.post('/platform/session/invite', {
@@ -330,13 +343,34 @@ export const inviteSession = async (session_id, target_user_id) => {
   }
 };
 
-export const getSessionInvitationWaitingList = async session_id => {
+export const cancelInvitationForSession = async (session_id, target_user_id) => {
   try {
-    const response = await api.get('/platform/session/waiting', {
+    const response = await api.post('/platform/session/invite-cancel', {
+      session_id,
+      target_user_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSessionInvitationWaitings = async session_id => {
+  try {
+    const response = await api.get('/platform/session/invite-waitings', {
       params: {
         session_id,
       },
     });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSessionInvitationRequests = async () => {
+  try {
+    const response = await api.get('/platform/session/invite-requests');
     return response.data;
   } catch (error) {
     throw error;
@@ -359,6 +393,17 @@ export const joinSession = async session_code => {
   try {
     const response = await api.post('/platform/session/join', {
       session_code,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const cancelSessionJoinRequest = async session_id => {
+  try {
+    const response = await api.post('/platform/session/join-cancel', {
+      session_id,
     });
     return response.data;
   } catch (error) {
