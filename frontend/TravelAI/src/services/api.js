@@ -11,7 +11,7 @@ export const API_URL_PROD = 'http://43.200.219.71:10375';
 export const API_URL_DEBUG = 'http://1.237.25.170:10375/';
 
 const api = axios.create({
-  baseURL: API_URL_DEBUG,
+  baseURL: API_URL_PROD,
   timeout: 10000,
 });
 
@@ -33,9 +33,7 @@ export const AxiosInterceptor = () => {
 
   const setRefreshTokenHeader = token => {
     if (token) {
-      reactotron.log('before refresh token : ', api.defaults.headers.common['X-Refresh-Token']);
       api.defaults.headers.common['X-Refresh-Token'] = token;
-      reactotron.log('after refresh token : ', api.defaults.headers.common['X-Refresh-Token']);
     } else {
       delete api.defaults.headers.common['X-Refresh-Token'];
     }
