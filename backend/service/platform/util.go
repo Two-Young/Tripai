@@ -93,25 +93,19 @@ func IsSessionCreator(uid string, sessionId string) (bool, error) {
 }
 
 func IsSessionMember(uid string, sessionId string) (bool, error) {
-	_, err := database.DB.Exec("SELECT * FROM user_sessions WHERE uid = ? AND sid = ?;", uid, sessionId)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return false, nil
-		}
+	var exists bool
+	if err := database.DB.QueryRow("SELECT EXISTS(SELECT * FROM user_sessions WHERE uid = ? AND sid = ?);", uid, sessionId).Scan(&exists); err != nil {
 		return false, err
 	}
-	return true, nil
+	return exists, nil
 }
 
 func IsInvitedToSession(uid string, sessionId string) (bool, error) {
-	_, err := database.DB.Exec("SELECT * FROM session_invitations WHERE uid = ? AND sid = ?;", uid, sessionId)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil
-		}
+	var exists bool
+	if err := database.DB.QueryRow("SELECT EXISTS(SELECT * FROM session_invitations WHERE uid = ? AND sid = ?);", uid, sessionId).Scan(&exists); err != nil {
 		return false, err
 	}
-	return true, nil
+	return exists, nil
 }
 
 func CheckPermissionByReceiptId(uid string, receiptId string) (bool, error) {

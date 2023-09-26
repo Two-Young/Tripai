@@ -59,6 +59,32 @@ func InsertUserToSessionTx(tx *sql.Tx, entity database.UserSessionEntity) error 
 	return nil
 }
 
+// DeleteSession deletes session & sub entities recursively
+func DeleteSessionTx(tx *sql.Tx, sessionId string) error {
+	// delete session
+	if _, err := tx.Exec("DELETE FROM sessions WHERE sid = ?;", sessionId); err != nil {
+		return err
+	}
+	return nil
+}
+
+type SessionMemberEntity struct {
+	database.UserEntity
+	JoinedAt time.Time `db:"joined_at" json:"joined_at"`
+}
+
+func GetSessionMembers(sessionId string) ([]*SessionMemberEntity, error) {
+	var members []*SessionMemberEntity
+	if err := database.DB.Select(&members, `
+		SELECT u.*, us.joined_at FROM user_sessions us RIGHT JOIN users u on us.uid = u.uid WHERE us.sid = ?;`, sessionId); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return make([]*SessionMemberEntity, 0), nil
+		}
+		return nil, err
+	}
+	return members, nil
+}
+
 func DeleteUserFromSessionTx(tx *sql.Tx, entity database.UserSessionEntity) error {
 	if _, err := tx.Exec(
 		"DELETE FROM user_sessions WHERE sid = ? AND uid = ?;",
@@ -70,8 +96,8 @@ func DeleteUserFromSessionTx(tx *sql.Tx, entity database.UserSessionEntity) erro
 
 func InsertSessionInvitationTx(tx *sql.Tx, invitation database.SessionInvitationEntity) error {
 	if _, err := tx.Exec(
-		"INSERT INTO session_invitations(sid, uid) VALUES (?, ?);",
-		invitation.SessionId, invitation.UserId); err != nil {
+		"INSERT INTO session_invitations(sid, uid, invited_at) VALUES (?, ?, ?);",
+		invitation.SessionId, invitation.UserId, invitation.InvitedAt); err != nil {
 		return err
 	}
 	return nil

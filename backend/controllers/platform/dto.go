@@ -91,6 +91,19 @@ type sessionSupportedCurrenciesResponseItem struct {
 // key: country code
 type sessionSupportedCurrenciesResponseDto map[string][]sessionSupportedCurrenciesResponseItem
 
+type sessionMembersRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type sessionMembersResponseItem struct {
+	UserId       string `json:"user_id"`
+	Username     string `json:"username"`
+	ProfileImage string `json:"profile_image"`
+	JoinedAt     int64  `json:"joined_at"`
+}
+
+type sessionMembersResponseDto []sessionMembersResponseItem
+
 type sessionInviteRequestDto struct {
 	SessionId    string `json:"session_id" binding:"required"`
 	TargetUserId string `json:"target_user_id" binding:"required"`
@@ -126,7 +139,7 @@ type sessionInviteRequestsResponseDto []sessionInviteRequestsResponseItem
 
 type sessionInviteConfirmRequestDto struct {
 	SessionId string `json:"session_id" binding:"required"`
-	Accept    bool   `json:"accept" binding:"required"`
+	Accept    *bool   `json:"accept" binding:"required"`
 }
 
 type sessionJoinRequestDto struct {
@@ -163,7 +176,7 @@ type sessionJoinWaitingsResponseDto []sessionJoinWaitingsResponseItem
 type sessionJoinConfirmRequestDto struct {
 	SessionId string `json:"session_id" binding:"required"`
 	UserId    string `json:"user_id" binding:"required"`
-	Accept    bool   `json:"accept" binding:"required"`
+	Accept    *bool   `json:"accept" binding:"required"`
 }
 
 type sessionExpelRequestDto struct {
@@ -306,7 +319,7 @@ type receiptUploadRequestDto struct {
 }
 
 type receiptSelectedBoxInfo struct {
-	Custom bool    `json:"custom" binding:"required"`
+	Custom *bool    `json:"custom" binding:"required"`
 	BoxId  *string `json:"box_id" binding:"required"`
 	Text   string  `json:"text" binding:"required"`
 }
