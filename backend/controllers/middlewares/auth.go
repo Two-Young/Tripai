@@ -30,5 +30,6 @@ func AuthMiddleware(c *gin.Context) {
 	}
 
 	c.Set("uid", userId)
+	c.Request.Header.Set("uid", userId)
 	c.Next()
 }

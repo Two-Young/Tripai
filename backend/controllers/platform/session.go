@@ -2,6 +2,7 @@ package platform
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"sort"
@@ -25,7 +26,7 @@ func Sessions(c *gin.Context) {
 		"FROM sessions "+
 		"LEFT JOIN user_sessions us ON sessions.sid = us.sid "+
 		"WHERE us.uid = ?;", uid); err != nil {
-		if err != sql.ErrNoRows {
+		if !errors.Is(err, sql.ErrNoRows) {
 			log.Error(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
@@ -403,7 +404,7 @@ func SessionMembers(c *gin.Context) {
 			UserId:       member.UserId,
 			Username:     *member.Username,
 			ProfileImage: *member.ProfileImage,
-			JoinedAt:    member.JoinedAt.UnixMilli(),
+			JoinedAt:     member.JoinedAt.UnixMilli(),
 		})
 	}
 
@@ -550,7 +551,7 @@ func CancelSessionInvite(c *gin.Context) {
 		util2.AbortWithStrJson(c, http.StatusForbidden, "permission denied: you are not owner of this session")
 		return
 	}
-	
+
 	// check if user is invited
 	yes, err := platform.IsWaitingForSessionInvitation(body.TargetUserId, body.SessionId)
 	if err != nil {
@@ -586,7 +587,7 @@ func CancelSessionInvite(c *gin.Context) {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
-	}	
+	}
 
 	c.Status(http.StatusOK)
 }

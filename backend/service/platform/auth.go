@@ -59,6 +59,9 @@ func dissolveWithPlatformToken(rawToken string) (string, error) {
 func ExtractAuthToken(req *http.Request) (string, error) {
 	bearer := req.Header.Get("Authorization")
 	token := strings.Split(bearer, " ")
+	if len(bearer) == 0 {
+		return "", errors.New("token not found in header")
+	}
 	if len(token) != 2 {
 		return "", fmt.Errorf("invalid token: %s", bearer)
 	}
