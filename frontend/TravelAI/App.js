@@ -7,6 +7,7 @@ import {MD3LightTheme as DefaultTheme, PaperProvider} from 'react-native-paper';
 import {AxiosInterceptor} from './src/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors from './src/theme/colors';
+import {SocketManager} from './src/services/socket';
 
 const theme = {
   ...DefaultTheme,
@@ -33,6 +34,7 @@ const App = () => {
     <RecoilRoot>
       <PaperProvider theme={theme}>
         <AxiosInterceptor />
+        <SocketManager />
         <NavigationContainer ref={navigationRef}>
           <RootNavigator />
         </NavigationContainer>
