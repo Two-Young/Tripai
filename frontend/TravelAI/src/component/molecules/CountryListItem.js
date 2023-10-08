@@ -3,7 +3,6 @@ import {StyleSheet, View, Image} from 'react-native';
 import colors from '../../theme/colors';
 import {List} from 'react-native-paper';
 import Checkbox from '../atoms/Checkbox';
-import reactotron from 'reactotron-react-native';
 
 const CountryListItem = ({item, selected, setSelected}) => {
   const checked = React.useMemo(() => {

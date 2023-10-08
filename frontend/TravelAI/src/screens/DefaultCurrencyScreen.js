@@ -1,36 +1,39 @@
 import {StyleSheet, View, Keyboard, FlatList, Image, Pressable} from 'react-native';
 import React from 'react';
-import defaultStyle from '../styles/styles';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import colors from '../theme/colors';
-import {useNavigation} from '@react-navigation/native';
 import {useRecoilValue} from 'recoil';
 import currenciesAtom from '../recoil/currencies/currencies';
-import {Checkbox, Divider, IconButton, List, Searchbar} from 'react-native-paper';
+import {Divider, List, Searchbar} from 'react-native-paper';
+import Checkbox from '../component/atoms/Checkbox';
 import countriesAtom from '../recoil/countries/countries';
-import {Header} from '@rneui/themed';
+import {STYLES} from '../styles/Stylesheets';
+import CustomHeader from '../component/molecules/CustomHeader';
+import SafeArea from '../component/molecules/SafeArea';
+import reactotron from 'reactotron-react-native';
+import _ from 'lodash';
+
+const defaultCurrencyObject = {
+  currency_code: '',
+  currency_name: '',
+  country_code: '',
+  country_symbol: '',
+};
 
 const DefaultCurrencyScreen = () => {
   // hooks
-  const navigation = useNavigation();
   const currencies = useRecoilValue(currenciesAtom);
   const countries = useRecoilValue(countriesAtom);
 
   // states
-  const [defaultCurrency, setDefaultCurrency] = React.useState('USD');
+  const [defaultCurrency, setDefaultCurrency] = React.useState(defaultCurrencyObject);
   const [searchQuery, setSearchQuery] = React.useState('');
 
+  reactotron.log(defaultCurrency);
+
   return (
-    <Pressable style={styles.container} onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-        <Header
-          backgroundColor={colors.primary}
-          barStyle="light-content"
-          leftComponent={
-            <IconButton icon="arrow-left" iconColor={colors.white} onPress={navigation.goBack} />
-          }
-          centerComponent={{text: 'Choose the currency', style: defaultStyle.heading}}
-        />
+    <Pressable style={[STYLES.FLEX(1)]} onPress={Keyboard.dismiss} accessible={false}>
+      <SafeArea>
+        <CustomHeader title="Default Currency" rightComponent={<View />} />
         <View style={styles.container}>
           <View style={styles.searchbarWrapper}>
             <Searchbar
@@ -40,47 +43,48 @@ const DefaultCurrencyScreen = () => {
             />
           </View>
           <FlatList
-            data={currencies}
+            data={currencies.filter(
+              item =>
+                item.currency_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.currency_code.toLowerCase().includes(searchQuery.toLowerCase()),
+            )}
             renderItem={item => (
               <CurrencyListItem
                 item={{
                   ...item.item,
                   country: countries.find(i => i.country_code === item.item.country_code),
                 }}
-                checked={defaultCurrency === item.item.currency_code}
+                checked={_.isEqual(defaultCurrency, item.item)}
                 onChecked={() => {
-                  if (defaultCurrency === item.item.currency_code) {
-                    setDefaultCurrency('');
+                  if (_.isEqual(defaultCurrency, item.item)) {
+                    setDefaultCurrency(defaultCurrencyObject);
                   } else {
-                    setDefaultCurrency(item.item.currency_code);
+                    setDefaultCurrency(item.item);
                   }
                 }}
               />
             )}
           />
         </View>
-      </SafeAreaView>
+      </SafeArea>
     </Pressable>
   );
 };
 
 const CurrencyListItem = ({item, checked, onChecked}) => {
-  const rightComponent = () => <Checkbox checked={checked} onPress={onChecked} />;
+  const rightComponent = () => <Checkbox checked={checked} onPressCheckbox={onChecked} />;
 
   const leftComponent = () => <MemoizedFlags item={item.country} />;
 
   return (
-    <React.Fragment>
-      <List.Item
-        style={styles.currencyListItem}
-        titleStyle={styles.currencyListTitle}
-        title={item.currency_name}
-        description={item.currency_code}
-        left={leftComponent}
-        right={rightComponent}
-      />
-      <Divider />
-    </React.Fragment>
+    <List.Item
+      style={styles.currencyListItem}
+      titleStyle={styles.currencyListTitle}
+      title={item.currency_name}
+      description={item.currency_code}
+      left={leftComponent}
+      right={rightComponent}
+    />
   );
 };
 

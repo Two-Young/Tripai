@@ -3,18 +3,19 @@ import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {useRecoilState} from 'recoil';
-import {Header} from '@rneui/themed';
-import {IconButton, Searchbar, Button} from 'react-native-paper';
+import {IconButton, Searchbar} from 'react-native-paper';
 import countriesAtom from '../recoil/countries/countries';
 import {locateCountries} from '../services/api';
 import defaultStyle from '../styles/styles';
 import colors from '../theme/colors';
 import CountryListItem from '../component/molecules/CountryListItem';
-import {Light, Medium} from '../theme/fonts';
+import {Light} from '../theme/fonts';
 import {searchIcon} from '../assets/images';
 import {arrowRight} from '../assets/images';
 import MainButton from '../component/atoms/MainButton';
 import CustomHeader from '../component/molecules/CustomHeader';
+import SafeArea from './../component/molecules/SafeArea';
+import {STYLES} from '../styles/Stylesheets';
 
 const AddTravelScreen = () => {
   // state
@@ -48,41 +49,9 @@ const AddTravelScreen = () => {
   }, [countries]);
 
   return (
-    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-      {/* <Header
-        backgroundColor="#fff"
-        barStyle="dark-content"
-        leftComponent={
-          <IconButton
-            mode="contained"
-            icon="chevron-left"
-            iconColor="#000"
-            onPress={() => navigation.goBack()}
-          />
-        }
-        centerComponent={{
-          text: 'Choose the countries',
-          style: {
-            ...Medium(18),
-          },
-        }}
-      /> */}
-      <CustomHeader
-        backgroundColor={'white'}
-        leftComponent={
-          <IconButton
-            mode="contained"
-            icon="chevron-left"
-            iconColor="#000"
-            size={18}
-            onPress={() => navigation.goBack()}
-          />
-        }
-        title="Choose the countries"
-        titleColor="black"
-        rightComponent={<></>}
-      />
-      <View style={styles.container}>
+    <SafeArea>
+      <CustomHeader title="Choose the countries" rightComponent={<></>} />
+      <View style={[STYLES.FLEX(1), STYLES.PADDING_TOP(10)]}>
         <Text style={styles.description}>
           {'Choose all the countries you want to\nadd to your trip'}
         </Text>
@@ -120,7 +89,7 @@ const AddTravelScreen = () => {
           />
         )}
       </View>
-    </SafeAreaView>
+    </SafeArea>
   );
 };
 
@@ -151,7 +120,7 @@ const SelectedCountrySection = ({countries, selected, setSelected, onPress}) => 
   return (
     <View style={styles.selectedCountrySection}>
       <Text style={styles.selectedCountryText}>
-        {`Selected Countries : `}
+        {'Selected Countries : '}
         <Text style={{color: 'gray'}}>{selected.length}</Text>
       </Text>
       <FlatList
@@ -188,9 +157,6 @@ const RenderSeparator = () => (
 export default AddTravelScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   description: {
     ...Light(15),
     textAlign: 'center',

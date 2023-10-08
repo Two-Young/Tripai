@@ -11,9 +11,20 @@ const CustomHeader = ({backgroundColor, leftComponent, title, titleColor, rightC
   const navigation = useNavigation();
 
   const [menuVisible, setMenuVisible] = React.useState(false); // menu visible 여부
+  const [clickDisabled, setClickDisabled] = React.useState(false); // 뒤로가기 버튼 클릭 여부
 
   const openMenu = () => {
     setMenuVisible(true);
+  };
+
+  const handleGoBack = () => {
+    if (!clickDisabled) {
+      setClickDisabled(true);
+      navigation.goBack();
+      setTimeout(() => {
+        setClickDisabled(false);
+      }, 1000);
+    }
   };
 
   return (
@@ -32,7 +43,8 @@ const CustomHeader = ({backgroundColor, leftComponent, title, titleColor, rightC
             <IconButton
               icon={'arrow-left'}
               iconColor="white"
-              onPress={() => navigation.goBack()}
+              disabled={!clickDisabled}
+              onPress={handleGoBack}
               style={styles.iconButton}
             />
           )}

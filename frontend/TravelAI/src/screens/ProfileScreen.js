@@ -11,6 +11,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {STYLES} from '../styles/Stylesheets';
 import SafeArea from './../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
+import MainButton from '../component/atoms/MainButton';
+import LoadingModal from '../component/atoms/LoadingModal';
 
 const ProfileScreen = () => {
   // hooks
@@ -24,6 +26,8 @@ const ProfileScreen = () => {
   const [username, setUsername] = React.useState(userInfo?.username);
   const [nicknameSearch, setNicknameSearch] = React.useState(userInfo?.allow_nickname_search);
 
+  const [loading, setLoading] = React.useState(false);
+
   // memos (computed values)
   const isEditing = React.useMemo(() => {
     return (
@@ -31,7 +35,7 @@ const ProfileScreen = () => {
       username !== userInfo?.username ||
       nicknameSearch !== userInfo?.allow_nickname_search
     );
-  }, [profileImage, username, nicknameSearch]);
+  }, [profileImage, username, nicknameSearch, userInfo]);
 
   const isUsernameValid = React.useMemo(() => {
     return username.length > 0;
@@ -72,6 +76,8 @@ const ProfileScreen = () => {
 
   const onPressSave = async () => {
     try {
+      Keyboard.dismiss();
+      setLoading(true);
       const formData = new FormData();
       const imageUriParts = profileImage.split('.');
       const fileExtension = imageUriParts[imageUriParts.length - 1];
@@ -96,9 +102,12 @@ const ProfileScreen = () => {
       };
       setUser(newUser);
       await AsyncStorage.setItem('user', JSON.stringify(newUser));
-      navigation.goBack();
     } catch (err) {
       console.error(err);
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
     }
   };
 
@@ -110,6 +119,7 @@ const ProfileScreen = () => {
   return (
     <Pressable style={[STYLES.FLEX(1)]} onPress={Keyboard.dismiss} accessible={false}>
       <SafeArea>
+        <LoadingModal isVisible={loading} />
         <CustomHeader title="Profile" rightComponent={<View />} />
         <View style={[STYLES.FLEX(1), STYLES.PADDING_HORIZONTAL(20)]}>
           <View style={[STYLES.ALIGN_CENTER, STYLES.PADDING_VERTICAL(40)]}>
@@ -130,9 +140,7 @@ const ProfileScreen = () => {
           </View>
         </View>
         <View style={[STYLES.PADDING(10)]}>
-          <Button mode="contained" onPress={onPressSave} disabled={!isEditing || !isUsernameValid}>
-            Save
-          </Button>
+          <MainButton text="Save" onPress={onPressSave} disabled={!isEditing || !isUsernameValid} />
         </View>
       </SafeArea>
     </Pressable>

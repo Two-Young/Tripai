@@ -1,19 +1,16 @@
 import {StyleSheet, Text, View} from 'react-native';
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {CalendarList} from 'react-native-calendars';
-import defaultStyle from '../styles/styles';
 import {CommonActions, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {createSession} from '../services/api';
 import {useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import {Button, IconButton} from 'react-native-paper';
-import {Header} from '@rneui/themed';
 import colors from '../theme/colors';
-import reactotron from 'reactotron-react-native';
 import CustomHeader from '../component/molecules/CustomHeader';
 import SafeArea from '../component/molecules/SafeArea';
 import MainButton from '../component/atoms/MainButton';
+import {STYLES} from './../styles/Stylesheets';
+import LoadingModal from '../component/atoms/LoadingModal';
 
 const today = new Date();
 const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -58,14 +55,15 @@ const AddDateScreen = () => {
         source: target.key,
       });
       navigation.pop(2);
-      navigation.navigate('Tab');
       setCurrentSession({
         session_id: res,
       });
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
     }
   };
 
@@ -113,29 +111,15 @@ const AddDateScreen = () => {
     setMarked(temp_marked);
   }, [firstDate, lastDate]);
 
-  reactotron.log(marked);
-
   // rendering
   return (
-    <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
-      <CustomHeader
-        backgroundColor={'white'}
-        leftComponent={
-          <IconButton
-            mode="contained"
-            icon="chevron-left"
-            iconColor="#000"
-            size={18}
-            onPress={() => navigation.goBack()}
-          />
-        }
-        title="Choose the date"
-        titleColor="black"
-        rightComponent={<></>}
-      />
+    <SafeArea>
+      <LoadingModal isVisible={loading} />
+      <CustomHeader title="Choose the date" rightComponent={<></>} />
       <View style={styles.container}>
         <Text style={styles.description}>Choose the date you want to add to your travel.</Text>
         <CalendarList
+          initialNumToRender={5}
           pastScrollRange={0}
           futureScrollRange={12}
           scrollEnabled={true}
@@ -147,11 +131,7 @@ const AddDateScreen = () => {
         />
       </View>
       <View style={{padding: 10}}>
-        <MainButton
-          text={loading ? 'Creating...' : 'Create'}
-          disabled={!firstDate && !lastDate}
-          onPress={onPressCreate}
-        />
+        <MainButton text={'Create'} disabled={!firstDate && !lastDate} onPress={onPressCreate} />
       </View>
     </SafeArea>
   );
@@ -161,7 +141,8 @@ export default AddDateScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    ...STYLES.FLEX(1),
+    ...STYLES.PADDING_TOP(10),
     backgroundColor: colors.white,
   },
   description: {
