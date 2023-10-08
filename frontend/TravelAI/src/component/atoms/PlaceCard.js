@@ -59,8 +59,6 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderLeftWidth: 1,
-    borderLeftColor: '#808080',
     paddingBottom: 10,
   },
   circle: {

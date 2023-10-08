@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View} from 'react-native';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import {Button, Image} from '@rneui/themed';
 import colors from '../../theme/colors';
@@ -22,35 +22,38 @@ const TravelItem = props => {
     };
   }, [travel]);
 
-  reactotron.log({travel});
-
   return (
-    <TouchableOpacity style={styles.session} onPress={onPress}>
-      <IconButton
-        style={styles.sessionDeleteButton}
-        icon="close"
-        iconColor="#3C3C43"
-        containerColor="#F9F9F9"
-        mode="contained"
-        onPress={onPressDelete}
-      />
-      <Image source={{uri: thumbnail_url}} style={styles.sessionImage} />
-      <View style={styles.sessionContent}>
-        <View style={styles.upperContent}>
-          <View style={styles.sessionInfo}>
-            <Text style={styles.sessionName} numberOfLines={2}>
-              {name}
-            </Text>
-            <Text
-              style={styles.sessionDescription}
-              numberOfLines={2}>{`${start_at} ~ ${end_at}`}</Text>
-          </View>
-          <IconButton icon={'greater-than'} size={10} />
-          {/* <Button style={styles.sessionOpenBtn} mode="contained" onPress={onPress}>
+    <>
+      {/* <Pressable onPress={onPressDelete}>
+        <Text>Delete</Text>
+      </Pressable> */}
+      <TouchableOpacity style={styles.session} onPress={onPress}>
+        <IconButton
+          style={styles.sessionDeleteButton}
+          icon="close"
+          iconColor="#3C3C43"
+          containerColor="#F9F9F9"
+          mode="contained"
+          onPress={onPressDelete}
+        />
+
+        <Image source={{uri: thumbnail_url}} style={styles.sessionImage} />
+        <View style={styles.sessionContent}>
+          <View style={styles.upperContent}>
+            <View style={styles.sessionInfo}>
+              <Text style={styles.sessionName} numberOfLines={2}>
+                {name}
+              </Text>
+              <Text
+                style={styles.sessionDescription}
+                numberOfLines={2}>{`${start_at} ~ ${end_at}`}</Text>
+            </View>
+            <IconButton icon={'greater-than'} size={10} />
+            {/* <Button style={styles.sessionOpenBtn} mode="contained" onPress={onPress}>
             Open
           </Button> */}
-        </View>
-        {/* <View style={styles.lowerContent}>
+          </View>
+          {/* <View style={styles.lowerContent}>
           <Button
             compact
             icon="chevron-right"
@@ -59,8 +62,9 @@ const TravelItem = props => {
             More Info
           </Button>
         </View> */}
-      </View>
-    </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </>
     // <Surface style={styles.session}>
     // </Surface>
   );

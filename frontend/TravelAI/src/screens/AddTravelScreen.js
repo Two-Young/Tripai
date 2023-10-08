@@ -14,7 +14,7 @@ import {searchIcon} from '../assets/images';
 import {arrowRight} from '../assets/images';
 import MainButton from '../component/atoms/MainButton';
 import CustomHeader from '../component/molecules/CustomHeader';
-import SafeArea from './../component/molecules/SafeArea';
+import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
 
 const AddTravelScreen = () => {
@@ -136,13 +136,6 @@ const SelectedCountrySection = ({countries, selected, setSelected, onPress}) => 
         )}
         ItemSeparatorComponent={<RenderSeparator />}
       />
-      {/* <Button
-        style={styles.nextBtn}
-        contentStyle={styles.nextBtnContent}
-        mode="contained"
-        onPress={onPress}>
-        Next / Choose the Date
-      </Button> */}
       <MainButton text={'Next / Choose the Date'} onPress={onPress} />
     </View>
   );

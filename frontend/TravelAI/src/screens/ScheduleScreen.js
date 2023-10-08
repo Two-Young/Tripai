@@ -45,16 +45,12 @@ const ScheduleScreen = () => {
   const currentSession = useRecoilValue(sessionAtom);
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
-  reactotron.log({currentSession});
-
   // states
   const [days, setDays] = React.useState([]);
   const [currentIndex, setCurrentIndex] = React.useState(-1);
   const [schedules, setSchedules] = React.useState([]);
   const [coords, setCoords] = React.useState([]); // [Place
   const [refreshing, setRefreshing] = React.useState(false);
-
-  reactotron.log(days);
 
   // memo
   const locations = React.useMemo(
@@ -194,10 +190,6 @@ const ScheduleScreen = () => {
       navigation.dispatch({...CommonActions.setParams({refresh: false})});
     }
   }, [route?.params?.refresh]);
-
-  reactotron.log({schedules});
-
-  // console.log('ScheduleScreen');
 
   return (
     <SafeArea>

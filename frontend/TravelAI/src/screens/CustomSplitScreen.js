@@ -68,10 +68,6 @@ const CustomSplitScreen = () => {
     } catch (error) {
       throw error;
     }
-    /*
-    launchCamera({mediaType: 'photo'}, response => {
-      console.log(response);
-    });  */
   };
 
   const onSubmitReceipt = async () => {
