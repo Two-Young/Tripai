@@ -36,6 +36,17 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
 
   const ref = React.useRef(null);
 
+  const showValue = React.useMemo(() => {
+    switch (type) {
+      case 'place':
+        return value?.address ?? '';
+      case 'date':
+        return dayjs(value).format('YYYY-MM-DD HH:mm');
+      default:
+        return value;
+    }
+  }, [type, value]);
+
   return (
     <>
       <View style={styles.customInput}>
@@ -45,7 +56,7 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
           onFocus={onFocus}
           style={[styles.input, {...(type === 'multiline' && {height: 100})}]}
           placeholder="Type something"
-          value={type === 'place' ? value?.address ?? '' : value}
+          value={showValue}
           onChangeText={setValue}
           outlineColor="#000"
           {...(type === 'multiline' && {multiline: true})}
@@ -56,7 +67,7 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
           modal
           open={open}
           date={new Date(value)}
-          mode="time"
+          mode="datetime"
           onConfirm={date => {
             setOpen(false);
             setValue(dayjs(date).format('YYYY-MM-DD HH:mm'));

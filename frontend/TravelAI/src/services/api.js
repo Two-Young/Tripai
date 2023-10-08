@@ -607,7 +607,6 @@ export const getReceipts = async session_id => {
 
 export const uploadReceipt = async ({session_id, file}) => {
   try {
-    console.log(session_id, file);
     const response = await api.post('/platform/receipt/upload', file, {
       params: {
         session_id,

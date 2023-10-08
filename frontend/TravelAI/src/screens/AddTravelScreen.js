@@ -15,6 +15,7 @@ import {searchIcon} from '../assets/images';
 import {arrowRight} from '../assets/images';
 import MainButton from '../component/atoms/MainButton';
 import CustomHeader from '../component/molecules/CustomHeader';
+import SafeArea from '../component/molecules/SafeArea';
 
 const AddTravelScreen = () => {
   // state
@@ -48,8 +49,8 @@ const AddTravelScreen = () => {
   }, [countries]);
 
   return (
-    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-      {/* <Header
+    <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
+      <Header
         backgroundColor="#fff"
         barStyle="dark-content"
         leftComponent={
@@ -66,7 +67,7 @@ const AddTravelScreen = () => {
             ...Medium(18),
           },
         }}
-      /> */}
+      />
       <CustomHeader
         backgroundColor={'white'}
         leftComponent={
@@ -120,7 +121,7 @@ const AddTravelScreen = () => {
           />
         )}
       </View>
-    </SafeAreaView>
+    </SafeArea>
   );
 };
 
@@ -167,13 +168,6 @@ const SelectedCountrySection = ({countries, selected, setSelected, onPress}) => 
         )}
         ItemSeparatorComponent={<RenderSeparator />}
       />
-      {/* <Button
-        style={styles.nextBtn}
-        contentStyle={styles.nextBtnContent}
-        mode="contained"
-        onPress={onPress}>
-        Next / Choose the Date
-      </Button> */}
       <MainButton text={'Next / Choose the Date'} onPress={onPress} />
     </View>
   );

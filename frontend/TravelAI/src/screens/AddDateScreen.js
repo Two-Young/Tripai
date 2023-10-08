@@ -113,8 +113,6 @@ const AddDateScreen = () => {
     setMarked(temp_marked);
   }, [firstDate, lastDate]);
 
-  reactotron.log(marked);
-
   // rendering
   return (
     <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
