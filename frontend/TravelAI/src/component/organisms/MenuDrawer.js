@@ -73,11 +73,15 @@ const MenuDrawer = props => {
           />
           <Text style={styles.userNameText}>{userName}</Text>
         </View>
-        <Drawer.Item label="Profile" onPress={navigateToProfile} icon="star" />
-        <Drawer.Item label="Default Currency" onPress={navigateToDefaultCurrency} icon="star" />
-        <Drawer.Item label="Friends" onPress={navigateToPeople} icon="star" />
-        <Drawer.Item label="Session Requests" onPress={navigateToMySessionRequest} icon="star" />
-        <Drawer.Item label="Logout" onPress={logout} icon="star" />
+        <Drawer.Item label="Profile" onPress={navigateToProfile} icon="account" />
+        <Drawer.Item
+          label="Default Currency"
+          onPress={navigateToDefaultCurrency}
+          icon="account-cash"
+        />
+        <Drawer.Item label="Friends" onPress={navigateToPeople} icon="account-multiple" />
+        <Drawer.Item label="Session Requests" onPress={navigateToMySessionRequest} icon="mail" />
+        <Drawer.Item label="Logout" onPress={logout} icon="logout" />
       </Drawer.Section>
     </Modal>
   );
