@@ -15,6 +15,7 @@ import dayjs from 'dayjs';
 import {STYLES} from '../styles/Stylesheets';
 import {Fonts} from '../theme';
 import PlaceCard from '../component/atoms/PlaceCard';
+import {Icon} from '@rneui/base';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -197,12 +198,26 @@ const ScheduleScreen = () => {
 
   reactotron.log({schedules});
 
+  // console.log('ScheduleScreen');
+
   return (
     <SafeArea>
       <CustomHeader title={'SCHEDULE'} />
       <FlatList
         ListHeaderComponent={
           <>
+            <View
+              style={[
+                STYLES.ALIGN_CENTER,
+                STYLES.FLEX_CENTER,
+                STYLES.HEIGHT(64),
+                {backgroundColor: colors.primary},
+              ]}>
+              <Text style={styles.title}>{`Day ${currentIndex}`}</Text>
+              <Text style={[styles.dates, STYLES.MARGIN_TOP(4)]}>
+                {currentSession.start_at} ~ {currentSession.end_at}
+              </Text>
+            </View>
             <View
               style={[
                 STYLES.WIDTH_100,
@@ -276,20 +291,26 @@ const ScheduleScreen = () => {
             />
           </>
         }
-        style={{flex: 1}}
-        // contentContainerStyle={{paddingHorizontal: 10}}
+        style={{flex: 1, backgroundColor: colors.primary}}
+        contentContainerStyle={{flex: 1, backgroundColor: colors.white}}
         data={schedules}
-        // data={locations}
-        renderItem={({item}) => <PlaceCard item={item} onPress={onPressScheduleCard} />}
+        renderItem={({item, index}) => (
+          <PlaceCard
+            item={item}
+            onPress={onPressScheduleCard}
+            isLast={schedules.length - 1 === index}
+          />
+        )}
         keyExtractor={item => item?.schedule_id?.toString()}
         ListFooterComponent={
-          <Button
-            mode="elevated"
-            style={styles.addScheduleBtn}
-            textColor={colors.black}
-            onPress={handleAddingSchedule}>
-            Add Schedule
-          </Button>
+          <View style={[STYLES.ALIGN_CENTER, STYLES.PADDING_LEFT(50), STYLES.HEIGHT(80)]}>
+            <IconButton
+              icon={'plus-circle'}
+              iconColor={colors.primary}
+              size={40}
+              onPress={handleAddingSchedule}
+            />
+          </View>
         }
         refreshing={refreshing}
         onRefresh={onRefresh}
@@ -331,6 +352,15 @@ const styles = StyleSheet.create({
   },
   flatList: {
     flexGrow: 0,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+  dates: {
+    fontSize: 15,
+    color: colors.white,
   },
   dayTitle: {
     fontSize: 22,

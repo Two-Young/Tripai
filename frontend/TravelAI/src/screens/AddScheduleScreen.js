@@ -1,39 +1,28 @@
-import {
-  Keyboard,
-  TextInput,
-  StyleSheet,
-  View,
-  TouchableWithoutFeedback,
-  Pressable,
-} from 'react-native';
+import {Keyboard, StyleSheet, View, TouchableWithoutFeedback} from 'react-native';
 import React, {useEffect} from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {Header as HeaderRNE} from '@rneui/themed';
-import defaultStyle from '../styles/styles';
-import {Button, IconButton, Surface, Text} from 'react-native-paper';
-import DatePicker from 'react-native-date-picker';
-import {CommonActions, useNavigation, useRoute, useNavigationState} from '@react-navigation/native';
+import {IconButton} from 'react-native-paper';
+import {CommonActions, useNavigation, useNavigationState} from '@react-navigation/native';
 import colors from '../theme/colors';
 import {createSchedule} from '../services/api';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import reactotron from 'reactotron-react-native';
+import SafeArea from '../component/molecules/SafeArea';
+import CustomHeader from '../component/molecules/CustomHeader';
+import CustomInput from '../component/molecules/CustomInput';
+import dayjs from 'dayjs';
+import MainButton from '../component/atoms/MainButton';
 
 const AddScheduleScreen = () => {
   // states
   const [name, setName] = React.useState('');
-  const [address, setAddress] = React.useState('');
-  const [placeID, setPlaceID] = React.useState('');
-  const [startAt, setStartAt] = React.useState('');
-  const [date, setDate] = React.useState(new Date());
+  const [place, setPlace] = React.useState({});
+  const [startAt, setStartAt] = React.useState(dayjs().format('YYYY-MM-DD HH:mm'));
   const [note, setNote] = React.useState('');
-  const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
   // hooks
   const navigation = useNavigation();
   const navigationState = useNavigationState(state => state);
-  const route = useRoute();
   const currentSession = useRecoilValue(sessionAtom);
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
@@ -47,8 +36,8 @@ const AddScheduleScreen = () => {
       await createSchedule({
         session_id: currentSessionID,
         name,
-        place_id: placeID,
-        start_at: date.getTime(),
+        place_id: place?.place_id,
+        start_at: new Date(startAt).getTime(),
         memo: note,
       });
       navigation.dispatch({
@@ -64,128 +53,52 @@ const AddScheduleScreen = () => {
     }
   };
 
-  const handleSetAddress = () => {
-    navigation.navigate('AddAddress');
-  };
-
-  const onPressClearAddress = () => {
-    setAddress('');
-    setPlaceID('');
-  };
-
   // memo
   const addDisabled = React.useMemo(() => {
-    return name.length === 0 && address.length === 0;
-  }, [name, address]);
-
-  const clearAddressBtnDisabled = React.useMemo(() => {
-    return address.length === 0 && placeID.length === 0;
-  }, [address]);
-
-  // effects
-  React.useEffect(() => {
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    setStartAt(`${year}-${month}-${day} ${hours}:${minutes}`);
-  }, [date]);
-
-  useEffect(() => {
-    if (route.params?.day) {
-      setDate(route.params?.day);
-    }
-  }, [route.params?.day]);
-
-  React.useEffect(() => {
-    if (route.params?.place) {
-      setAddress(route.params?.place?.address);
-      setPlaceID(route.params?.place?.place_id);
-      navigation.dispatch({...CommonActions.setParams({place: null})});
-    }
-  }, [route.params?.place]);
+    return name.length === 0 || place?.address?.length === 0;
+  }, [name, place]);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-        <HeaderRNE
-          backgroundColor="#fff"
-          barStyle="dark-content"
-          centerComponent={{text: 'Add Schedule', style: defaultStyle.heading}}
-        />
-        <View style={styles.container}>
-          <View style={styles.contentContainer}>
-            <View>
-              <Text>Name</Text>
-              <TextInput
-                placeholder="Type something"
-                value={name}
-                onChangeText={setName}
-                outlineColor="#000"
+    <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
+      <TouchableWithoutFeedback
+        onPress={() => {
+          console.log('dfdf');
+          if (Keyboard.isVisible) {
+            Keyboard.dismiss();
+          }
+        }}>
+        <View style={{flex: 1}}>
+          <CustomHeader
+            backgroundColor={colors.white}
+            leftComponent={
+              <IconButton
+                mode="contained"
+                icon="chevron-left"
+                iconColor={colors.black}
+                onPress={() => navigation.goBack()}
+                size={18}
               />
+            }
+            title="Add Schedule"
+            titleColor={colors.black}
+            rightComponent={<></>}
+          />
+          <View style={styles.container}>
+            <View style={styles.contentContainer}>
+              <CustomInput label={'Name'} value={name} setValue={setName} />
+              <CustomInput label={'Address'} value={place} setValue={setPlace} type="place" />
+              <CustomInput label={'Date'} value={startAt} setValue={setStartAt} type="date" />
+              <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
             </View>
-            <View>
-              <Text>Address</Text>
-              <View style={{flexDirection: 'row'}}>
-                <Pressable style={{flex: 1}} onPress={() => handleSetAddress()}>
-                  <View pointerEvents="none">
-                    <TextInput
-                      placeholder=""
-                      value={address}
-                      outlineColor="#000"
-                      editable={false}
-                      textBreakStrategy="highQuality"
-                    />
-                  </View>
-                </Pressable>
-                <IconButton
-                  icon="close"
-                  onPress={onPressClearAddress}
-                  disabled={clearAddressBtnDisabled}
-                />
-              </View>
-            </View>
-            <View>
-              <Text>Start at</Text>
-              <Pressable onPress={() => setOpen(true)}>
-                <View pointerEvents="none">
-                  <TextInput placeholder="Type something" value={startAt} editable={false} />
-                </View>
-              </Pressable>
-            </View>
-            <View>
-              <Text>Note</Text>
-              <Surface style={styles.surface} mode="flat">
-                <TextInput
-                  style={{width: '100%', height: '100%', textAlignVertical: 'top'}}
-                  placeholder="Type something"
-                  value={note}
-                  onChangeText={setNote}
-                  multiline
-                  outlineColor="#000"
-                />
-              </Surface>
-            </View>
-            <DatePicker
-              modal
-              open={open}
-              date={date}
-              mode="time"
-              onConfirm={date => {
-                setOpen(false);
-                setDate(date);
-              }}
-              onCancel={() => setOpen(false)}
+            <MainButton
+              text={loading ? 'Adding...' : 'Add'}
+              onPress={handleAdd}
+              disabled={addDisabled}
             />
           </View>
-          <Button mode="contained" onPress={handleAdd} loading={loading} disabled={addDisabled}>
-            {loading ? 'Adding...' : 'Add'}
-          </Button>
         </View>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
+    </SafeArea>
   );
 };
 

@@ -6,7 +6,7 @@ import colors from '../../theme/colors';
 
 const RightContent = props => <IconButton icon="chevron-right" iconColor="#000" />;
 
-const PlaceCard = ({item, onPress}) => {
+const PlaceCard = ({item, onPress, isLast}) => {
   const {start_at} = item;
 
   const time = React.useMemo(() => {
@@ -28,11 +28,22 @@ const PlaceCard = ({item, onPress}) => {
 
   return (
     <View style={[styles.item, STYLES.PADDING_HORIZONTAL(20)]}>
-      <View>
+      <View
+        style={[
+          STYLES.ALIGN_CENTER,
+          STYLES.FLEX_CENTER,
+          STYLES.WIDTH(30),
+          STYLES.HEIGHT(50),
+          STYLES.MARGIN_RIGHT(20),
+        ]}>
         <View style={styles.circle} />
         <Text style={styles.itemTimeText}>{time}</Text>
+        {!isLast && <View style={styles.line} />}
       </View>
-      <Card style={[STYLES.FLEX(1)]} right={RightContent} onPress={() => onPress(item)}>
+      <Card
+        style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}
+        right={RightContent}
+        onPress={() => onPress(item)}>
         <Card.Title
           title={item?.name}
           subtitle={subTitle}
@@ -48,27 +59,31 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    // paddingLeft: 32,
-    // marginLeft: 22,
     borderLeftWidth: 1,
     borderLeftColor: '#808080',
     paddingBottom: 10,
   },
   circle: {
-    position: 'absolute',
-    top: '50%',
-    left: -10,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: colors.primary,
   },
   itemTimeText: {
     position: 'absolute',
-    top: '20%',
-    left: -15,
+    top: 0,
+    width: 50,
+    textAlign: 'center',
     fontSize: 12,
     backgroundColor: colors.white,
+    color: colors.gray,
+  },
+  line: {
+    position: 'absolute',
+    top: 38,
+    width: 2,
+    height: 40,
+    backgroundColor: colors.gray,
   },
 });
 

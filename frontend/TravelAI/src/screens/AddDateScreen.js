@@ -11,6 +11,9 @@ import {Button, IconButton} from 'react-native-paper';
 import {Header} from '@rneui/themed';
 import colors from '../theme/colors';
 import reactotron from 'reactotron-react-native';
+import CustomHeader from '../component/molecules/CustomHeader';
+import SafeArea from '../component/molecules/SafeArea';
+import MainButton from '../component/atoms/MainButton';
 
 const today = new Date();
 const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -114,19 +117,21 @@ const AddDateScreen = () => {
 
   // rendering
   return (
-    <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-      <Header
-        backgroundColor="#fff"
-        barStyle="dark-content"
+    <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
+      <CustomHeader
+        backgroundColor={'white'}
         leftComponent={
           <IconButton
             mode="contained"
             icon="chevron-left"
             iconColor="#000"
+            size={18}
             onPress={() => navigation.goBack()}
           />
         }
-        centerComponent={{text: 'Choose the date', style: defaultStyle.heading}}
+        title="Choose the date"
+        titleColor="black"
+        rightComponent={<></>}
       />
       <View style={styles.container}>
         <Text style={styles.description}>Choose the date you want to add to your travel.</Text>
@@ -141,16 +146,14 @@ const AddDateScreen = () => {
           onDayPress={onDayPress}
         />
       </View>
-      <Button
-        style={styles.createBtn}
-        contentStyle={styles.createBtnContent}
-        mode="contained"
-        onPress={onPressCreate}
-        disabled={!firstDate && !lastDate}
-        loading={loading}>
-        {loading ? 'Creating...' : 'Create'}
-      </Button>
-    </SafeAreaView>
+      <View style={{padding: 10}}>
+        <MainButton
+          text={loading ? 'Creating...' : 'Create'}
+          disabled={!firstDate && !lastDate}
+          onPress={onPressCreate}
+        />
+      </View>
+    </SafeArea>
   );
 };
 

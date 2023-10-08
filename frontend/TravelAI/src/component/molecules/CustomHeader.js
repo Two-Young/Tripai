@@ -7,7 +7,7 @@ import {useNavigation} from '@react-navigation/native';
 import MenuDrawer from '../organisms/MenuDrawer';
 import {Fonts} from '../../theme';
 
-const CustomHeader = ({backgroundColor, leftComponent, title, rightComponent}) => {
+const CustomHeader = ({backgroundColor, leftComponent, title, titleColor, rightComponent}) => {
   const navigation = useNavigation();
 
   const [menuVisible, setMenuVisible] = React.useState(false); // menu visible 여부
@@ -25,6 +25,7 @@ const CustomHeader = ({backgroundColor, leftComponent, title, rightComponent}) =
           STYLES.HEIGHT(64),
           STYLES.FLEX_ROW_ALIGN_CENTER,
           STYLES.SPACE_BETWEEN,
+          {display: 'flex', flexDirection: 'row', alignItems: 'center'},
           {backgroundColor: backgroundColor ?? colors.primary},
         ]}>
         <View style={styles.sideComponentStyle}>
@@ -37,7 +38,7 @@ const CustomHeader = ({backgroundColor, leftComponent, title, rightComponent}) =
             />
           )}
         </View>
-        <Text style={styles.titleText}>{title}</Text>
+        <Text style={[styles.titleText, {color: titleColor ?? 'white'}]}>{title}</Text>
         <View style={styles.sideComponentStyle}>
           {rightComponent ?? (
             <IconButton
@@ -57,6 +58,9 @@ export default CustomHeader;
 
 const styles = StyleSheet.create({
   sideComponentStyle: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 30,
     height: 30,
   },

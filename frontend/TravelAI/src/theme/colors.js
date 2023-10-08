@@ -29,6 +29,7 @@ const colors = {
   white: '#FFFFFF',
   lightgray: '#F7F7F9',
   black: '#000000',
+  gray: '#A1B2C6',
 };
 
 export default colors;

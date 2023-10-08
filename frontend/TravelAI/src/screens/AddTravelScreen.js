@@ -1,22 +1,20 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  Keyboard,
-  TouchableWithoutFeedback,
-  Image,
-} from 'react-native';
+import {StyleSheet, Text, View, FlatList, Image} from 'react-native';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {useRecoilState} from 'recoil';
 import {Header} from '@rneui/themed';
-import {IconButton, Searchbar, List, Checkbox, Divider, Button} from 'react-native-paper';
+import {IconButton, Searchbar, Button} from 'react-native-paper';
 import countriesAtom from '../recoil/countries/countries';
 import {locateCountries} from '../services/api';
 import defaultStyle from '../styles/styles';
 import colors from '../theme/colors';
+import CountryListItem from '../component/molecules/CountryListItem';
+import {Light, Medium} from '../theme/fonts';
+import {searchIcon} from '../assets/images';
+import {arrowRight} from '../assets/images';
+import MainButton from '../component/atoms/MainButton';
+import CustomHeader from '../component/molecules/CustomHeader';
 
 const AddTravelScreen = () => {
   // state
@@ -51,7 +49,7 @@ const AddTravelScreen = () => {
 
   return (
     <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-      <Header
+      {/* <Header
         backgroundColor="#fff"
         barStyle="dark-content"
         leftComponent={
@@ -62,14 +60,44 @@ const AddTravelScreen = () => {
             onPress={() => navigation.goBack()}
           />
         }
-        centerComponent={{text: 'Choose the countries', style: defaultStyle.heading}}
+        centerComponent={{
+          text: 'Choose the countries',
+          style: {
+            ...Medium(18),
+          },
+        }}
+      /> */}
+      <CustomHeader
+        backgroundColor={'white'}
+        leftComponent={
+          <IconButton
+            mode="contained"
+            icon="chevron-left"
+            iconColor="#000"
+            size={18}
+            onPress={() => navigation.goBack()}
+          />
+        }
+        title="Choose the countries"
+        titleColor="black"
+        rightComponent={<></>}
       />
       <View style={styles.container}>
         <Text style={styles.description}>
-          Choose all the countries you want to add to your trip
+          {'Choose all the countries you want to\nadd to your trip'}
         </Text>
         <View style={styles.searchbarWrapper}>
-          <Searchbar placeholder="Search the country" value={search} onChangeText={setSearch} />
+          <Searchbar
+            icon={searchIcon}
+            placeholder="Search the country"
+            placeholderTextColor={'gray'}
+            value={search}
+            onChangeText={setSearch}
+            style={{
+              borderRadius: 8,
+              backgroundColor: '#F5F4F6',
+            }}
+          />
         </View>
         <FlatList
           removeClippedSubviews
@@ -95,48 +123,6 @@ const AddTravelScreen = () => {
     </SafeAreaView>
   );
 };
-
-const CountryListItem = ({item, selected, setSelected}) => {
-  const checked = React.useMemo(() => {
-    return selected.includes(item.country_code);
-  }, [selected, item.country_code]);
-
-  const leftComponent = () => <MemoizedFlags item={item} />;
-
-  const rightComponent = () => (
-    <Checkbox.Android
-      status={checked ? 'checked' : 'unchecked'}
-      onPress={() => {
-        if (checked) {
-          setSelected(prevState => prevState.filter(code => code !== item.country_code));
-        } else {
-          setSelected(prevState => [...prevState, item.country_code]);
-        }
-      }}
-    />
-  );
-
-  return (
-    <React.Fragment>
-      <List.Item
-        style={styles.countryListItem}
-        titleStyle={styles.countryListTitle}
-        title={item.common_name}
-        left={leftComponent}
-        right={rightComponent}
-      />
-      <Divider />
-    </React.Fragment>
-  );
-};
-
-const MemoizedFlags = React.memo(function MemoizedFlags({item}) {
-  return (
-    <View style={styles.flagWrapper}>
-      <Image style={styles.flag} source={{uri: item?.png}} />
-    </View>
-  );
-});
 
 const MemoizedSelectedFlags = React.memo(function MemoizedSelectedFlags({item, onPressDelete}) {
   return (
@@ -164,7 +150,10 @@ const SelectedCountrySection = ({countries, selected, setSelected, onPress}) => 
 
   return (
     <View style={styles.selectedCountrySection}>
-      <Text style={styles.selectedCountryText}>{`Selected Countries : ${selected.length}`}</Text>
+      <Text style={styles.selectedCountryText}>
+        {`Selected Countries : `}
+        <Text style={{color: 'gray'}}>{selected.length}</Text>
+      </Text>
       <FlatList
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -178,18 +167,23 @@ const SelectedCountrySection = ({countries, selected, setSelected, onPress}) => 
         )}
         ItemSeparatorComponent={<RenderSeparator />}
       />
-      <Button
+      {/* <Button
         style={styles.nextBtn}
         contentStyle={styles.nextBtnContent}
         mode="contained"
         onPress={onPress}>
         Next / Choose the Date
-      </Button>
+      </Button> */}
+      <MainButton text={'Next / Choose the Date'} onPress={onPress} />
     </View>
   );
 };
 
-const RenderSeparator = () => <View style={styles.seperator} />;
+const RenderSeparator = () => (
+  <View style={styles.seperator}>
+    <Image style={styles.seperatorArrow} source={arrowRight} />
+  </View>
+);
 
 export default AddTravelScreen;
 
@@ -198,8 +192,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   description: {
-    paddingHorizontal: 80,
-    fontSize: 15,
+    ...Light(15),
     textAlign: 'center',
     color: '#808080',
   },
@@ -220,16 +213,6 @@ const styles = StyleSheet.create({
     borderColor: '#808080',
     borderRadius: 5,
   },
-  countryListItem: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  countryListTitle: {
-    fontSize: 15,
-    color: colors.black,
-  },
   selectedCountrySection: {
     height: 160,
     backgroundColor: colors.white,
@@ -238,6 +221,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   selectedCountryContentContainer: {
+    alignItems: 'center',
     width: '100%',
     paddingVertical: 20,
   },
@@ -260,8 +244,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   seperator: {
-    width: 10,
-    backgroundColor: 'transparent',
+    display: 'flex',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  seperatorArrow: {
+    width: 24,
+    height: 24,
   },
   nextBtn: {
     marginTop: 10,

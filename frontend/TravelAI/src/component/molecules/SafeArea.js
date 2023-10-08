@@ -16,6 +16,8 @@ const SafeArea = ({top, bottom, children}) => {
     },
   });
 
+  console.log(top);
+
   return (
     <>
       <SafeAreaView edges={['top']} style={styles.top}>

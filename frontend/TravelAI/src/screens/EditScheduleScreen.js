@@ -20,33 +20,34 @@ import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import reactotron from 'reactotron-react-native';
 import _ from 'lodash';
+import SafeArea from '../component/molecules/SafeArea';
+import CustomHeader from '../component/molecules/CustomHeader';
 
 const EditScheduleScreen = () => {
   // states
   const [scheduleID, setScheduleID] = React.useState('');
   const [name, setName] = React.useState('');
-  const [address, setAddress] = React.useState('');
-  const [placeID, setPlaceID] = React.useState('');
+  const [place, setPlace] = React.useState({});
+  // const [address, setAddress] = React.useState('');
+  // const [placeID, setPlaceID] = React.useState('');
   const [startAt, setStartAt] = React.useState('');
-  const [date, setDate] = React.useState(new Date());
   const [note, setNote] = React.useState('');
-  const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
   // hooks
   const navigation = useNavigation();
   const navigationState = useNavigationState(state => state);
   const route = useRoute();
-  const currentSession = useRecoilValue(sessionAtom);
-  const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
+  // const currentSession = useRecoilValue(sessionAtom);
+  // const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
   const tab = navigationState.routes[navigationState.routes.length - 2];
   const target = tab?.state?.routes[1];
 
   // functions
-  const handleSetAddress = () => {
-    navigation.navigate('AddAddress');
-  };
+  // const handleSetAddress = () => {
+  //   navigation.navigate('AddAddress');
+  // };
 
   const onPressDeleteSchedule = async () => {
     Alert.alert('Delete Item', 'Are you sure you want to delete this item?', [
@@ -95,10 +96,10 @@ const EditScheduleScreen = () => {
     }
   };
 
-  const onPressClearAddress = () => {
-    setAddress('');
-    setPlaceID('');
-  };
+  // const onPressClearAddress = () => {
+  //   setAddress('');
+  //   setPlaceID('');
+  // };
 
   // memo
   const addDisabled = React.useMemo(() => {
@@ -158,99 +159,44 @@ const EditScheduleScreen = () => {
   }, [route.params?.place]);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-        <HeaderRNE
-          backgroundColor={colors.white}
-          barStyle="dark-content"
-          centerComponent={{text: 'Edit Schedule', style: defaultStyle.heading}}
-          leftComponent={
-            <IconButton
-              mode="contained"
-              icon="chevron-left"
-              iconColor={colors.black}
-              onPress={() => navigation.goBack()}
-            />
-          }
-          rightComponent={
-            <IconButton icon="delete" iconColor="#000" onPress={onPressDeleteSchedule} />
-          }
-        />
-        <View style={styles.container}>
-          <View style={styles.contentContainer}>
-            <View>
-              <Text>Name</Text>
-              <TextInput
-                placeholder="Type something"
-                value={name}
-                onChangeText={setName}
-                outlineColor="#000"
+    <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{flex: 1}}>
+          <CustomHeader
+            backgroundColor={colors.white}
+            leftComponent={
+              <IconButton
+                mode="contained"
+                icon="chevron-left"
+                iconColor={colors.black}
+                onPress={() => navigation.goBack()}
+                size={18}
               />
+            }
+            title="Edit Schedule"
+            titleColor={colors.black}
+            rightComponent={
+              <IconButton icon="delete" iconColor="#000" onPress={onPressDeleteSchedule} />
+            }
+          />
+          <View style={styles.container}>
+            <View style={styles.contentContainer}>
+              <CustomInput label={'Name'} value={name} setValue={setName} />
+              <CustomInput label={'Address'} value={place} setValue={setPlace} type="place" />
+              <CustomInput label={'Date'} value={startAt} setValue={setStartAt} type="date" />
+              <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
             </View>
-            <View>
-              <Text>Address</Text>
-              <View style={{flexDirection: 'row'}}>
-                <Pressable style={{flex: 1}} onPress={() => handleSetAddress()}>
-                  <View pointerEvents="none">
-                    <TextInput
-                      placeholder=""
-                      value={address}
-                      outlineColor="#000"
-                      editable={false}
-                      textBreakStrategy="highQuality"
-                    />
-                  </View>
-                </Pressable>
-                <IconButton
-                  icon="close"
-                  onPress={onPressClearAddress}
-                  disabled={clearAddressBtnDisabled}
-                />
-              </View>
-            </View>
-            <View>
-              <Text>Start at</Text>
-              <Pressable onPress={() => setOpen(true)}>
-                <View pointerEvents="none">
-                  <TextInput placeholder="Type something" value={startAt} editable={false} />
-                </View>
-              </Pressable>
-            </View>
-            <View>
-              <Text>Note</Text>
-              <Surface style={styles.surface} mode="flat">
-                <TextInput
-                  style={{width: '100%', height: '100%', textAlignVertical: 'top'}}
-                  placeholder="Type something"
-                  value={note}
-                  onChangeText={setNote}
-                  multiline
-                  outlineColor="#000"
-                />
-              </Surface>
-            </View>
-            <DatePicker
-              modal
-              open={open}
-              date={date}
-              mode="time"
-              onConfirm={date => {
-                setOpen(false);
-                setDate(date);
-              }}
-              onCancel={() => setOpen(false)}
-            />
+            <Button
+              mode="contained"
+              onPress={onPressEdit}
+              loading={loading}
+              disabled={addDisabled || !isUpdated}>
+              {loading ? 'Editing...' : 'Edit'}
+            </Button>
           </View>
-          <Button
-            mode="contained"
-            onPress={onPressEdit}
-            loading={loading}
-            disabled={addDisabled || !isUpdated}>
-            {loading ? 'Editing...' : 'Edit'}
-          </Button>
         </View>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
+    </SafeArea>
   );
 };
 
