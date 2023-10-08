@@ -1,5 +1,5 @@
 import {StyleSheet, View, FlatList, Text, ScrollView} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import defaultStyle from '../styles/styles';
 import PlaceListItem from '../component/molecules/PlaceListItem';
 import colors from '../theme/colors';
@@ -14,6 +14,11 @@ import CustomHeader from '../component/molecules/CustomHeader';
 import Modal from 'react-native-modal';
 import FriendsModal from '../component/organisms/FriendsModal';
 import userAtom from '../recoil/user/user';
+import {getSessionMembers} from '../services/api';
+import {Avatar, List} from 'react-native-paper';
+import {STYLES} from '../styles/Stylesheets';
+import {SemiBold} from '../theme/fonts';
+import Clipboard from '@react-native-community/clipboard';
 
 const HomeScreen = () => {
   // hooks
@@ -54,6 +59,7 @@ const HomeScreen = () => {
   };
 
   const onPressFriends = () => {
+    navigation.navigate('ManageParticipants');
     setFmVisible(true);
   };
 
@@ -65,6 +71,23 @@ const HomeScreen = () => {
       console.error(err);
     }
   };
+
+  const [joined, setJoined] = React.useState([]);
+
+  const fetchJoined = React.useCallback(async () => {
+    try {
+      const res = await getSessionMembers(currentSessionID);
+      setJoined(res);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [currentSessionID]);
+
+  useEffect(() => {
+    if (currentSessionID) {
+      fetchJoined();
+    }
+  }, [currentSessionID]);
 
   // effects
   React.useEffect(() => {
@@ -82,41 +105,123 @@ const HomeScreen = () => {
     }
   }, [route.params?.place, currentSessionID]);
 
+  console.log(currentSession?.session_code);
+
   return (
-    // <SafeArea>
     <>
       <CustomHeader title={'HOME'} />
       <View style={defaultStyle.container}>
-        <ScrollView style={{flex: 1}}>
-          <Text>Session Invite</Text>
-          <Text>Session Code : {currentSession?.session_code}</Text>
-          <IconButton icon="account" mode="contained" onPress={onPressFriends} />
-          <IconButton icon="door-open" mode="contained" onPress={onPressLeave} />
-        </ScrollView>
         <FlatList
+          ListHeaderComponent={() => (
+            <FlatList
+              style={{padding: 20}}
+              ListHeaderComponent={
+                <>
+                  <View
+                    style={[
+                      styles.sessionCodeContainer,
+                      STYLES.FLEX_ROW_ALIGN_CENTER,
+                      STYLES.SPACE_BETWEEN,
+                    ]}>
+                    <Text style={styles.label}>Session Code</Text>
+                    <View style={[STYLES.FLEX_ROW_ALIGN_CENTER]}>
+                      <Text style={styles.sessionCode}>{currentSession?.session_code}</Text>
+                      <IconButton
+                        icon="content-copy"
+                        size={16}
+                        onPress={() => {
+                          Clipboard.setString(currentSession?.session_code);
+                        }}
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.line} />
+                  <Text style={styles.label}>Participants</Text>
+                </>
+              }
+              data={joined}
+              renderItem={({item}) => (
+                <List.Item
+                  title={item.username}
+                  left={props => <Avatar.Image size={36} source={{uri: item.profile_image}} />}
+                  // right={props =>
+                  //   user?.user_info?.user_id !== item.user_id && (
+                  //     <IconButton
+                  //       icon="close"
+                  //       size={16}
+                  //       onPress={() => onPressExpelMember(item?.user_id)}
+                  //       style={[STYLES.PADDING(0), STYLES.MARGIN(0)]}
+                  //     />
+                  //   )
+                  // }
+                />
+              )}
+              ListFooterComponent={() => (
+                <>
+                  <View style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.SPACE_AROUND]}>
+                    <FAB
+                      style={[styles.fab, STYLES.FLEX(1), STYLES.MARGIN(20)]}
+                      icon="account"
+                      color="#fff"
+                      onPress={onPressFriends}
+                      label="Manage"
+                    />
+                    <FAB
+                      style={[styles.fab, STYLES.FLEX(1), STYLES.MARGIN(20)]}
+                      icon="door-open"
+                      color="#fff"
+                      onPress={onPressLeave}
+                      label="Exit"
+                    />
+                    {/* <IconButton icon="account" mode="contained" onPress={onPressFriends} />
+                    <IconButton icon="door-open" mode="contained" onPress={onPressLeave} /> */}
+                  </View>
+                  <View style={styles.line} />
+                  <Text style={styles.label}>Places</Text>
+                </>
+              )}
+            />
+          )}
           data={places}
           renderItem={item => <PlaceListItem item={item.item} setArr={setPlaces} />}
           keyExtractor={item => item.location_id}
           refreshing={refreshing}
           onRefresh={onRefresh}
-          ListHeaderComponent={() => <Text style={defaultStyle.heading}>Places</Text>}
+          contentContainerStyle={{flex: 1}}
+          ListFooterComponent={() => (
+            <FAB
+              style={[styles.fab, STYLES.MARGIN(20)]}
+              icon="plus"
+              color="#fff"
+              onPress={onPressAddPlace}
+            />
+          )}
         />
-        <FAB style={styles.fab} icon="plus" color="#fff" onPress={onPressAddPlace} />
-        <FriendsModal visible={fmVisible} setVisible={setFmVisible} />
+
+        {/* <FriendsModal visible={fmVisible} setVisible={setFmVisible} /> */}
       </View>
     </>
-    // </SafeArea>
   );
 };
 
 export default HomeScreen;
 
 const styles = StyleSheet.create({
+  line: {
+    width: '100%',
+    height: 1,
+    marginVertical: 8,
+  },
+  label: {
+    ...SemiBold(16),
+  },
+  sessionCode: {
+    ...SemiBold(16),
+    color: colors.primary,
+  },
   fab: {
-    position: 'absolute',
-    margin: 10,
-    right: 0,
-    bottom: 10,
+    alignItems: 'center',
+    // margin: 20,
     backgroundColor: colors.primary,
   },
 });
