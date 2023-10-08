@@ -1,9 +1,6 @@
-import {StyleSheet, View, TouchableWithoutFeedback, Keyboard, Pressable} from 'react-native';
+import {StyleSheet, View, Keyboard, Pressable} from 'react-native';
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import defaultStyle from '../styles/styles';
-import {Header} from '@rneui/themed';
-import {Avatar, Button, IconButton, List, Switch, TextInput} from 'react-native-paper';
+import {Avatar, Button, IconButton, List, Switch, Text, TextInput} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import {useRecoilState} from 'recoil';
 import userAtom from '../recoil/user/user';
@@ -11,6 +8,9 @@ import colors from '../theme/colors';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {getProfile, updateProfile} from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {STYLES} from '../styles/Stylesheets';
+import SafeArea from './../component/molecules/SafeArea';
+import CustomHeader from '../component/molecules/CustomHeader';
 
 const ProfileScreen = () => {
   // hooks
@@ -108,23 +108,11 @@ const ProfileScreen = () => {
   }, []);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-        <Header
-          backgroundColor="#fff"
-          barStyle="dark-content"
-          leftComponent={
-            <IconButton
-              mode="contained"
-              icon="chevron-left"
-              iconColor="#000"
-              onPress={() => navigation.goBack()}
-            />
-          }
-          centerComponent={{text: 'Profile', style: defaultStyle.heading}}
-        />
-        <View style={styles.container}>
-          <View style={styles.avatarContainer}>
+    <Pressable style={[STYLES.FLEX(1)]} onPress={Keyboard.dismiss} accessible={false}>
+      <SafeArea>
+        <CustomHeader title="Profile" rightComponent={<View />} />
+        <View style={[STYLES.FLEX(1), STYLES.PADDING_HORIZONTAL(20)]}>
+          <View style={[STYLES.ALIGN_CENTER, STYLES.PADDING_VERTICAL(40)]}>
             <Pressable onPress={onPressProfileImage}>
               <Avatar.Image
                 size={100}
@@ -132,32 +120,37 @@ const ProfileScreen = () => {
                   uri: profileImage,
                 }}
               />
+              <IconButton mode="contained" icon="camera" size={20} style={styles.cameraIcon} />
             </Pressable>
           </View>
           <TextInput mode="outlined" label="Username" value={username} onChangeText={setUsername} />
-          <List.Item
-            title="Allow Search"
-            right={() => <Switch value={nicknameSearch} onValueChange={onToggleSwitch} />}
-          />
+          <View style={styles.allowSearchContainer}>
+            <Text>Allowing Search</Text>
+            <Switch value={nicknameSearch} onValueChange={onToggleSwitch} />
+          </View>
         </View>
-        <Button mode="contained" onPress={onPressSave} disabled={!isEditing || !isUsernameValid}>
-          Save
-        </Button>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+        <View style={[STYLES.PADDING(10)]}>
+          <Button mode="contained" onPress={onPressSave} disabled={!isEditing || !isUsernameValid}>
+            Save
+          </Button>
+        </View>
+      </SafeArea>
+    </Pressable>
   );
 };
 
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+  cameraIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    transform: [{translateX: 10}, {translateY: 10}],
   },
-  avatarContainer: {
-    alignItems: 'center',
+  allowSearchContainer: {
+    ...STYLES.FLEX_ROW_ALIGN_CENTER,
+    ...STYLES.SPACE_BETWEEN,
+    ...STYLES.MARGIN_TOP(20),
   },
 });

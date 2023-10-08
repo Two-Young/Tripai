@@ -25,7 +25,6 @@ const CustomHeader = ({backgroundColor, leftComponent, title, titleColor, rightC
           STYLES.HEIGHT(64),
           STYLES.FLEX_ROW_ALIGN_CENTER,
           STYLES.SPACE_BETWEEN,
-          {display: 'flex', flexDirection: 'row', alignItems: 'center'},
           {backgroundColor: backgroundColor ?? colors.primary},
         ]}>
         <View style={styles.sideComponentStyle}>
@@ -33,7 +32,7 @@ const CustomHeader = ({backgroundColor, leftComponent, title, titleColor, rightC
             <IconButton
               icon={'arrow-left'}
               iconColor="white"
-              onPress={() => {}}
+              onPress={() => navigation.goBack()}
               style={styles.iconButton}
             />
           )}

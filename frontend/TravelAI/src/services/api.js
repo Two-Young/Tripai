@@ -62,15 +62,11 @@ export const AxiosInterceptor = () => {
                 config._retry = true;
                 // reactotron.log('try refresh token');
                 const res = await authRefreshToken();
-                // reactotron.log('res', res);
                 const {access_token, refresh_token} = res;
-                // setUser({...user, auth_tokens: {access_token, refresh_token}});
                 if (access_token) {
-                  // reactotron.log('access token valid');
                   error.config.headers.Authorization = `Bearer ${access_token?.token}`;
                 }
                 if (refresh_token) {
-                  // reactotron.log('refresh token valid');
                   error.config.headers['X-Refresh-Token'] = refresh_token?.token;
                 }
                 setUser({...user, auth_tokens: {access_token, refresh_token}});
@@ -79,9 +75,7 @@ export const AxiosInterceptor = () => {
                   JSON.stringify({...user, auth_tokens: {access_token, refresh_token}}),
                 );
                 return Promise.resolve(api.request(config));
-                // return api(config);
               } catch (e) {
-                // reactotron.log('refresh token failed');
                 Alert.alert('Session expired', 'Please sign in again.', [
                   {
                     text: 'OK',
@@ -96,17 +90,6 @@ export const AxiosInterceptor = () => {
                 throw e;
               }
             }
-            // reactotron.log(res);
-            /*
-                const {access_token, refresh_token} = res;
-                if (access_token) {
-                  reactotron.log('access token valid');
-                  setUser({...user, auth_tokens: {access_token, refresh_token}});
-                  api.defaults.headers.common.Authorization = `Bearer ${access_token}`;
-                  return api(config);
-                }
-
-                */
           }
           return Promise.reject(error);
         },
@@ -607,7 +590,6 @@ export const getReceipts = async session_id => {
 
 export const uploadReceipt = async ({session_id, file}) => {
   try {
-    console.log(session_id, file);
     const response = await api.post('/platform/receipt/upload', file, {
       params: {
         session_id,

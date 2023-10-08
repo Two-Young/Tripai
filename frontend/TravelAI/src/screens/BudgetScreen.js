@@ -3,19 +3,25 @@ import React from 'react';
 import defaultStyle from '../styles/styles';
 import {Header} from '@rneui/themed';
 import colors from '../theme/colors';
-import {FAB, List} from 'react-native-paper';
+import {FAB, List, Surface} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import {useRecoilValue} from 'recoil';
 import {getReceipts, getSessionCurrencies} from '../services/api';
 import sessionAtom from '../recoil/session/session';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
+import {CalendarProvider, WeekCalendar} from 'react-native-calendars';
+import dayjs from 'dayjs';
+import reactotron from 'reactotron-react-native';
+import {STYLES} from '../styles/Stylesheets';
 
 const BudgetScreen = () => {
   // hooks
   const navigation = useNavigation();
   const currentSession = useRecoilValue(sessionAtom);
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
+
+  reactotron.log({currentSession});
 
   // states
   const [receipts, setReceipts] = React.useState([]);
@@ -76,17 +82,16 @@ const BudgetScreen = () => {
 
   return (
     <SafeArea>
-      <CustomHeader title={'BUDGET'} />
+      <CustomHeader title={'BUDGET'} leftComponent={<View />} />
       <View style={defaultStyle.container}>
-        <Header
-          backgroundColor="#fff"
-          barStyle="dark-content"
-          rightComponent={{
-            icon: 'menu',
-            color: colors.black,
-          }}
-          centerComponent={{text: 'Budget', style: defaultStyle.heading}}
-        />
+        <View style={[STYLES.WIDTH_100, STYLES.MARGIN_TOP(4), STYLES.HEIGHT(48)]}>
+          <CalendarProvider date={dayjs().format('YYYY-MM-DD')}>
+            <WeekCalendar testID={'containder'} hideDayNames={true} firstDay={1} />
+          </CalendarProvider>
+        </View>
+        <Surface mode="contained">
+          <Text>Budgets</Text>
+        </Surface>
         <View style={defaultStyle.container}>
           <FlatList
             data={receipts}

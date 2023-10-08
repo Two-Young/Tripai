@@ -15,7 +15,6 @@ import dayjs from 'dayjs';
 import {STYLES} from '../styles/Stylesheets';
 import {Fonts} from '../theme';
 import PlaceCard from '../component/atoms/PlaceCard';
-import {Icon} from '@rneui/base';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;

@@ -29,8 +29,6 @@ const CustomSplitScreen = () => {
   const currentSession = useRecoilValue(sessionAtom);
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
-  console.log(currentSessionID);
-
   // states
   const [name, setName] = React.useState('');
   const [totalAmount, setTotalAmount] = React.useState('');

@@ -10,8 +10,6 @@ const CountryListItem = ({item, selected, setSelected}) => {
     return selected.includes(item.country_code);
   }, [selected, item.country_code]);
 
-  reactotron.log(item);
-
   const leftComponent = () => <MemoizedFlags item={item} />;
 
   const rightComponent = () => (

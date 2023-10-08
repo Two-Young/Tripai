@@ -65,6 +65,9 @@ export const STYLES = StyleSheet.create({
     opacity: 0.99,
     minHeight: 1,
   },
+  MARGIN: number => ({
+    margin: number,
+  }),
   MARGIN_HORIZONTAL: number => ({
     marginHorizontal: number,
   }),
@@ -88,6 +91,9 @@ export const STYLES = StyleSheet.create({
   }),
   PADDING_VERTICAL: number => ({
     paddingVertical: number,
+  }),
+  PADDING: number => ({
+    padding: number,
   }),
   PADDING_TOP: number => ({
     paddingTop: number,

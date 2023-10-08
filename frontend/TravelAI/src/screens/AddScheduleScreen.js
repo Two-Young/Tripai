@@ -62,7 +62,6 @@ const AddScheduleScreen = () => {
     <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
       <TouchableWithoutFeedback
         onPress={() => {
-          console.log('dfdf');
           if (Keyboard.isVisible) {
             Keyboard.dismiss();
           }
