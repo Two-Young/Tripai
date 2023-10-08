@@ -75,7 +75,7 @@ const BudgetScreen = () => {
   }, [currentSessionID]);
 
   return (
-    <SafeArea>
+    <>
       <CustomHeader title={'BUDGET'} />
       <View style={defaultStyle.container}>
         <Header
@@ -124,7 +124,7 @@ const BudgetScreen = () => {
           fabStyle={styles.fab}
         />
       </View>
-    </SafeArea>
+    </>
   );
 };
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import {Image, StyleSheet} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
@@ -10,6 +9,8 @@ import homeIcon from '../assets/images/home.png';
 import scheduleIcon from '../assets/images/schedule.png';
 import chatIcon from '../assets/images/chat.png';
 import budgetIcon from '../assets/images/bill.png';
+import SafeArea from '../component/molecules/SafeArea';
+import {Colors} from '../theme';
 
 const Tab = createBottomTabNavigator();
 
@@ -63,49 +64,65 @@ const BudgetIcon = ({focused}) => {
 
 const TabNavigator = () => {
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          height: 60,
-        },
-      }}>
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          tabBarIcon: HomeIcon,
-        }}
-      />
-      <Tab.Screen
-        name="Schedule"
-        component={ScheduleScreen}
-        options={{
-          tabBarIcon: ScheduleIcon,
-        }}
-      />
-      <Tab.Screen
-        name="Chat"
-        component={ChatScreen}
-        options={{
-          tabBarIcon: ChatIcon,
-        }}
-      />
-      <Tab.Screen
-        name="Budget"
-        component={BudgetScreen}
-        options={{
-          tabBarIcon: BudgetIcon,
-        }}
-      />
-    </Tab.Navigator>
+    <SafeArea bottom={{style: {backgroundColor: colors.white}}}>
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+          tabBarShowLabel: false,
+          tabBarStyle: styles.bottomTab,
+        }}>
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{
+            tabBarIcon: HomeIcon,
+          }}
+        />
+        <Tab.Screen
+          name="Schedule"
+          component={ScheduleScreen}
+          options={{
+            tabBarIcon: ScheduleIcon,
+          }}
+        />
+        <Tab.Screen
+          name="Chat"
+          component={ChatScreen}
+          options={{
+            tabBarIcon: ChatIcon,
+          }}
+        />
+        <Tab.Screen
+          name="Budget"
+          component={BudgetScreen}
+          options={{
+            tabBarIcon: BudgetIcon,
+          }}
+        />
+      </Tab.Navigator>
+    </SafeArea>
   );
 };
 
 export default TabNavigator;
 
 const styles = StyleSheet.create({
+  bottomTab: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    height: 60,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderTopColor: colors.lightgray,
+    borderTopWidth: 1,
+    borderLeftColor: colors.lightgray,
+    borderLeftWidth: 1,
+    borderRightColor: colors.lightgray,
+    borderRightWidth: 1,
+    paddingVertical: Platform.OS === 'ios' ? 30 : 0,
+  },
   homeIcon: {
     width: 26,
     height: 27,

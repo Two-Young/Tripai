@@ -9,6 +9,7 @@ import checkbox from './checkbox.png';
 import checkedbox from './checkedbox.png';
 import searchIcon from './search.png';
 import arrowRight from './arrow-right.png';
+import chatGPTIcon from './chatGPT-logo.png';
 
 export {
   mainLogo,
@@ -22,4 +23,5 @@ export {
   checkedbox,
   searchIcon,
   arrowRight,
+  chatGPTIcon,
 };

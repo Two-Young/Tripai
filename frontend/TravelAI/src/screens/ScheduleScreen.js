@@ -193,7 +193,7 @@ const ScheduleScreen = () => {
   }, [route?.params?.refresh]);
 
   return (
-    <SafeArea>
+    <>
       <CustomHeader title={'SCHEDULE'} />
       <FlatList
         ListHeaderComponent={
@@ -307,7 +307,7 @@ const ScheduleScreen = () => {
         refreshing={refreshing}
         onRefresh={onRefresh}
       />
-    </SafeArea>
+    </>
   );
 };
 

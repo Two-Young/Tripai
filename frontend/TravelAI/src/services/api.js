@@ -768,3 +768,53 @@ export const updateProfile = async formData => {
     throw error;
   }
 };
+
+export const deleteProfile = async () => {
+  try {
+    const response = await api.delete('/platform/user');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getChatRooms = async session_id => {
+  try {
+    const response = await api.get('/platform/chat/getRooms', {
+      params: {
+        session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createChatRoom = async (session_id, participantUserIds = []) => {
+  try {
+    const response = await api.post('/platform/chat/create', {
+      // data: {
+      session_id,
+      participants: participantUserIds,
+      // },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const inviteChatRoom = async (session_id, invited_user_id) => {
+  try {
+    const response = await api.post('/platform/chat/invite', {
+      params: {
+        session_id,
+        invited_user_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

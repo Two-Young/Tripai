@@ -27,9 +27,10 @@ export const gray_text = '#A1B2C6';
 const colors = {
   primary: '#0D6EFD',
   white: '#FFFFFF',
-  lightgray: '#F7F7F9',
+  lightgray: '#E9E9EB',
   black: '#000000',
   gray: '#A1B2C6',
+  gpt: '#74AA9C',
 };
 
 export default colors;

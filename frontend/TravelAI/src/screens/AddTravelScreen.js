@@ -50,7 +50,7 @@ const AddTravelScreen = () => {
 
   return (
     <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
-      <Header
+      {/* <Header
         backgroundColor="#fff"
         barStyle="dark-content"
         leftComponent={
@@ -67,7 +67,7 @@ const AddTravelScreen = () => {
             ...Medium(18),
           },
         }}
-      />
+      /> */}
       <CustomHeader
         backgroundColor={'white'}
         leftComponent={
