@@ -123,7 +123,7 @@ const MainScreen = () => {
     if (route.params?.refresh) {
       onRefresh().finally(() => {
         navigation.dispatch({
-          ...CommonActions.setParams({refresh: false, source: route.key}),
+          ...CommonActions.setParams({refresh: false, target: route.key}),
         });
       });
     }

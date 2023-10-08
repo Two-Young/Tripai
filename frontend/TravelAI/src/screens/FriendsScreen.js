@@ -17,7 +17,6 @@ import colors from '../theme/colors';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
 import EmptyComponent from '../component/atoms/EmptyComponent';
-import {useFocusEffect} from '@react-navigation/native';
 
 const FriendsTab = createMaterialTopTabNavigator();
 
@@ -48,7 +47,7 @@ const Friends = () => {
       const data = await getFriends();
       setFriends(data);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -58,7 +57,7 @@ const Friends = () => {
       showSuccessToast('Friend deleted');
       setFriends(friends.filter(item => item.user_id !== user_id));
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -214,7 +213,8 @@ const Received = () => {
 
 const Sent = () => {
   // hooks
-  const route = useRoute();
+  const {refreshing: shouldRefresh, setRefreshing: setShouldRefresh} =
+    React.useContext(RefreshContext);
 
   // states
   const [requests, setRequests] = React.useState([]);
@@ -240,11 +240,12 @@ const Sent = () => {
   };
 
   // effects
-  useFocusEffect(
-    React.useCallback(() => {
-      setRefreshing(true);
-    }, []),
-  );
+  React.useEffect(() => {
+    if (shouldRefresh) {
+      fetchFriendsWaiting();
+      setShouldRefresh(false);
+    }
+  }, [shouldRefresh]);
 
   React.useEffect(() => {
     if (refreshing) {
@@ -286,20 +287,39 @@ const Sent = () => {
   );
 };
 
+const RefreshContext = React.createContext({
+  refreshing: false,
+  setRefreshing: () => {},
+});
+
 const FriendsScreen = () => {
+  // state
+  const [refreshing, setRefreshing] = React.useState(false);
+
   // hooks
   const navigation = useNavigation();
+  const route = useRoute();
 
   // functions
   const onPressAdd = () => {
     navigation.navigate('AddFriends');
   };
 
+  // effects
+  React.useEffect(() => {
+    if (route.params?.refresh) {
+      setRefreshing(true);
+      navigation.setParams({refresh: false});
+    }
+  }, [route.params?.refresh]);
+
   return (
     <SafeArea>
-      <CustomHeader title="Friends" rightComponent={<React.Fragment />} />
-      <FriendsTabNavigator />
-      <FAB icon="plus" style={styles.fab} color={colors.white} onPress={onPressAdd} />
+      <RefreshContext.Provider value={{refreshing, setRefreshing}}>
+        <CustomHeader title="Friends" rightComponent={<React.Fragment />} />
+        <FriendsTabNavigator />
+        <FAB icon="plus" style={styles.fab} color={colors.white} onPress={onPressAdd} />
+      </RefreshContext.Provider>
     </SafeArea>
   );
 };

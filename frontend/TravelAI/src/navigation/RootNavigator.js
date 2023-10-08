@@ -21,7 +21,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import DefaultCurrencyScreen from '../screens/DefaultCurrencyScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import AddFriendsScreen from '../screens/AddFriendsScreen';
-import MyRequestScreen from '../screens/MyRequestScreen.js';
+import SessionRequestsScreen from '../screens/SessionRequestsScreen.js';
 
 const Stack = createStackNavigator();
 
@@ -83,7 +83,7 @@ const RootNavigator = () => {
         <Stack.Screen name="DefaultCurrency" component={DefaultCurrencyScreen} />
         <Stack.Screen name="MyFriends" component={FriendsScreen} />
         <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
-        <Stack.Screen name="MyRequest" component={MyRequestScreen} />
+        <Stack.Screen name="SessionRequests" component={SessionRequestsScreen} />
       </Stack.Group>
       <Stack.Group
         screenOptions={{

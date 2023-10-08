@@ -44,7 +44,7 @@ const MenuDrawer = props => {
 
   const navigateToMySessionRequest = () => {
     onClose();
-    navigate('MyRequest');
+    navigate('SessionRequests');
   };
 
   // effects
@@ -75,8 +75,8 @@ const MenuDrawer = props => {
         </View>
         <Drawer.Item label="Profile" onPress={navigateToProfile} icon="star" />
         <Drawer.Item label="Default Currency" onPress={navigateToDefaultCurrency} icon="star" />
-        <Drawer.Item label="People" onPress={navigateToPeople} icon="star" />
-        <Drawer.Item label="My Request" onPress={navigateToMySessionRequest} icon="star" />
+        <Drawer.Item label="Friends" onPress={navigateToPeople} icon="star" />
+        <Drawer.Item label="Session Requests" onPress={navigateToMySessionRequest} icon="star" />
         <Drawer.Item label="Logout" onPress={logout} icon="star" />
       </Drawer.Section>
     </Modal>
