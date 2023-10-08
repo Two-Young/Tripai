@@ -83,7 +83,8 @@ const HomeScreen = () => {
   }, [route.params?.place, currentSessionID]);
 
   return (
-    <SafeArea>
+    // <SafeArea>
+    <>
       <CustomHeader title={'HOME'} />
       <View style={defaultStyle.container}>
         <ScrollView style={{flex: 1}}>
@@ -103,7 +104,8 @@ const HomeScreen = () => {
         <FAB style={styles.fab} icon="plus" color="#fff" onPress={onPressAddPlace} />
         <FriendsModal visible={fmVisible} setVisible={setFmVisible} />
       </View>
-    </SafeArea>
+    </>
+    // </SafeArea>
   );
 };
 

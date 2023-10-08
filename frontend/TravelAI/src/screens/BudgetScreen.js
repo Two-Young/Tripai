@@ -81,8 +81,8 @@ const BudgetScreen = () => {
   }, [currentSessionID]);
 
   return (
-    <SafeArea>
-      <CustomHeader title={'BUDGET'} leftComponent={<View />} />
+    <>
+      <CustomHeader title={'BUDGET'} />
       <View style={defaultStyle.container}>
         <View style={[STYLES.WIDTH_100, STYLES.MARGIN_TOP(4), STYLES.HEIGHT(48)]}>
           <CalendarProvider date={dayjs().format('YYYY-MM-DD')}>
@@ -129,7 +129,7 @@ const BudgetScreen = () => {
           fabStyle={styles.fab}
         />
       </View>
-    </SafeArea>
+    </>
   );
 };
 

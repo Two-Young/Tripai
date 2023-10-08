@@ -49,9 +49,41 @@ const AddTravelScreen = () => {
   }, [countries]);
 
   return (
-    <SafeArea>
-      <CustomHeader title="Choose the countries" rightComponent={<></>} />
-      <View style={[STYLES.FLEX(1), STYLES.PADDING_TOP(10)]}>
+    <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
+      {/* <Header
+        backgroundColor="#fff"
+        barStyle="dark-content"
+        leftComponent={
+          <IconButton
+            mode="contained"
+            icon="chevron-left"
+            iconColor="#000"
+            onPress={() => navigation.goBack()}
+          />
+        }
+        centerComponent={{
+          text: 'Choose the countries',
+          style: {
+            ...Medium(18),
+          },
+        }}
+      /> */}
+      <CustomHeader
+        backgroundColor={'white'}
+        leftComponent={
+          <IconButton
+            mode="contained"
+            icon="chevron-left"
+            iconColor="#000"
+            size={18}
+            onPress={() => navigation.goBack()}
+          />
+        }
+        title="Choose the countries"
+        titleColor="black"
+        rightComponent={<></>}
+      />
+      <View style={styles.container}>
         <Text style={styles.description}>
           {'Choose all the countries you want to\nadd to your trip'}
         </Text>
