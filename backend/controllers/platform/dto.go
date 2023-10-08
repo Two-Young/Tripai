@@ -139,7 +139,7 @@ type sessionInviteRequestsResponseDto []sessionInviteRequestsResponseItem
 
 type sessionInviteConfirmRequestDto struct {
 	SessionId string `json:"session_id" binding:"required"`
-	Accept    *bool   `json:"accept" binding:"required"`
+	Accept    *bool  `json:"accept" binding:"required"`
 }
 
 type sessionJoinRequestDto struct {
@@ -176,7 +176,7 @@ type sessionJoinWaitingsResponseDto []sessionJoinWaitingsResponseItem
 type sessionJoinConfirmRequestDto struct {
 	SessionId string `json:"session_id" binding:"required"`
 	UserId    string `json:"user_id" binding:"required"`
-	Accept    *bool   `json:"accept" binding:"required"`
+	Accept    *bool  `json:"accept" binding:"required"`
 }
 
 type sessionExpelRequestDto struct {
@@ -319,7 +319,7 @@ type receiptUploadRequestDto struct {
 }
 
 type receiptSelectedBoxInfo struct {
-	Custom *bool    `json:"custom" binding:"required"`
+	Custom *bool   `json:"custom" binding:"required"`
 	BoxId  *string `json:"box_id" binding:"required"`
 	Text   string  `json:"text" binding:"required"`
 }
@@ -351,11 +351,11 @@ type currencyExchangeRateRequestDto struct {
 
 /* ---------------- Friends ---------------- */
 type friendsGetResponseItem struct {
-	UserId       string `json:"user_id" binding:"required"`
-	UserCode     string `json:"user_code" binding:"required"`
+	UserId       string  `json:"user_id" binding:"required"`
+	UserCode     string  `json:"user_code" binding:"required"`
 	Username     *string `json:"username" binding:"required"`
 	ProfileImage *string `json:"profile_image" binding:"required"`
-	AcceptedAt   int64  `json:"accepted_at" binding:"required"`
+	AcceptedAt   int64   `json:"accepted_at" binding:"required"`
 }
 
 type friendsGetResponseDto []friendsGetResponseItem
@@ -410,4 +410,33 @@ type userGetProfileResponseDto struct {
 	Username            string `json:"username"`
 	ProfileImage        string `json:"profile_image"`
 	AllowNicknameSearch bool   `json:"allow_nickname_search"`
+}
+
+/* ---------------- Chats ---------------- */
+
+type ChatGetRoomsRequestDto struct {
+	SessionId string `json:"session_id" binding:"required"`
+}
+
+type ChatGetRoomsParticipant struct {
+	UserId       string  `json:"user_id"`
+	Username     *string `json:"username"`
+	ProfileImage *string `json:"profile_image"`
+}
+
+type ChatGetRoomsResponseItem struct {
+	ChatRoomId   string                    `json:"chat_room_id"`
+	CreatedAt    int64                     `json:"created_at"`
+	LastUpdate   int64                     `json:"last_update"`
+	Participants []ChatGetRoomsParticipant `json:"participants"`
+}
+
+type ChatCreateRoomRequestDto struct {
+	SessionId    string   `json:"session_id" binding:"required"`
+	Participants []string `json:"participants" binding:"required"`
+}
+
+type ChatInviteRequestDto struct {
+	ChatRoomId    string `json:"chat_room_id" binding:"required"`
+	InvitedUserId string `json:"invited_user_id" binding:"required"`
 }

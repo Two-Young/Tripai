@@ -125,3 +125,31 @@ func CheckPermissionByReceiptId(uid string, receiptId string) (bool, error) {
 	}
 	return true, nil
 }
+
+func DoesChatRoomExist(roomId string) (bool, error) {
+	var count int
+	if err := database.DB.Get(&count,
+		"SELECT COUNT(*) FROM chatrooms WHERE cid = ?;", roomId); err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func DoesChatRoomExistByParticipants(sessionId string, participants []string) (bool, error) {
+	var count int
+	if err := database.DB.Get(&count,
+		"SELECT COUNT(*) FROM chatrooms WHERE sid = ? AND cid IN (SELECT cid FROM chatroom_users WHERE uid IN (?));",
+		sessionId, participants); err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func IsParticipantOfChatRoom(chatroomId string, userId string) (bool, error) {
+	var count int
+	if err := database.DB.Get(&count,
+		"SELECT COUNT(*) FROM chatroom_users WHERE cid = ? AND uid = ?;", chatroomId, userId); err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}

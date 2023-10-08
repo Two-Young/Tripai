@@ -16,6 +16,17 @@ func GetUser(uid string) (*database.UserEntity, error) {
 	return &userEntity, nil
 }
 
+func DoesUserExist(uid string) (bool, error) {
+	var count int
+	if err := database.DB.Get(&count, `
+		SELECT COUNT(*) FROM users WHERE uid = ?;`,
+		uid,
+	); err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 func UpdateUserTx(tx *sql.Tx, userEntity database.UserEntity) error {
 	_, err := tx.Exec(`
 		UPDATE users

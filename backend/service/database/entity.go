@@ -13,12 +13,12 @@ type UserEntity struct {
 }
 
 type FriendEntity struct {
-	UserId          string     `db:"uid" json:"user_id"`
-	RequestedUserId string     `db:"requested_uid" json:"requested_user_id"`
-	Accepted        bool       `db:"accepted" json:"accepted"`
-	RequestedAt     time.Time  `db:"requested_at" json:"requested_at"`
-	ConfirmedAt     *time.Time `db:"confirmed_at" json:"confirmed_at"`
-	AllowNicknameSearch bool    `db:"allow_nickname_search" json:"allow_nickname_search"`
+	UserId              string     `db:"uid" json:"user_id"`
+	RequestedUserId     string     `db:"requested_uid" json:"requested_user_id"`
+	Accepted            bool       `db:"accepted" json:"accepted"`
+	RequestedAt         time.Time  `db:"requested_at" json:"requested_at"`
+	ConfirmedAt         *time.Time `db:"confirmed_at" json:"confirmed_at"`
+	AllowNicknameSearch bool       `db:"allow_nickname_search" json:"allow_nickname_search"`
 }
 
 type SessionEntity struct {
@@ -131,4 +131,16 @@ type PlaceDetailCacheEntity struct {
 	LatLng         *string  `db:"lat_lng" json:"lat_lng"`
 	CountryCode    *string  `db:"country_code" json:"country_code"`
 	Hit            *int     `db:"hit" json:"hit"`
+}
+
+type ChatRoomEntity struct {
+	ChatroomId string    `db:"cid" json:"chatroom_id"`
+	SessionId  string    `db:"sid" json:"session_id"`
+	CreatedAt  time.Time `db:"created_at" json:"created_at"`
+	LastUpdate time.Time `db:"last_update" json:"last_update"`
+}
+
+type ChatRoomsUserEntity struct {
+	ChatroomId string `db:"cid" json:"chatroom_id"`
+	UserId     string `db:"uid" json:"user_id"`
 }

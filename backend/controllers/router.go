@@ -9,6 +9,7 @@ import (
 	controller "travel-ai/controllers/auth"
 	"travel-ai/controllers/middlewares"
 	controller3 "travel-ai/controllers/platform"
+	"travel-ai/controllers/socket"
 	controller2 "travel-ai/controllers/test"
 	"travel-ai/log"
 	"travel-ai/service/platform"
@@ -36,7 +37,7 @@ func SetupRouter() *gin.Engine {
 	controller2.UseTestRouter(r)
 	controller3.UsePlatformRouter(r)
 	UseAssetRouter(r)
-	UseSocket(r)
+	socket.UseSocket(r)
 	return r
 }
 
