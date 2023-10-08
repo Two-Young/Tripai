@@ -13,6 +13,7 @@
   "dependencies": {
     "@googlemaps/polyline-codec": "^1.0.28",
     "@react-native-async-storage/async-storage": "^1.18.2",
+    "@react-native-community/clipboard": "^1.5.1",
     "@react-native-google-signin/google-signin": "^10.0.1",
     "@react-native-masked-view/masked-view": "^0.2.9",
     "@react-native-seoul/kakao-login": "^5.2.6",

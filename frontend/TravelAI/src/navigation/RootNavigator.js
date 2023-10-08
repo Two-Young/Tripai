@@ -22,6 +22,7 @@ import DefaultCurrencyScreen from '../screens/DefaultCurrencyScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import AddFriendsScreen from '../screens/AddFriendsScreen';
 import SessionRequestsScreen from '../screens/SessionRequestsScreen.js';
+import ManageParticipantsScreen from '../screens/ManageParticipantsScreen.js';
 
 const Stack = createStackNavigator();
 
@@ -96,6 +97,7 @@ const RootNavigator = () => {
       </Stack.Group>
       <Stack.Group />
       <Stack.Group>
+        <Stack.Screen name="ManageParticipants" component={ManageParticipantsScreen} />
         <Stack.Screen name="AddAddress" component={AddAddressScreen} />
         <Stack.Screen name="AddCustomPlace" component={AddCustomPlaceScreen} />
         <Stack.Screen name="AddTravel" component={AddTravelScreen} />

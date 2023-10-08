@@ -1,4 +1,4 @@
-import {View, Text, FlatList, TextInput} from 'react-native';
+import {View, Text, FlatList, TextInput, StyleSheet} from 'react-native';
 import React from 'react';
 import Modal from 'react-native-modal';
 import {Avatar, IconButton, List, Searchbar} from 'react-native-paper';
@@ -139,8 +139,8 @@ const FriendsModal = props => {
 
   return (
     <Modal isVisible={visible} onBackdropPress={onClose}>
-      <View style={{flex: 1, backgroundColor: 'white'}}>
-        <Text>FriendsModal</Text>
+      <View style={styles.container}>
+        <Text style={{textAlign: 'center'}}>FriendsModal</Text>
         <Text>Joined</Text>
         <FlatList
           style={{flex: 1}}
@@ -209,3 +209,12 @@ const FriendsModal = props => {
 };
 
 export default FriendsModal;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 20,
+  },
+});
