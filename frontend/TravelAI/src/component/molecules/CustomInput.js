@@ -62,7 +62,7 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
           {...(type === 'multiline' && {multiline: true})}
         />
       </View>
-      {type === 'date' && (
+      {type === 'date' && value.length > 0 && (
         <DatePicker
           modal
           open={open}
