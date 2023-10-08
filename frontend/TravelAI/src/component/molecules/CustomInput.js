@@ -47,6 +47,9 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
     }
   }, [type, value]);
 
+  console.log('showValue', showValue);
+  console.log('value', value);
+
   return (
     <>
       <View style={styles.customInput}>
