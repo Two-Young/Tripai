@@ -31,6 +31,7 @@ const colors = {
   black: '#000000',
   gray: '#A1B2C6',
   gpt: '#74AA9C',
+  searchBar: '#F5F4F6',
 };
 
 export default colors;

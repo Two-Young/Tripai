@@ -255,7 +255,6 @@ export const getSessions = async () => {
     const response = await api.get('/platform/session');
     return response.data;
   } catch (error) {
-    console.error(error);
     throw error;
   }
 };
@@ -659,6 +658,7 @@ export const requestFriends = async target_user_id => {
     });
     return response.data;
   } catch (error) {
+    reactotron.log(error.response);
     throw error;
   }
 };

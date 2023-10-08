@@ -43,7 +43,7 @@ const CustomHeader = ({backgroundColor, leftComponent, title, titleColor, rightC
             <IconButton
               icon={'arrow-left'}
               iconColor="white"
-              disabled={!clickDisabled}
+              disabled={clickDisabled}
               onPress={handleGoBack}
               style={styles.iconButton}
             />

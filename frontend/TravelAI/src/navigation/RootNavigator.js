@@ -81,7 +81,7 @@ const RootNavigator = () => {
         <Stack.Screen name="Tab" component={TabNavigator} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="DefaultCurrency" component={DefaultCurrencyScreen} />
-        <Stack.Screen name="Friends" component={FriendsScreen} />
+        <Stack.Screen name="MyFriends" component={FriendsScreen} />
         <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
         <Stack.Screen name="MyRequest" component={MyRequestScreen} />
       </Stack.Group>

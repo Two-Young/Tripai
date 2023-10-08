@@ -33,7 +33,7 @@ const MenuDrawer = props => {
 
   const navigateToPeople = () => {
     onClose();
-    navigate('Friends');
+    navigate('MyFriends');
   };
 
   const logout = () => {

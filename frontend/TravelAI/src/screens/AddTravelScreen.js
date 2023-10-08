@@ -1,12 +1,10 @@
 import {StyleSheet, Text, View, FlatList, Image} from 'react-native';
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {useRecoilState} from 'recoil';
 import {IconButton, Searchbar} from 'react-native-paper';
 import countriesAtom from '../recoil/countries/countries';
 import {locateCountries} from '../services/api';
-import defaultStyle from '../styles/styles';
 import colors from '../theme/colors';
 import CountryListItem from '../component/molecules/CountryListItem';
 import {Light} from '../theme/fonts';
