@@ -3,6 +3,7 @@ package test
 import (
 	"github.com/gin-gonic/gin"
 	"travel-ai/controllers/auth"
+	"travel-ai/controllers/socket"
 	"travel-ai/controllers/util"
 	"travel-ai/service/platform/database_io"
 )
@@ -31,9 +32,31 @@ func GetDevAccessToken(c *gin.Context) {
 	c.JSON(200, authTokenBundle.AccessToken)
 }
 
+func BindJsonTest(c *gin.Context) {
+	type Test struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+		C struct {
+			D string  `json:"d"`
+			E *string `json:"e"`
+			F *int    `json:"f"`
+			G string  `json:"g" binding:"required"`
+		} `json:"c"`
+	}
+	testStr := `{"a": "str1", "b": 149, "c": {"d": "str2", "e": "str3", "f": null}}`
+	var test Test
+	err := socket.BindJson(testStr, &test)
+	if err != nil {
+		util.AbortWithErrJson(c, 500, err)
+		return
+	}
+	c.JSON(200, test)
+}
+
 func UseTestTestRouter(g *gin.RouterGroup) {
 	sg := g.Group("/test")
 	sg.POST("/err-response", ErrResponse)
 	sg.GET("/get-place-detail-cache", GetPlaceDetailCacheTest)
 	sg.GET("/get-dev-access-token", GetDevAccessToken)
+	sg.POST("/bind-json", BindJsonTest)
 }

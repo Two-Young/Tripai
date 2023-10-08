@@ -29,7 +29,7 @@ func GetUserProfile(c *gin.Context) {
 	}
 
 	resp := userGetProfileResponseDto{
-		Username:            *userEntity.Username,
+		Username:            userEntity.Username,
 		AllowNicknameSearch: userEntity.AllowNicknameSearch,
 		ProfileImage:        *userEntity.ProfileImage,
 	}
@@ -90,7 +90,7 @@ func EditUserProfile(c *gin.Context) {
 	}
 
 	// update user entity
-	userEntity.Username = &formUsername
+	userEntity.Username = formUsername
 	userEntity.AllowNicknameSearch = allowNicknameSearch
 	if profileImageUrl != "" {
 		userEntity.ProfileImage = &profileImageUrl
@@ -119,8 +119,35 @@ func EditUserProfile(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+func DeleteUser(c *gin.Context) {
+	uid := c.GetString("uid")
+
+	tx, err := database.DB.BeginTx(c, nil)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if err := database_io.DeleteUserTx(tx, uid); err != nil {
+		log.Error(err)
+		_ = tx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
 func UseUserRouter(g *gin.RouterGroup) {
 	rg := g.Group("/user")
 	rg.GET("/profile", GetUserProfile)
 	rg.POST("/profile", EditUserProfile)
+	rg.DELETE("", DeleteUser)
 }

@@ -42,16 +42,6 @@ func InsertChatRoomUserTx(tx *sql.Tx, entity database.ChatRoomsUserEntity) error
 	}
 	return nil
 }
-
-func GetChatRoomsByUserId(userId string) ([]database.ChatRoomEntity, error) {
-	var chatRooms []database.ChatRoomEntity
-	if err := database.DB.Select(&chatRooms,
-		"SELECT * FROM chatrooms WHERE cid IN (SELECT cid FROM chatroom_users WHERE uid = ?);", userId); err != nil {
-		return nil, err
-	}
-	return chatRooms, nil
-}
-
 func GetUsersByChatRoomId(chatRoomId string) ([]database.UserEntity, error) {
 	var users []database.UserEntity
 	if err := database.DB.Select(&users,

@@ -91,7 +91,7 @@ func SignWithGoogle(c *gin.Context) {
 			UserId:       userEntity.UserId,
 			Id:           *userEntity.Id,
 			UserCode:     userEntity.UserCode,
-			Username:     *userEntity.Username,
+			Username:     userEntity.Username,
 			ProfileImage: *userEntity.ProfileImage,
 			Platform:     *userEntity.Platform,
 		}

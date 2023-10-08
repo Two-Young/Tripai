@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+	"travel-ai/log"
 	"travel-ai/service/database"
 	"travel-ai/service/platform/database_io"
 )
@@ -135,16 +136,6 @@ func DoesChatRoomExist(roomId string) (bool, error) {
 	return count > 0, nil
 }
 
-func DoesChatRoomExistByParticipants(sessionId string, participants []string) (bool, error) {
-	var count int
-	if err := database.DB.Get(&count,
-		"SELECT COUNT(*) FROM chatrooms WHERE sid = ? AND cid IN (SELECT cid FROM chatroom_users WHERE uid IN (?));",
-		sessionId, participants); err != nil {
-		return false, err
-	}
-	return count > 0, nil
-}
-
 func IsParticipantOfChatRoom(chatroomId string, userId string) (bool, error) {
 	var count int
 	if err := database.DB.Get(&count,
@@ -152,4 +143,67 @@ func IsParticipantOfChatRoom(chatroomId string, userId string) (bool, error) {
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func GetSupportedSessionCurrencies(sessionId string) (map[string]Currency, error) {
+	countriesEntities, err := database_io.GetCountriesBySessionId(sessionId)
+	if err != nil {
+		return nil, err
+	}
+
+	supportedCurrencies := make(map[string]Currency)
+	for _, currencyEntity := range countriesEntities {
+		cca2 := currencyEntity.CountryCode
+		if cca2 == nil {
+			log.Debug("country code is nil")
+			continue
+		}
+		country, ok := CountriesMap[*cca2]
+		if !ok {
+			log.Debugf("country not found with cca2: %s", *cca2)
+			continue
+		}
+		for _, currency := range country.Currencies {
+			supportedCurrencies[currency.Code] = Currency{
+				Code:   currency.Code,
+				Name:   currency.Name,
+				Symbol: currency.Symbol,
+			}
+		}
+	}
+	return supportedCurrencies, nil
+}
+
+func GetSupportedSessionCurrenciesByCountry(sessionId string) (map[string][]Currency, error) {
+	countriesEntities, err := database_io.GetCountriesBySessionId(sessionId)
+	if err != nil {
+		return nil, err
+	}
+
+	supportedCurrencies := make(map[string][]Currency)
+	for _, currencyEntity := range countriesEntities {
+		cca2 := currencyEntity.CountryCode
+		if cca2 == nil {
+			log.Debug("country code is nil")
+			continue
+		}
+		country, ok := CountriesMap[*cca2]
+		if !ok {
+			log.Debugf("country not found with cca2: %s", *cca2)
+			continue
+		}
+		supportedCurrencies[country.CCA2] = make([]Currency, 0)
+		currencyList := supportedCurrencies[country.CCA2]
+
+		for _, currency := range country.Currencies {
+			currencyList = append(currencyList, Currency{
+				Code:   currency.Code,
+				Name:   currency.Name,
+				Symbol: currency.Symbol,
+			})
+		}
+		supportedCurrencies[country.CCA2] = currencyList
+	}
+
+	return supportedCurrencies, nil
 }

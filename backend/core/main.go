@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 	"travel-ai/controllers"
 	platform2 "travel-ai/controllers/platform"
 	"travel-ai/libs/crypto"
@@ -90,6 +92,9 @@ func main() {
 		log.Error(err)
 		os.Exit(-3)
 	}
+
+	// randomize seed
+	rand.Seed(time.Now().UnixNano())
 
 	// Run web server with gin
 	controllers.RunGin()

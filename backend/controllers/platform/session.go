@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"travel-ai/controllers/socket"
 	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
@@ -206,7 +207,7 @@ func DeleteSession(c *gin.Context) {
 		return
 	}
 
-	ctx, err := database.DB.BeginTxx(c, nil)
+	ctx, err := database.DB.BeginTx(c, nil)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -214,102 +215,19 @@ func DeleteSession(c *gin.Context) {
 	}
 
 	// check if user has permission to delete session
-	var creatorUid string
-	if err := ctx.Get(
-		&creatorUid,
-		"SELECT creator_uid FROM sessions WHERE sid = ?",
-		body.SessionId,
-	); err != nil {
-		ctx.Rollback()
-		if err == sql.ErrNoRows {
-			c.AbortWithStatus(http.StatusForbidden)
-			return
-		}
+	yes, err := platform.IsSessionCreator(uid, body.SessionId)
+	if err != nil {
 		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	if !yes {
 		c.AbortWithStatus(http.StatusForbidden)
 		return
 	}
 
-	if uid != creatorUid {
-		c.AbortWithStatus(http.StatusForbidden)
-		return
-	}
-
-	// delete countries entity
-	if _, err := ctx.Exec(
-		"DELETE FROM countries WHERE sid = ?",
-		body.SessionId,
-	); err != nil {
-		log.Error(err)
-		ctx.Rollback()
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	// delete receipt items users
-	if _, err := ctx.Exec(
-		"DELETE receipt_items_users "+
-			"FROM receipt_items_users "+
-			"LEFT JOIN receipt_items ON receipt_items_users.riid = receipt_items.riid "+
-			"LEFT JOIN receipts ON receipt_items.rid = receipts.rid "+
-			"WHERE receipts.sid = ?;",
-		body.SessionId,
-	); err != nil {
-		log.Error(err)
-		ctx.Rollback()
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	// delete receipts entity
-	if _, err := ctx.Exec(
-		"DELETE FROM receipts WHERE sid = ?;",
-		body.SessionId,
-	); err != nil {
-		log.Error(err)
-		ctx.Rollback()
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	// delete schedules entity
-	if _, err := ctx.Exec(
-		"DELETE FROM schedules WHERE sid = ?;",
-		body.SessionId,
-	); err != nil {
-		log.Error(err)
-		ctx.Rollback()
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	// delete locations entity
-	if _, err := ctx.Exec(
-		"DELETE FROM locations WHERE sid = ?;",
-		body.SessionId,
-	); err != nil {
-		log.Error(err)
-		ctx.Rollback()
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	// delete user_sessions entity
-	if _, err := ctx.Exec(
-		"DELETE FROM user_sessions WHERE sid = ?;",
-		body.SessionId,
-	); err != nil {
-		log.Error(err)
-		ctx.Rollback()
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	// delete sessions entity
-	if _, err := ctx.Exec(
-		"DELETE FROM sessions WHERE sid = ?;",
-		body.SessionId,
-	); err != nil {
+	// delete session
+	if err = database_io.DeleteSessionTx(ctx, body.SessionId); err != nil {
 		log.Error(err)
 		ctx.Rollback()
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -334,37 +252,24 @@ func Currencies(c *gin.Context) {
 		return
 	}
 
-	countriesEntities, err := database_io.GetCountriesBySessionId(query.SessionId)
+	sessionCurrencies, err := platform.GetSupportedSessionCurrenciesByCountry(query.SessionId)
 	if err != nil {
 		log.Error(err)
-		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid session id")
+		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	supportedCurrencies := make(sessionSupportedCurrenciesResponseDto)
-	for _, currencyEntity := range countriesEntities {
-		cca2 := currencyEntity.CountryCode
-		if cca2 == nil {
-			log.Debug("country code is nil")
-			continue
-		}
-		country, ok := platform.CountriesMap[*cca2]
-		if !ok {
-			log.Debugf("country not found with cca2: %s", *cca2)
-			continue
-		}
-		supportedCurrencies[country.CCA2] = make([]sessionSupportedCurrenciesResponseItem, 0)
-		currencyList := supportedCurrencies[country.CCA2]
-
-		for _, currency := range country.Currencies {
+	supportedCurrencies := make(map[string][]sessionSupportedCurrenciesResponseItem)
+	for cca2, currencies := range sessionCurrencies {
+		currencyList := make([]sessionSupportedCurrenciesResponseItem, 0)
+		for _, currency := range currencies {
 			currencyList = append(currencyList, sessionSupportedCurrenciesResponseItem{
 				CurrencyCode:   currency.Code,
 				CurrencyName:   currency.Name,
 				CurrencySymbol: currency.Symbol,
 			})
 		}
-
-		supportedCurrencies[country.CCA2] = currencyList
+		supportedCurrencies[cca2] = currencyList
 	}
 	c.JSON(http.StatusOK, supportedCurrencies)
 }
@@ -402,7 +307,7 @@ func SessionMembers(c *gin.Context) {
 	for _, member := range members {
 		resp = append(resp, sessionMembersResponseItem{
 			UserId:       member.UserId,
-			Username:     *member.Username,
+			Username:     member.Username,
 			ProfileImage: *member.ProfileImage,
 			JoinedAt:     member.JoinedAt.UnixMilli(),
 		})
@@ -626,7 +531,7 @@ func SessionInviteWaitings(c *gin.Context) {
 	for _, invitee := range invitees {
 		resp = append(resp, sessionInviteWaitingResponseItem{
 			UserId:       invitee.UserId,
-			Username:     *invitee.Username,
+			Username:     invitee.Username,
 			ProfileImage: *invitee.ProfileImage,
 			InvitedAt:    invitee.InvitedAt.UnixMilli(),
 		})
@@ -685,7 +590,6 @@ func ConfirmSessionInvite(c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-
 	if !yes {
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "permission denied: you are not invited to this session")
 		return
@@ -727,6 +631,28 @@ func ConfirmSessionInvite(c *gin.Context) {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
+	}
+
+	// join user to session chatroom if possible
+	if *body.Accept {
+		go func() {
+			userEntity, err := database_io.GetUser(uid)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+
+			sock, ok := socket.SocketManager.GetUserByUserId(userEntity.UserId)
+			if ok {
+				socket.SocketManager.Io.JoinRoom("/", socket.RoomKey(body.SessionId), sock.Conn)
+				socket.SocketManager.Io.BroadcastToRoom("/", socket.RoomKey(body.SessionId),
+					"sessionChat/userJoined", socket.NewChatMessage(
+						"", "", nil,
+						fmt.Sprintf("%s joined the session", userEntity.Username),
+						time.Now().UnixMilli(), socket.TypeSystemMessage),
+				)
+			}
+		}()
 	}
 
 	c.Status(http.StatusOK)
@@ -912,7 +838,7 @@ func SessionJoinRequests(c *gin.Context) {
 	for _, joinRequest := range joinRequests {
 		resp = append(resp, sessionJoinRequestsResponseItem{
 			UserId:       joinRequest.UserId,
-			Username:     *joinRequest.Username,
+			Username:     joinRequest.Username,
 			ProfileImage: *joinRequest.ProfileImage,
 			RequestedAt:  joinRequest.RequestedAt.UnixMilli(),
 		})
@@ -1025,6 +951,28 @@ func ConfirmSessionJoin(c *gin.Context) {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
+	}
+
+	// join user to session chatroom if possible
+	if *body.Accept {
+		go func() {
+			userEntity, err := database_io.GetUser(body.UserId)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+
+			sock, ok := socket.SocketManager.GetUserByUserId(userEntity.UserId)
+			if ok {
+				socket.SocketManager.Io.JoinRoom("/", socket.RoomKey(body.SessionId), sock.Conn)
+				socket.SocketManager.Io.BroadcastToRoom("/", socket.RoomKey(body.SessionId),
+					"sessionChat/userJoined", socket.NewChatMessage(
+						"", "", nil,
+						fmt.Sprintf("%s joined the session", userEntity.Username),
+						time.Now().UnixMilli(), socket.TypeSystemMessage),
+				)
+			}
+		}()
 	}
 
 	c.Status(http.StatusOK)

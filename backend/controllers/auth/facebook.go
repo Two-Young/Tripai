@@ -5,34 +5,33 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"io"
 	"net/http"
 	"travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
 	"travel-ai/service/platform"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-func SignWithNaver(c *gin.Context) {
+func SignWithFacebook(c *gin.Context) {
 	var body SignRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 
 	// check if access token is valid
-	verifyUrl := fmt.Sprintf("https://openapi.naver.com/v1/nid/verify?access_token=%s", body.IdToken)
-	req, err := http.NewRequest("GET", verifyUrl, nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", body.IdToken))
-	resp, err := http.DefaultClient.Do(req)
-	defer resp.Body.Close()
+	verifyUrl := fmt.Sprintf("https://graph.facebook.com/debug_token?input_token=%s&access_token=%s", body.IdToken)
+	resp, err := http.Get(verifyUrl)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+	defer resp.Body.Close()
 
 	bodyContent, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -41,40 +40,38 @@ func SignWithNaver(c *gin.Context) {
 		return
 	}
 
-	// convert body to GoogleCredentials
-	var naverCredentials NaverCredentialsDto
-	if err := json.Unmarshal(bodyContent, &naverCredentials); err != nil {
+	// convert body to FacebookCredentials
+	var facebookCredential FacebookCredentialsDto
+	if err := json.Unmarshal(bodyContent, &facebookCredential); err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		util.AbortWithErrJson(c, http.StatusUnauthorized, fmt.Errorf("invalid token: status code must be 200, but %d given", resp.StatusCode))
+	if !facebookCredential.Data.IsValid {
+		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	if naverCredentials.ResultCode != "00" {
-		util.AbortWithErrJson(c, http.StatusUnauthorized, fmt.Errorf("invalid token: result code must be 00, but %s given", naverCredentials.ResultCode))
+	// Get user's information using Facebook Graph API
+	userInfoUrl := fmt.Sprintf("https://graph.facebook.com/me&fields=id,name,email,picture")
+	respUserInfo, err := http.Get(userInfoUrl)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+	defer respUserInfo.Body.Close()
 
-	// get profile info
-	profileUrl := "https://openapi.naver.com/v1/nid/me"
-	req, err = http.NewRequest("GET", profileUrl, nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", body.IdToken))
-	resp, err = http.DefaultClient.Do(req)
-	defer resp.Body.Close()
-
-	bodyContent, err = io.ReadAll(resp.Body)
+	bodyUserInfo, err := io.ReadAll(respUserInfo.Body)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	var naverProfile NaverProfileDto
-	if err := json.Unmarshal(bodyContent, &naverProfile); err != nil {
+	var facebookUser FacebookUser // Facebook 사용자 정보 형식에 맞게 구조체를 정의해야 합니다.
+	if err := json.Unmarshal(bodyUserInfo, &facebookUser); err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -85,12 +82,12 @@ func SignWithNaver(c *gin.Context) {
 	alreadyRegistered := true
 	var (
 		userEntity database.UserEntity
-		uid        string
 		userCode   string
+		uid        string
 		returnCode int
 		userInfo   UserInfoDto
 	)
-	result := database.DB.QueryRowx("SELECT * FROM users WHERE id = ? AND platform = ?", naverProfile.Response.Email, NAVER)
+	result := database.DB.QueryRowx("SELECT * FROM users WHERE id = ? AND platform = ?", facebookUser.Email, GOOGLE)
 	if err := result.StructScan(&userEntity); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			alreadyRegistered = false
@@ -98,11 +95,11 @@ func SignWithNaver(c *gin.Context) {
 			userCode = platform.GenerateTenLengthCode()
 			userInfo = UserInfoDto{
 				UserId:       uid,
-				Id:           naverProfile.Response.Email,
+				Id:           facebookUser.Email,
 				UserCode:     userCode,
-				Username:     naverProfile.Response.Name,
-				ProfileImage: naverProfile.Response.Profile,
-				Platform:     NAVER,
+				Username:     facebookUser.Name,
+				ProfileImage: facebookUser.Picture.Data.URL,
+				Platform:     FACEBOOK,
 			}
 		} else {
 			log.Error(err)
@@ -127,6 +124,7 @@ func SignWithNaver(c *gin.Context) {
 			userInfo.UserId, userInfo.Id, userInfo.UserCode, userInfo.Username, userInfo.ProfileImage, userInfo.Platform).Err(); err != nil {
 			log.Error(err)
 			util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to create user")
+			return
 		}
 		returnCode = http.StatusCreated
 	} else {
@@ -138,14 +136,12 @@ func SignWithNaver(c *gin.Context) {
 	if err != nil {
 		log.Error(err)
 		util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to create access token")
-		return
 	}
 
 	// save refresh token to in-memory
 	if err := saveRefreshToken(uid, authTokenBundle.RefreshToken); err != nil {
 		log.Error(err)
 		util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to save refresh token")
-		return
 	}
 
 	signResponseDto := SignResponseDto{
@@ -156,7 +152,7 @@ func SignWithNaver(c *gin.Context) {
 	c.JSON(returnCode, signResponseDto)
 }
 
-func UseNaverAuthRouter(g *gin.RouterGroup) {
-	sg := g.Group("/naver")
-	sg.POST("sign", SignWithNaver)
+func UseFacebookAuthRouter(g *gin.RouterGroup) {
+	sg := g.Group("/facebook")
+	sg.POST("sign", SignWithFacebook)
 }
