@@ -6,7 +6,7 @@ type UserEntity struct {
 	UserId              string  `db:"uid" json:"user_id"`
 	Id                  *string `db:"id" json:"id"`
 	UserCode            string  `db:"user_code" json:"user_code"`
-	Username            *string `db:"username" json:"username"`
+	Username            string  `db:"username" json:"username"`
 	ProfileImage        *string `db:"profile_image" json:"profile_image"`
 	Platform            *string `db:"platform" json:"platform"`
 	AllowNicknameSearch bool    `db:"allow_nickname_search" json:"allow_nickname_search"`
@@ -143,4 +143,11 @@ type ChatRoomEntity struct {
 type ChatRoomsUserEntity struct {
 	ChatroomId string `db:"cid" json:"chatroom_id"`
 	UserId     string `db:"uid" json:"user_id"`
+}
+
+type BudgetEntity struct {
+	BudgetId     string  `db:"bid" json:"budget_id"`
+	CurrencyCode string  `db:"currency_code" json:"currency_code"`
+	Amount       float64 `db:"amount" json:"amount"`
+	SessionId    string  `db:"sid" json:"session_id"`
 }

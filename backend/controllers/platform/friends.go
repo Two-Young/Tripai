@@ -155,7 +155,6 @@ func CancelFriendRequest(c *gin.Context) {
 		return
 	}
 
-
 	alreadyFriend := false
 	iSentToOpposite := false
 	for _, r := range relations {
@@ -412,8 +411,8 @@ func SearchFriend(c *gin.Context) {
 		resp = append(resp, friendsSearchResponseItem{
 			UserId:       u.UserId,
 			UserCode:     u.UserCode,
-			Username:     *u.Username,
-			ProfileImage: *u.ProfileImage,
+			Username:     u.Username,
+			ProfileImage: u.ProfileImage,
 		})
 	}
 

@@ -51,6 +51,15 @@ func UseSocket(r *gin.Engine) {
 }
 
 func userHandlers(io *socketio.Server) {
+	getUsername := func(s socketio.Conn) string {
+		ctx := s.Context()
+		if ctx == nil {
+			return "unknown"
+		}
+		user := ctx.(database.UserEntity)
+		return user.Username
+	}
+
 	io.OnConnect("/", func(s socketio.Conn) error {
 		req := s.RemoteHeader()
 		uid := req.Get("uid")
@@ -63,37 +72,40 @@ func userHandlers(io *socketio.Server) {
 		userEntity, err := database_io.GetUser(uid)
 		if err != nil {
 			log.Errorf("Cannot find user with uid %s", uid)
-			s.Close()
+			// send disconnect event with reason
+			s.Emit("disconnect", "unknown user")
+			_ = s.Close()
 			return nil
 		}
 		user := *userEntity
 
 		s.SetContext(user)
-		log.Infof("Socket connected: [%v] %v", *user.Username, s.ID())
+		log.Infof("Socket connected: [%v] %v", user.Username, s.ID())
 		SocketManager.AddUser(user, s)
 
-		// get all chatrooms that user is in
-		chatRooms, err := database_io.GetChatRoomsByUserId(uid)
+		// get all sessions
+		sessions, err := database_io.GetSessionsByUid(user.UserId)
 		if err != nil {
-			log.Errorf("Cannot get chatrooms for user %s", uid)
-			log.Error(err)
-			return err
+			s.Emit("disconnect", "Cannot get sessions for user "+user.UserId)
+			_ = s.Close()
+			return nil
 		}
 
-		for _, chatRoom := range chatRooms {
-			s.Join(RoomKey(chatRoom.ChatroomId))
+		for _, session := range sessions {
+			s.Join(RoomKey(session.SessionId))
+			log.Debugf("Socket joined room %s", RoomKey(session.SessionId))
 		}
 		return nil
 	})
 
 	io.OnError("/", func(s socketio.Conn, e error) {
-		user := s.Context().(database.UserEntity)
-		log.Warnf("Socket error: [%v] %v", user.Username, e)
+		username := getUsername(s)
+		log.Warnf("Socket error: [%v] %v", username, e)
 	})
 
 	io.OnDisconnect("/", func(s socketio.Conn, reason string) {
-		user := s.Context().(database.UserEntity)
-		log.Debugf("Socket disconnected: [%v] %v", user.Username, reason)
+		username := getUsername(s)
+		log.Debugf("Socket disconnected: [%v] %v", username, reason)
 		SocketManager.RemoveUserByConnId(s.ID())
 
 		// leave all chatrooms
@@ -101,68 +113,89 @@ func userHandlers(io *socketio.Server) {
 	})
 
 	io.OnEvent("/", "test", func(s socketio.Conn, msg string) {
-		log.Debugf("ping: %v", msg)
-		s.Emit("test", "pong")
-	})
-
-	io.OnEvent("/chat", "/getChatRooms", func(s socketio.Conn) {
-		user := s.Context().(database.UserEntity)
-		chatRooms, err := database_io.GetChatRoomsByUserId(user.UserId)
-		if err != nil {
-			log.Errorf("Cannot get chatrooms for user %s", user.UserId)
-			log.Error(err)
-			s.Emit("chatRooms", NewFailure(err.Error()))
-			return
-		}
-		s.Emit("chatRooms", NewSuccess(chatRooms))
+		s.Emit("test", "test")
 	})
 
 	// get all messages in chat room (TODO :: maybe need pagination)
-	io.OnEvent("/chat", "/getMessages", func(s socketio.Conn, chatRoomId string) {
-		messagesRaw, err := database.InMemoryDB.LRange(RoomKey(chatRoomId), 0, -1)
+	io.OnEvent("/", "sessionChat/getMessages", func(s socketio.Conn, sessionId string) {
+		log.Debugf("sessionChat/getMessages (%s): [%s]", sessionId, getUsername(s))
+
+		messagesRaw, err := database.InMemoryDB.LRange(RoomKey(sessionId), 0, -1)
 		if err != nil {
-			log.Errorf("Cannot get messages in chatroom %s", chatRoomId)
 			log.Error(err)
-			s.Emit("messages", NewFailure(err.Error()))
+			s.Emit("sessionChat/getMessages", NewFailure(err.Error()))
 			return
-		} else {
-			s.Emit("messages", NewFailure("Cannot get messages in chatroom"))
 		}
 
 		messages := make([]ChatMessage, len(messagesRaw))
 		for i, messageRaw := range messagesRaw {
 			messages[i], err = ChatMessageFromStr(messageRaw)
 			if err != nil {
-				log.Errorf("Cannot parse message %s", messageRaw)
+				log.Debug(messageRaw)
 				log.Error(err)
-				s.Emit("messages", NewFailure("Cannot parse messages in chatroom"))
+				s.Emit("sessionChat/getMessages", NewFailure("Cannot parse messages in chatroom"))
 				return
 			}
 		}
 
-		// sort messages by timestamp (newest first - descending)
+		// sort messages by timestamp (oldest first - ascending)
 		sort.Slice(messages, func(i, j int) bool {
-			return messages[i].Timestamp > messages[j].Timestamp
+			return messages[i].Timestamp < messages[j].Timestamp
 		})
-		s.Emit("messages", NewSuccess(messages))
+		s.Emit("sessionChat/getMessages", NewSuccess(messages))
 	})
 
-	io.OnEvent("/chat", "/sendMessage", func(s socketio.Conn, chatRoomId string, message string) {
+	io.OnEvent("/", "sessionChat/sendMessage", func(s socketio.Conn, sessionId string, message string) {
+		log.Debugf("sessionChat/sendMessage (%s): [%s] %s", sessionId, getUsername(s), message)
+
 		user := s.Context().(database.UserEntity)
-		err := database.InMemoryDB.LPushExp(RoomKey(chatRoomId), message, time.Hour*24*7)
+		chatMessage := NewChatMessage(
+			user.UserId,
+			user.Username,
+			user.ProfileImage,
+			message,
+			time.Now().UnixMilli(),
+			TypeChatMessage,
+		)
+		chatMessageRaw, err := chatMessage.String()
 		if err != nil {
-			log.Errorf("Cannot push message to chatroom %s", chatRoomId)
 			log.Error(err)
+			s.Emit("sessionChat/message", NewFailure(err.Error()))
 			return
-		} else {
-			chatMessage := NewChatMessage(
-				user.UserId,
-				user.Username,
-				user.ProfileImage,
-				message,
-				time.Now().UnixMilli(),
-			)
-			io.BroadcastToRoom("/chat", chatRoomId, "message", NewSuccess(chatMessage))
 		}
+		if err := database.InMemoryDB.LPushExp(RoomKey(sessionId), chatMessageRaw, time.Hour*24*7); err != nil {
+			log.Error(err)
+			s.Emit("sessionChat/message", NewFailure(err.Error()))
+			return
+		}
+		io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/message", NewSuccess(chatMessage))
+	})
+
+	io.OnEvent("/", "sendAssistantMessage", func(s socketio.Conn, sessionId string, message string) {
+		log.Debugf("sessionChat/sendAssistantMessage (%s): [%s] %s", sessionId, getUsername(s), message)
+
+		user := s.Context().(database.UserEntity)
+		chatMessage := NewChatMessage(
+			user.UserId,
+			user.Username,
+			user.ProfileImage,
+			message,
+			time.Now().UnixMilli(),
+			TypeAssistantRequest,
+		)
+		chatMessageRaw, err := chatMessage.String()
+		if err != nil {
+			log.Errorf("Cannot parse GPT message %s", message)
+			log.Error(err)
+			s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
+			return
+		}
+		if err := database.InMemoryDB.LPushExp(RoomKey(sessionId), chatMessageRaw, time.Hour*24*7); err != nil {
+			log.Errorf("Cannot push GPT message to session %s", sessionId)
+			log.Error(err)
+			s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
+			return
+		}
+		io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/sendAssistantMessage", NewSuccess(chatMessage))
 	})
 }

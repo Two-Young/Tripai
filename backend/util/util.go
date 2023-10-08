@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -180,4 +181,18 @@ func AppendFilename(src string, append string) string {
 	ext := filepath.Ext(src)
 	name := src[:len(src)-len(ext)]
 	return name + append + ext
+}
+
+func IsNumber(data any) bool {
+	_type := reflect.TypeOf(data)
+	return IsNumberType(_type)
+}
+
+func IsNumberType(_type reflect.Type) bool {
+	switch _type.Kind() {
+	case reflect.Float64, reflect.Float32, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return true
+	default:
+		return false
+	}
 }

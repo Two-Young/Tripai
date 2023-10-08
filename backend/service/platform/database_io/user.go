@@ -37,3 +37,11 @@ func UpdateUserTx(tx *sql.Tx, userEntity database.UserEntity) error {
 	)
 	return err
 }
+
+func DeleteUserTx(tx *sql.Tx, uid string) error {
+	_, err := tx.Exec(`
+		DELETE FROM users WHERE uid = ?;`,
+		uid,
+	)
+	return err
+}

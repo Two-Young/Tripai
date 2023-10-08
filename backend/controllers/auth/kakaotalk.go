@@ -5,34 +5,33 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"io"
 	"net/http"
 	"travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
 	"travel-ai/service/platform"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-func SignWithNaver(c *gin.Context) {
+func SignWithKakaotalk(c *gin.Context) {
 	var body SignRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 
-	// check if access token is valid
-	verifyUrl := fmt.Sprintf("https://openapi.naver.com/v1/nid/verify?access_token=%s", body.IdToken)
-	req, err := http.NewRequest("GET", verifyUrl, nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", body.IdToken))
-	resp, err := http.DefaultClient.Do(req)
-	defer resp.Body.Close()
+	// check if id token is valid
+	verifyUrl := fmt.Sprintf("https://oauth2.googleapis.com/tokeninfo?id_token=%s", body.IdToken)
+	resp, err := http.Get(verifyUrl)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+	defer resp.Body.Close()
 
 	bodyContent, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -42,41 +41,15 @@ func SignWithNaver(c *gin.Context) {
 	}
 
 	// convert body to GoogleCredentials
-	var naverCredentials NaverCredentialsDto
-	if err := json.Unmarshal(bodyContent, &naverCredentials); err != nil {
+	var googleCredentials GoogleCredentialsDto
+	if err := json.Unmarshal(bodyContent, &googleCredentials); err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		util.AbortWithErrJson(c, http.StatusUnauthorized, fmt.Errorf("invalid token: status code must be 200, but %d given", resp.StatusCode))
-		return
-	}
-
-	if naverCredentials.ResultCode != "00" {
-		util.AbortWithErrJson(c, http.StatusUnauthorized, fmt.Errorf("invalid token: result code must be 00, but %s given", naverCredentials.ResultCode))
-		return
-	}
-
-	// get profile info
-	profileUrl := "https://openapi.naver.com/v1/nid/me"
-	req, err = http.NewRequest("GET", profileUrl, nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", body.IdToken))
-	resp, err = http.DefaultClient.Do(req)
-	defer resp.Body.Close()
-
-	bodyContent, err = io.ReadAll(resp.Body)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	var naverProfile NaverProfileDto
-	if err := json.Unmarshal(bodyContent, &naverProfile); err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
+		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
@@ -85,12 +58,12 @@ func SignWithNaver(c *gin.Context) {
 	alreadyRegistered := true
 	var (
 		userEntity database.UserEntity
-		uid        string
 		userCode   string
+		uid        string
 		returnCode int
 		userInfo   UserInfoDto
 	)
-	result := database.DB.QueryRowx("SELECT * FROM users WHERE id = ? AND platform = ?", naverProfile.Response.Email, NAVER)
+	result := database.DB.QueryRowx("SELECT * FROM users WHERE id = ? AND platform = ?", googleCredentials.Email, GOOGLE)
 	if err := result.StructScan(&userEntity); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			alreadyRegistered = false
@@ -98,11 +71,11 @@ func SignWithNaver(c *gin.Context) {
 			userCode = platform.GenerateTenLengthCode()
 			userInfo = UserInfoDto{
 				UserId:       uid,
-				Id:           naverProfile.Response.Email,
+				Id:           googleCredentials.Email,
 				UserCode:     userCode,
-				Username:     naverProfile.Response.Name,
-				ProfileImage: naverProfile.Response.Profile,
-				Platform:     NAVER,
+				Username:     googleCredentials.Name,
+				ProfileImage: googleCredentials.Picture,
+				Platform:     GOOGLE,
 			}
 		} else {
 			log.Error(err)
@@ -127,6 +100,7 @@ func SignWithNaver(c *gin.Context) {
 			userInfo.UserId, userInfo.Id, userInfo.UserCode, userInfo.Username, userInfo.ProfileImage, userInfo.Platform).Err(); err != nil {
 			log.Error(err)
 			util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to create user")
+			return
 		}
 		returnCode = http.StatusCreated
 	} else {
@@ -138,14 +112,12 @@ func SignWithNaver(c *gin.Context) {
 	if err != nil {
 		log.Error(err)
 		util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to create access token")
-		return
 	}
 
 	// save refresh token to in-memory
 	if err := saveRefreshToken(uid, authTokenBundle.RefreshToken); err != nil {
 		log.Error(err)
 		util.AbortWithStrJson(c, http.StatusInternalServerError, "failed to save refresh token")
-		return
 	}
 
 	signResponseDto := SignResponseDto{
@@ -156,7 +128,7 @@ func SignWithNaver(c *gin.Context) {
 	c.JSON(returnCode, signResponseDto)
 }
 
-func UseNaverAuthRouter(g *gin.RouterGroup) {
-	sg := g.Group("/naver")
-	sg.POST("sign", SignWithNaver)
+func UseKakaotalkAuthRouter(g *gin.RouterGroup) {
+	sg := g.Group("/kakaotalk")
+	sg.POST("sign", SignWithKakaotalk)
 }

@@ -353,7 +353,7 @@ type currencyExchangeRateRequestDto struct {
 type friendsGetResponseItem struct {
 	UserId       string  `json:"user_id" binding:"required"`
 	UserCode     string  `json:"user_code" binding:"required"`
-	Username     *string `json:"username" binding:"required"`
+	Username     string  `json:"username" binding:"required"`
 	ProfileImage *string `json:"profile_image" binding:"required"`
 	AcceptedAt   int64   `json:"accepted_at" binding:"required"`
 }
@@ -382,7 +382,7 @@ type friendsDeleteRequestDto struct {
 
 type friendsWaitingRequests struct {
 	UserId       string  `json:"user_id" binding:"required"`
-	Username     *string `json:"username" binding:"required"`
+	Username     string  `json:"username" binding:"required"`
 	ProfileImage *string `json:"profile_image" binding:"required"`
 	RequestedAt  int64   `json:"requested_at" binding:"required"`
 }
@@ -397,10 +397,10 @@ type friendsSearchRequestDto struct {
 }
 
 type friendsSearchResponseItem struct {
-	UserId       string `json:"user_id" binding:"required"`
-	UserCode     string `json:"user_code" binding:"required"`
-	Username     string `json:"username" binding:"required"`
-	ProfileImage string `json:"profile_image" binding:"required"`
+	UserId       string  `json:"user_id" binding:"required"`
+	UserCode     string  `json:"user_code" binding:"required"`
+	Username     string  `json:"username" binding:"required"`
+	ProfileImage *string `json:"profile_image" binding:"required"`
 }
 
 type friendsSearchResponseDto []friendsSearchResponseItem
@@ -415,7 +415,7 @@ type userGetProfileResponseDto struct {
 /* ---------------- Chats ---------------- */
 
 type ChatGetRoomsRequestDto struct {
-	SessionId string `json:"session_id" binding:"required"`
+	SessionId string `form:"session_id" binding:"required"`
 }
 
 type ChatGetRoomsParticipant struct {
@@ -439,4 +439,27 @@ type ChatCreateRoomRequestDto struct {
 type ChatInviteRequestDto struct {
 	ChatRoomId    string `json:"chat_room_id" binding:"required"`
 	InvitedUserId string `json:"invited_user_id" binding:"required"`
+}
+
+/* ---------------- Budgets ---------------- */
+type BudgetGetRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type BudgetGetResponseItem struct {
+	BudgetId     string  `json:"budget_id"`
+	CurrencyCode string  `json:"currency_code"`
+	Amount       float64 `json:"amount"`
+}
+
+type BudgetGetResponseDto []BudgetGetResponseItem
+
+type BudgetCreateRequestDto struct {
+	CurrencyCode string  `json:"currency_code" binding:"required"`
+	Amount       float64 `json:"amount" binding:"required"`
+	SessionId    string  `json:"session_id" binding:"required"`
+}
+
+type BudgetDeleteRequestDto struct {
+	BudgetId string `json:"budget_id" binding:"required"`
 }

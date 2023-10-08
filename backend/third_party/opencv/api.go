@@ -1,19 +1,16 @@
 package opencv
 
 import (
-	"errors"
 	"image"
 	"image/color"
 	"os"
-	"sort"
 	"travel-ai/log"
 	"travel-ai/util"
 
 	"gocv.io/x/gocv"
 )
 
-// 50 200 100
-func CropReceiptSubImage(img image.Image, minVal, maxVal, threshold float32) (image.Image, error) {
+func CropReceiptSubImage(img image.Image) (image.Image, error) {
 	// save img as temp file
 	filepath, _ := util.GenerateTempFilePath()
 	if err := util.SaveImageFileAsPng(img, filepath, false); err != nil {
@@ -27,133 +24,122 @@ func CropReceiptSubImage(img image.Image, minVal, maxVal, threshold float32) (im
 		}
 		log.Debug("temp file deleted: " + filepath)
 	}()
-	
+
 	// image
 	cvImage := gocv.IMRead(filepath, gocv.IMReadColor)
 	defer cvImage.Close()
-	
-	//gocv.GaussianBlur(cvImage, &cvImage, image.Point{X: 3, Y: 3}, 0, 0, gocv.BorderDefault)
-	gocv.Threshold(cvImage, &cvImage, threshold, 255, gocv.ThresholdBinary)
-	
-	hsv := gocv.NewMat()
-	defer hsv.Close()
-	gocv.CvtColor(cvImage, &hsv, gocv.ColorBGRToHSV)
-	
-	mask := gocv.NewMat()
-	defer mask.Close()
-	lower := gocv.NewScalar(0, 0, 200, 0)
-	upper := gocv.NewScalar(180, 255, 255, 0)
-	gocv.InRangeWithScalar(hsv, lower, upper, &mask)
-	return mask.ToImage()
-	
-	//result := gocv.NewMat()
-	//defer result.Close()
-	//gocv.BitwiseAnd(img, img, &result)
-	
-	// gray
-	gray := gocv.NewMat()
-	defer gray.Close()
-	gocv.CvtColor(cvImage, &gray, gocv.ColorBGRToGray)
-	return gray.ToImage()
-	
-	// canny
-	canny := gocv.NewMat()
-	defer canny.Close()
-	gocv.Canny(gray, &canny, minVal, maxVal)
-	gocv.Threshold(canny, &canny, threshold, 255, gocv.ThresholdBinary)
-	
-	contours := gocv.FindContours(canny, gocv.RetrievalExternal, gocv.ChainApproxSimple)
+
+	_blurBlock := 1
+	_threshold := 0
+	_adaptiveThresholdBlock := 27
+	_adaptiveThresholdC := 7
+	lowH, upH := 10, 160
+	lowS, upS := 0, 255
+	lowV, upV := 100, 255
+
+	blurredImg := blur(cvImage, _blurBlock)
+	thresholdedImg := threshold(*blurredImg, _threshold, gocv.ThresholdToZero)
+	adaptiveThresholdedImg := adaptiveThreshold(*thresholdedImg, _adaptiveThresholdBlock, _adaptiveThresholdC)
+	bitwisedImg := bitwiseAnd(*adaptiveThresholdedImg, *blurredImg)
+	hsvImg := hsv(*bitwisedImg)
+	masked := mask(*hsvImg, float64(lowH), float64(lowS), float64(lowV), float64(upH), float64(upS), float64(upV))
+
+	// crop receipt
+	var newImg *gocv.Mat
+	cvImage.CopyTo(newImg)
+
+	// find contours
+	contours := gocv.FindContours(*masked, gocv.RetrievalExternal, gocv.ChainApproxSimple)
 	if contours.Size() == 0 {
-		return nil, errors.New("no contours found")
+		// no receipt found, just return original image
+		return newImg.ToImage()
 	}
-	
-	// sort contours by area
-	totalArea := img.Bounds().Dx() * img.Bounds().Dy()
-	areaSum := 0
-	sortedContours := make([]util.Pair[int, gocv.PointVector], 0)
+
+	// find largest contour
+	var largestContour *gocv.PointVector
 	for i := 0; i < contours.Size(); i++ {
 		contour := contours.At(i)
-		area := gocv.ContourArea(contour)
-		areaSum += int(area)
-		if area > 0 {
-			sortedContours = append(sortedContours, util.NewPair(i, contour))
+		if largestContour == nil || contour.Size() > largestContour.Size() {
+			largestContour = &contour
 		}
 	}
-	meanArea := float64(areaSum) / float64(contours.Size())
-	
-	sort.Slice(sortedContours, func(i, j int) bool {
-		return gocv.ContourArea(sortedContours[i].Value) > gocv.ContourArea(sortedContours[j].Value)
-	})
-	
-	for i, contour := range sortedContours {
-		log.Debugf("contour area: %.2f, length: %d", gocv.ContourArea(contour.Value), contour.Value.Size())
-		gocv.DrawContours(&cvImage, contours, contour.Key, color.RGBA{G: 255, A: 255}, 2)
-		if i > 10 {
-			break
-		}
-	}
-	
-	receiptContour := sortedContours[0].Value
-	receiptArea := gocv.ContourArea(receiptContour)
-	areaRate := receiptArea / float64(totalArea)
-	log.Debugf(
-		"area rate: %.3f%% [mean: %.2f] (%.2f/%.f)",
-		areaRate*100, meanArea, receiptArea, float64(totalArea),
-	)
-	
-	if areaRate < 0 {
-		return nil, errors.New("no receipt found or receipt is too small (less than 5%)")
-	}
-	
-	// debug
-	// return cvImage.ToImage()
 
-	// apply perspective transform
-	// get 4 dots from receiptContour and transform as square
-	minX, minY := img.Bounds().Dx(), img.Bounds().Dy()
-	maxX, maxY := 0, 0
-	for i := 0; i < receiptContour.Size(); i++ {
-		point := receiptContour.At(i)
-		if point.X < minX {
-			minX = point.X
+	// poly set
+	epsilon := 0.03 * gocv.ArcLength(*largestContour, true)
+	approx := gocv.ApproxPolyDP(*largestContour, epsilon, true)
+
+	// bounds
+	boundingRect := gocv.BoundingRect(approx)
+	mask := gocv.NewMatWithSize(boundingRect.Dy(), boundingRect.Dx(), cvImage.Type())
+
+	// draw contours
+	gocv.DrawContours(&mask, contours, -1, color.RGBA{
+		R: 255,
+		G: 255,
+		B: 255,
+		A: 255,
+	}, -1)
+
+	// convex hull
+	var hull *gocv.Mat
+	gocv.ConvexHull(approx, hull, true, false)
+
+	// rect points
+	type Point struct {
+		x, y int32
+	}
+	lu := Point{int32(boundingRect.Min.X), int32(boundingRect.Min.Y)}
+	ru := Point{int32(boundingRect.Max.X), int32(boundingRect.Min.Y)}
+	ld := Point{int32(boundingRect.Min.X), int32(boundingRect.Max.Y)}
+	rd := Point{int32(boundingRect.Max.X), int32(boundingRect.Max.Y)}
+
+	// find extreme points of hull
+	leftTopMost := lu
+	rightTopMost := ru
+	leftBottomMost := ld
+	rightBottomMost := rd
+
+	for i := 0; i < hull.Rows(); i++ {
+		point := hull.GetVeciAt(i, 0)
+		x := point[0]
+		y := point[1]
+
+		if x < leftTopMost.x {
+			leftTopMost = Point{x, y}
 		}
-		if point.Y < minY {
-			minY = point.Y
+		if x > rightTopMost.x {
+			rightTopMost = Point{x, y}
 		}
-		if point.X > maxX {
-			maxX = point.X
+		if y < leftBottomMost.y {
+			leftBottomMost = Point{x, y}
 		}
-		if point.Y > maxY {
-			maxY = point.Y
+		if y > rightBottomMost.y {
+			rightBottomMost = Point{x, y}
 		}
 	}
-	width := maxX - minX
-	height := maxY - minY
-	
-	log.Debugf("transform to width/height: (%d, %d)", width, height)
-	
-	//srcPoints := gocv.NewPointVector()
-	//srcPoints.Append(receiptContour.At(0))
-	//srcPoints.Append(receiptContour.At(1))
-	//srcPoints.Append(receiptContour.At(2))
-	//srcPoints.Append(receiptContour.At(3))
-	srcPoints := receiptContour
-	
-	dstPoints := gocv.NewPointVector()
-	dstPoints.Append(image.Point{X: 0, Y: 0})
-	dstPoints.Append(image.Point{X: width, Y: 0})
-	dstPoints.Append(image.Point{X: 0, Y: height})
-	dstPoints.Append(image.Point{X: width, Y: height})
-	perspectiveMatrix := gocv.GetPerspectiveTransform(srcPoints, dstPoints)
-	
-	result := gocv.NewMat()
-	defer result.Close()
-	gocv.WarpPerspective(cvImage, &result, perspectiveMatrix, image.Point{X: width, Y: height})
-	
-	newImage, err := result.ToImage()
+
+	// make transform src and dst points
+	srcPointVector := gocv.NewPointVector()
+	srcPointVector.Append(image.Pt(int(leftTopMost.x), int(leftTopMost.y)))
+	srcPointVector.Append(image.Pt(int(rightTopMost.x), int(rightTopMost.y)))
+	srcPointVector.Append(image.Pt(int(leftBottomMost.x), int(leftBottomMost.y)))
+	srcPointVector.Append(image.Pt(int(rightBottomMost.x), int(rightBottomMost.y)))
+
+	dstPointVector := gocv.NewPointVector()
+	dstPointVector.Append(image.Pt(int(lu.x), int(lu.y)))
+	dstPointVector.Append(image.Pt(int(ru.x), int(ru.y)))
+	dstPointVector.Append(image.Pt(int(ld.x), int(ld.y)))
+	dstPointVector.Append(image.Pt(int(rd.x), int(rd.y)))
+
+	// perspective transform
+	transformed := gocv.GetPerspectiveTransform(srcPointVector, dstPointVector)
+	warped := gocv.NewMat()
+	gocv.WarpPerspective(*newImg, &warped, transformed, image.Pt(mask.Cols(), mask.Rows()))
+
+	newImage, err := warped.ToImage()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return newImage, nil
 }
