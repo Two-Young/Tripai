@@ -48,24 +48,6 @@ const AddTravelScreen = () => {
 
   return (
     <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
-      {/* <Header
-        backgroundColor="#fff"
-        barStyle="dark-content"
-        leftComponent={
-          <IconButton
-            mode="contained"
-            icon="chevron-left"
-            iconColor="#000"
-            onPress={() => navigation.goBack()}
-          />
-        }
-        centerComponent={{
-          text: 'Choose the countries',
-          style: {
-            ...Medium(18),
-          },
-        }}
-      /> */}
       <CustomHeader
         backgroundColor={'white'}
         leftComponent={
