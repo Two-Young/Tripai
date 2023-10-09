@@ -92,6 +92,7 @@ const ScheduleScreen = () => {
   };
 
   const onPressScheduleCard = item => {
+    console.log(item);
     navigation.navigate('EditSchedule', {schedule: item});
   };
 
@@ -238,7 +239,7 @@ const ScheduleScreen = () => {
                 />
               </CalendarProvider>
             </View>
-            <View style={[STYLES.WIDTH_100, STYLES.HEIGHT(160), {backgroundColor: 'red'}]}>
+            <View style={[STYLES.WIDTH_100, STYLES.HEIGHT(160), {backgroundColor: colors.red}]}>
               <MapView
                 ref={mapRef}
                 style={styles.map}
@@ -313,16 +314,12 @@ const ScheduleScreen = () => {
 export default ScheduleScreen;
 
 const styles = StyleSheet.create({
-  dayBtn: {
-    // paddingVertical: 6,
-    // paddingHorizontal: 16,
-  },
+  dayBtn: {},
   dayBtnContent: {
     margin: 0,
     padding: 0,
     ...Fonts.SemiBold(11),
-    backgroundColor: 'red',
-    // borderRadius: 0,
+    backgroundColor: colors.red,
   },
   container: {
     height: 300,

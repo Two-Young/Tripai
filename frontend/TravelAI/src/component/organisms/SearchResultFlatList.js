@@ -1,10 +1,9 @@
 import React from 'react';
 import {FlatList} from 'react-native';
 import SearchResultItemList from '../molecules/SearchResultItemList';
-import SearchResultFooterItem from '../molecules/SearchResultFooterItem';
 import {PropTypes} from 'prop-types';
 
-const SearchResultFlatList = ({isZeroResult, searchResult, onPressListItem, onPressFooterItem}) => {
+const SearchResultFlatList = ({isZeroResult, searchResult, onPressListItem}) => {
   return (
     <FlatList
       style={{flex: 1}}
@@ -12,9 +11,6 @@ const SearchResultFlatList = ({isZeroResult, searchResult, onPressListItem, onPr
       renderItem={({item}) => (
         <SearchResultItemList item={item} onPress={() => onPressListItem(item)} />
       )}
-      ListFooterComponent={
-        searchResult.length > 0 && <SearchResultFooterItem onPress={onPressFooterItem} />
-      }
     />
   );
 };

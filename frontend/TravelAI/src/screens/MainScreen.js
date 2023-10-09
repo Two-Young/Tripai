@@ -2,7 +2,7 @@ import {FlatList, StyleSheet, Text, View, Alert} from 'react-native';
 import React from 'react';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import {IconButton, Portal, Snackbar} from 'react-native-paper';
-import {deleteSession, getCurrencies, getSessions, locateCountries} from '../services/api';
+import {getCurrencies, getSessions, locateCountries} from '../services/api';
 import {useRecoilValue, useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import userAtom from '../recoil/user/user';
@@ -44,24 +44,6 @@ const MainScreen = () => {
   const onPressSession = session => {
     setCurrentSession(session);
     navigation.navigate('Tab');
-  };
-
-  // 세션 삭제
-  const onPressDeleteSession = async session => {
-    Alert.alert('Delete Item', 'Are you sure you want to delete this item?', [
-      {text: 'Cancel', style: 'cancel'},
-      {text: 'Delete', onPress: () => onDelete(session), style: 'destructive'},
-    ]);
-  };
-
-  const onDelete = async session => {
-    try {
-      await deleteSession(session.session_id);
-      setSessions(sessions.filter(sess => sess.session_id !== session.session_id));
-      setSnackbarVisible(true);
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   // 세션 목록 가져오기
@@ -106,10 +88,6 @@ const MainScreen = () => {
     }
   };
 
-  // const openMenu = () => {
-  //   setMenuVisible(true);
-  // };
-
   /* effects */
 
   React.useEffect(() => {
@@ -142,13 +120,7 @@ const MainScreen = () => {
             <Text style={styles.textSectionDescription}>What travel do you want to manage?</Text>
           </View>
         }
-        renderItem={({item}) => (
-          <TravelItem
-            travel={item}
-            onPress={() => onPressSession(item)}
-            onPressDelete={() => onPressDeleteSession(item)}
-          />
-        )}
+        renderItem={({item}) => <TravelItem travel={item} onPress={() => onPressSession(item)} />}
         keyExtractor={item => item.session_id}
         refreshing={refreshing}
         onRefresh={onRefresh}

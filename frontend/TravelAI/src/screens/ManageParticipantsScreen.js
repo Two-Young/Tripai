@@ -20,6 +20,7 @@ import colors from '../theme/colors';
 import CustomHeader from '../component/molecules/CustomHeader';
 import {STYLES} from '../styles/Stylesheets';
 import {Medium} from '../theme/fonts';
+import UserItem from '../component/molecules/UserItem';
 
 const ManageParticipantsScreen = () => {
   // hooks
@@ -56,6 +57,15 @@ const ManageParticipantsScreen = () => {
     }
   }, [sessionID]);
 
+  const fetchRequeted = React.useCallback(async () => {
+    try {
+      const res = await getSessionJoinRequests(sessionID);
+      setRequested(res);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [sessionID]);
+
   const onPressInviteFriend = React.useCallback(
     async friendID => {
       try {
@@ -80,6 +90,19 @@ const ManageParticipantsScreen = () => {
     [sessionID],
   );
 
+  const onPressConfirmSessionJoinRequest = React.useCallback(
+    async (friendID, accept) => {
+      try {
+        await confirmSessionJoinRequest(sessionID, friendID, accept);
+        fetchRequeted();
+        fetchJoined();
+      } catch (err) {
+        console.error(err);
+      }
+    },
+    [sessionID],
+  );
+
   const onPressExpelMember = React.useCallback(
     async friendID => {
       try {
@@ -97,27 +120,23 @@ const ManageParticipantsScreen = () => {
     if (sessionID) {
       fetchJoined();
       fetchInviting();
+      fetchRequeted();
     }
   }, [sessionID]);
-
-  const filteredFriends = React.useMemo(() => {
-    if (searchQuery.length > 0) {
-      return friends.filter(friend =>
-        friend.username.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
-    } else {
-      return friends;
-    }
-  }, [searchQuery, friends]);
 
   const getJoinStatus = React.useCallback(
     friendID => {
       const joinedFriend = joined.find(joinedFriend => joinedFriend.user_id === friendID);
       const invitingFriend = inviting.find(invitingFriend => invitingFriend.user_id === friendID);
+      const requestedFriend = requested.find(
+        requestedFriend => requestedFriend.user_id === friendID,
+      );
       if (joinedFriend) {
         return 'joined';
       } else if (invitingFriend) {
         return 'inviting';
+      } else if (requestedFriend) {
+        return 'requested';
       } else {
         return 'none';
       }
@@ -134,14 +153,65 @@ const ManageParticipantsScreen = () => {
       title: 'Inviting',
       data: inviting,
     };
+    const requestedSection = {
+      title: 'Requeted',
+      data: requested,
+    };
     const notInvitedSection = {
       title: 'Not Invited',
       data: friends.filter(friend => getJoinStatus(friend?.user_id) === 'none'),
     };
-    return [joinedSection, invitingSection, notInvitedSection];
+    return [joinedSection, invitingSection, requestedSection, notInvitedSection];
   }, [joined, inviting, requested]);
 
-  console.log({filteredFriends});
+  const userRightComponent = React.useCallback(
+    user => {
+      const joinStatus = getJoinStatus(user?.user_id);
+      switch (joinStatus) {
+        case 'joined':
+          return (
+            <IconButton
+              icon="account-minus"
+              iconColor={colors.red}
+              onPress={() => onPressExpelMember(user?.user_id)}
+              borderless={false}
+            />
+          );
+        case 'inviting':
+          return (
+            <IconButton
+              icon="close"
+              iconColor={colors.red}
+              onPress={() => onPressCancelInvitation(user?.user_id)}
+            />
+          );
+        case 'requested':
+          return (
+            <>
+              <IconButton
+                icon="check"
+                iconColor={colors.primary}
+                onPress={() => onPressConfirmSessionJoinRequest(user?.user_id, true)}
+              />
+              <IconButton
+                icon="close"
+                iconColor={colors.red}
+                onPress={() => onPressConfirmSessionJoinRequest(user?.user_id, false)}
+              />
+            </>
+          );
+        default:
+          return (
+            <IconButton
+              icon="account-plus"
+              iconColor={colors.primary}
+              onPress={() => onPressInviteFriend(user?.user_id)}
+            />
+          );
+      }
+    },
+    [getJoinStatus],
+  );
 
   return (
     <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
@@ -192,49 +262,7 @@ const ManageParticipantsScreen = () => {
             </View>
           );
         }}
-        renderItem={({item}) => (
-          <List.Item
-            title={item.username}
-            left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-            style={[STYLES.PADDING_RIGHT(0)]}
-            right={props => {
-              const joinStatus = getJoinStatus(item?.user_id);
-              switch (joinStatus) {
-                case 'joined':
-                  return (
-                    <>
-                      <IconButton icon="check-decagram" iconColor={colors.primary} />
-                      <IconButton
-                        icon="account-minus"
-                        iconColor="red"
-                        onPress={() => onPressExpelMember(item?.user_id)}
-                        borderless={false}
-                      />
-                    </>
-                  );
-                case 'inviting':
-                  return (
-                    <>
-                      <IconButton icon="account-clock" iconColor={colors.gray} />
-                      <IconButton
-                        icon="cancel"
-                        iconColor="red"
-                        onPress={() => onPressCancelInvitation(item?.user_id)}
-                      />
-                    </>
-                  );
-                default:
-                  return (
-                    <IconButton
-                      icon="account-plus"
-                      iconColor={colors.primary}
-                      onPress={() => onPressInviteFriend(item?.user_id)}
-                    />
-                  );
-              }
-            }}
-          />
-        )}
+        renderItem={({item}) => <UserItem user={item} rightComponent={userRightComponent} />}
       />
     </SafeArea>
   );

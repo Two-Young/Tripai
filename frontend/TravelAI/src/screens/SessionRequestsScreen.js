@@ -1,4 +1,4 @@
-import {StyleSheet, View, FlatList, TextInput, Keyboard, Pressable} from 'react-native';
+import {StyleSheet, View, FlatList, TextInput, Keyboard, Pressable, Image} from 'react-native';
 import React from 'react';
 import SafeArea from '../component/molecules/SafeArea';
 import {
@@ -74,18 +74,27 @@ const MyRequest = () => {
     }
   }, [refreshing]);
 
+  console.log(request);
+
   return (
     <FlatList
       style={styles.container}
+      contentContainerStyle={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_TOP(10)]}
       data={request}
       refreshing={refreshing}
       onRefresh={() => setRefreshing(true)}
       renderItem={({item}) => (
         <List.Item
+          style={STYLES.PADDING_RIGHT(0)}
           title={item.session_name}
           description={item.session_code}
+          left={() => <Image style={{width: 48, height: 48}} source={{uri: item.thumbnail_url}} />}
           right={props => (
-            <IconButton icon="close" onPress={() => onCancelRequest(item?.session_id)} />
+            <IconButton
+              icon="close"
+              iconColor={colors.red}
+              onPress={() => onCancelRequest(item?.session_id)}
+            />
           )}
         />
       )}
@@ -128,21 +137,26 @@ const MyInvitation = () => {
   return (
     <FlatList
       style={styles.container}
+      contentContainerStyle={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_TOP(10)]}
       data={invited}
       refreshing={refreshing}
       onRefresh={() => setRefreshing(true)}
       renderItem={({item}) => (
         <List.Item
+          style={STYLES.PADDING_RIGHT(0)}
           title={item.session_name}
           description={item.session_code}
+          left={() => <Image style={{width: 48, height: 48}} source={{uri: item.thumbnail_url}} />}
           right={props => (
             <View style={STYLES.FLEX_ROW}>
               <IconButton
                 icon="check"
+                iconColor={colors.primary}
                 onPress={() => onConfirmInvitation(item?.session_id, true)}
               />
               <IconButton
                 icon="close"
+                iconColor={colors.red}
                 onPress={() => onConfirmInvitation(item?.session_id, false)}
               />
             </View>

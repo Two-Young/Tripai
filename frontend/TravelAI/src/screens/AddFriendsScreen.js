@@ -123,7 +123,7 @@ const AddFriendsScreen = () => {
           <View style={styles.searchBarWrapper}>
             <Image source={searchIcon} style={styles.searchIcon} />
             <TextInput
-              style={STYLES.FLEX(1)}
+              style={[STYLES.FLEX(1), {color: colors.black}]}
               placeholder="Search"
               onChangeText={setQuery}
               value={query}
