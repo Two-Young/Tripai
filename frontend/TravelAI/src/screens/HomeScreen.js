@@ -26,6 +26,11 @@ const HomeScreen = () => {
   const currentSession = useRecoilValue(sessionAtom);
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
+  const isOwner = React.useMemo(
+    () => currentSession?.creator_user_id === user?.user_info?.user_id,
+    [currentSession, user],
+  );
+
   // states
   const [places, setPlaces] = React.useState([]);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -70,6 +75,24 @@ const HomeScreen = () => {
     }
   };
 
+  // 세션 삭제
+  const onPressDeleteSession = async session => {
+    Alert.alert('Delete Item', 'Are you sure you want to delete this item?', [
+      {text: 'Cancel', style: 'cancel'},
+      {text: 'Delete', onPress: () => onDelete(session), style: 'destructive'},
+    ]);
+  };
+
+  const onDelete = async session => {
+    try {
+      await deleteSession(session.session_id);
+      setSessions(sessions.filter(sess => sess.session_id !== session.session_id));
+      setSnackbarVisible(true);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const [joined, setJoined] = React.useState([]);
 
   const fetchJoined = React.useCallback(async () => {
@@ -103,89 +126,104 @@ const HomeScreen = () => {
     }
   }, [route.params?.place, currentSessionID]);
 
-  console.log(currentSession?.session_code);
+  console.log(currentSessionID, currentSession);
+  console.log(user);
 
   return (
-    <>
-      <CustomHeader title={'HOME'} leftComponent={<React.Fragment />} />
-      <View style={defaultStyle.container}>
-        <FlatList
-          ListHeaderComponent={() => (
-            <FlatList
-              style={{padding: 20}}
-              ListHeaderComponent={
-                <>
-                  <View
-                    style={[
-                      styles.sessionCodeContainer,
-                      STYLES.FLEX_ROW_ALIGN_CENTER,
-                      STYLES.SPACE_BETWEEN,
-                    ]}>
-                    <Text style={styles.label}>Session Code</Text>
-                    <View style={[STYLES.FLEX_ROW_ALIGN_CENTER]}>
-                      <Text style={styles.sessionCode}>{currentSession?.session_code}</Text>
-                      <IconButton
-                        icon="content-copy"
-                        size={16}
-                        onPress={() => {
-                          Clipboard.setString(currentSession?.session_code);
-                          showSuccessToast('copied session code');
-                        }}
-                      />
-                    </View>
-                  </View>
-                  <View style={styles.line} />
-                  <Text style={styles.label}>Participants</Text>
-                </>
-              }
-              data={joined}
-              renderItem={({item}) => (
-                <List.Item
-                  title={item.username}
-                  left={props => <Avatar.Image size={36} source={{uri: item.profile_image}} />}
-                />
-              )}
-              ListFooterComponent={() => (
-                <>
-                  <View style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.SPACE_AROUND]}>
-                    <FAB
-                      style={[styles.fab, STYLES.FLEX(1), STYLES.MARGIN(20)]}
-                      icon="account"
-                      color="#fff"
-                      onPress={onPressFriends}
-                      label="Manage"
-                    />
-                    <FAB
-                      style={[styles.fab, STYLES.FLEX(1), STYLES.MARGIN(20)]}
-                      icon="door-open"
-                      color="#fff"
-                      onPress={onPressLeave}
-                      label="Exit"
+    <View style={defaultStyle.container}>
+      <CustomHeader title={'HOME'} />
+      <FlatList
+        ListHeaderComponent={() => (
+          <FlatList
+            style={{padding: 20}}
+            ListHeaderComponent={
+              <>
+                <View
+                  style={[
+                    styles.sessionCodeContainer,
+                    STYLES.FLEX_ROW_ALIGN_CENTER,
+                    STYLES.SPACE_BETWEEN,
+                  ]}>
+                  <Text style={styles.label}>Session Code</Text>
+                  <View style={[STYLES.FLEX_ROW_ALIGN_CENTER]}>
+                    <Text style={styles.sessionCode}>{currentSession?.session_code}</Text>
+                    <IconButton
+                      icon="content-copy"
+                      size={16}
+                      onPress={() => {
+                        Clipboard.setString(currentSession?.session_code);
+                        showSuccessToast('copied session code');
+                      }}
                     />
                   </View>
-                  <View style={styles.line} />
-                  <Text style={styles.label}>Places</Text>
-                </>
-              )}
-            />
-          )}
-          data={places}
-          renderItem={item => <PlaceListItem item={item.item} setArr={setPlaces} />}
-          keyExtractor={item => item.location_id}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          contentContainerStyle={{flex: 1}}
-          ListFooterComponent={() => (
+                </View>
+                <View style={styles.line} />
+                <Text style={styles.label}>Participants</Text>
+              </>
+            }
+            data={joined}
+            renderItem={({item}) => (
+              <List.Item
+                title={item.username}
+                left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
+              />
+            )}
+            ListFooterComponent={() => (
+              <>
+                {isOwner && (
+                  <FAB
+                    style={[styles.fab, STYLES.FLEX(1), STYLES.MARGIN_VERTICAL(20)]}
+                    icon="account-multiple"
+                    color="#fff"
+                    onPress={onPressFriends}
+                    label="Manage"
+                  />
+                )}
+
+                <View style={styles.line} />
+                <Text style={styles.label}>Places</Text>
+              </>
+            )}
+          />
+        )}
+        data={places}
+        renderItem={item => <PlaceListItem item={item.item} setArr={setPlaces} />}
+        keyExtractor={item => item.location_id}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        ListFooterComponent={() => (
+          <View style={[STYLES.PADDING_HORIZONTAL(20)]}>
             <FAB
-              style={[styles.fab, STYLES.MARGIN(20)]}
-              icon="plus"
+              style={[styles.fab, STYLES.MARGIN_VERTICAL(20)]}
+              icon="map-marker-plus"
               color="#fff"
               onPress={onPressAddPlace}
+              label="Add Place"
             />
-          )}
-        />
-      </View>
-    </>
+            <View style={styles.line} />
+            <Text style={styles.label}>Others</Text>
+            {!isOwner && (
+              <FAB
+                style={[styles.exitButton, STYLES.FLEX(1), STYLES.MARGIN_VERTICAL(20)]}
+                icon="door-open"
+                color="#fff"
+                onPress={onPressLeave}
+                label="Exit"
+              />
+            )}
+            {isOwner && (
+              <FAB
+                style={[styles.deleteButton, STYLES.FLEX(1), STYLES.MARGIN_VERTICAL(20)]}
+                icon="door-open"
+                color="#fff"
+                onPress={onPressDeleteSession}
+                label="Exit"
+              />
+            )}
+          </View>
+        )}
+      />
+    </View>
   );
 };
 
@@ -208,5 +246,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     // margin: 20,
     backgroundColor: colors.primary,
+  },
+  exitButton: {
+    alignItems: 'center',
+    backgroundColor: colors.gray,
+  },
+  deleteButton: {
+    alignItems: 'center',
+    backgroundColor: colors.red,
   },
 });

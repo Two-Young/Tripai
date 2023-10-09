@@ -9,6 +9,7 @@ import {useRecoilValue} from 'recoil';
 import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
 import {
   ActivityIndicator,
+  FAB,
   IconButton,
   Modal,
   Portal,
@@ -18,9 +19,9 @@ import {
 import {Header} from '@rneui/themed';
 import reactotron from 'reactotron-react-native';
 import colors from '../theme/colors';
-import {STYLES} from '../styles/Stylesheets';
 import SafeArea from '../component/molecules/SafeArea';
-import CustomHeader from '../component/molecules/CustomHeader';
+import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
+import {STYLES} from '../styles/Stylesheets';
 
 const AddPlaceScreen = () => {
   // hooks
@@ -75,7 +76,7 @@ const AddPlaceScreen = () => {
     }
   };
 
-  const onPressFooterItem = () => {
+  const navigateToAddCustomPlace = () => {
     navigation.navigate('AddCustomPlace');
   };
 
@@ -89,40 +90,50 @@ const AddPlaceScreen = () => {
   }, [searchKeyword]);
 
   return (
-    <Pressable onPress={Keyboard.dismiss} style={STYLES.FLEX(1)}>
-      <SafeArea>
-        <CustomHeader title="Add Place" />
-        <View style={styles.container}>
-          <Searchbar
-            value={searchKeyword}
-            onChangeText={setSearchKeyword}
-            placeholder="Search"
-            placeholderTextColor={'#888'}
-            onClear={() => {
-              setSearchKeyword('');
-            }}
+    <SafeArea
+      top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
+      bottom={{inactive: true}}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={defaultStyle.container}>
+        <View style={[STYLES.FLEX(1)]}>
+          <CustomHeader title={'Add Place'} theme={CUSTOM_HEADER_THEME.WHITE} useMenu={false} />
+          <View style={styles.container}>
+            <Searchbar
+              value={searchKeyword}
+              onChangeText={setSearchKeyword}
+              placeholder="Search a place"
+              placeholderTextColor={colors.gray}
+              onClear={() => {
+                setSearchKeyword('');
+              }}
+              style={styles.searchBar}
+            />
+            <SearchResultFlatList {...{isZeroResult, searchResult, onPressListItem}} />
+          </View>
+          <FAB
+            style={styles.addCustomPlaceButton}
+            icon="map"
+            label="Add Custom Place"
+            color={colors.white}
+            onPress={navigateToAddCustomPlace}
           />
-          <SearchResultFlatList
-            {...{isZeroResult, searchResult, onPressListItem, onPressFooterItem}}
-          />
+          <Portal>
+            <Modal visible={loadingModalVisible} dismissable={false}>
+              <ActivityIndicator animating={true} size="large" />
+            </Modal>
+          </Portal>
+          <Portal>
+            <Snackbar
+              visible={dupSnackBarVisible}
+              onDismiss={() => setDupSnackbarVisible(false)}
+              action={{
+                label: 'Close',
+              }}>
+              Place is already added.
+            </Snackbar>
+          </Portal>
         </View>
-        <Portal>
-          <Modal visible={loadingModalVisible} dismissable={false}>
-            <ActivityIndicator animating={true} size="large" />
-          </Modal>
-        </Portal>
-        <Portal>
-          <Snackbar
-            visible={dupSnackBarVisible}
-            onDismiss={() => setDupSnackbarVisible(false)}
-            action={{
-              label: 'Close',
-            }}>
-            Place is already added.
-          </Snackbar>
-        </Portal>
-      </SafeArea>
-    </Pressable>
+      </TouchableWithoutFeedback>
+    </SafeArea>
   );
 };
 
@@ -132,6 +143,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  searchBar: {
+    borderRadius: 16,
+    backgroundColor: colors.searchBar,
+    marginBottom: 10,
+  },
+  addCustomPlaceButton: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+    marginHorizontal: 20,
+    backgroundColor: colors.primary,
   },
 });

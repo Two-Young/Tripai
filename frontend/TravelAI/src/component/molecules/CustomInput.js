@@ -41,14 +41,11 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
       case 'place':
         return value?.address ?? '';
       case 'date':
-        return dayjs(value).format('YYYY-MM-DD HH:mm');
+        return dayjs(value).format('HH:mm');
       default:
         return value;
     }
   }, [type, value]);
-
-  console.log('showValue', showValue);
-  console.log('value', value);
 
   return (
     <>
@@ -60,8 +57,7 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
           style={[styles.input, {...(type === 'multiline' && {height: 100})}]}
           placeholder="Type something"
           value={showValue}
-          onChangeText={setValue}
-          outlineColor="#000"
+          {...(type !== 'date' && {onChangeText: setValue})}
           {...(type === 'multiline' && {multiline: true})}
         />
       </View>
@@ -70,10 +66,10 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
           modal
           open={open}
           date={new Date(value)}
-          mode="datetime"
+          mode="time"
           onConfirm={date => {
             setOpen(false);
-            setValue(dayjs(date).format('YYYY-MM-DD HH:mm'));
+            setValue(date);
           }}
           onCancel={() => {
             setOpen(false);

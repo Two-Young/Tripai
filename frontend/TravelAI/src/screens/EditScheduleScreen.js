@@ -6,10 +6,10 @@ import colors from '../theme/colors';
 import {deleteSchedule, updateSchedule} from '../services/api';
 import _ from 'lodash';
 import SafeArea from '../component/molecules/SafeArea';
-import CustomHeader from '../component/molecules/CustomHeader';
+import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import CustomInput from '../component/molecules/CustomInput';
-import reactotron from 'reactotron-react-native';
 import MainButton from '../component/atoms/MainButton';
+import dayjs from 'dayjs';
 
 const EditScheduleScreen = () => {
   // states
@@ -24,6 +24,8 @@ const EditScheduleScreen = () => {
   const navigation = useNavigation();
   const navigationState = useNavigationState(state => state);
   const route = useRoute();
+
+  const day = navigationState.routes.slice(-1)[0]?.params?.day;
 
   const tab = navigationState.routes[navigationState.routes.length - 2];
   const target = tab?.state?.routes[1];
@@ -101,30 +103,20 @@ const EditScheduleScreen = () => {
         address,
         place_id,
       });
-      setStartAt(new Date(start_at));
+      setStartAt(dayjs(start_at).format('YYYY-MM-DD HH:mm'));
       setNote(memo ?? '');
     }
   }, [route.params?.schedule]);
+
+  console.log({day});
 
   return (
     <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{flex: 1}}>
           <CustomHeader
-            /*
-            backgroundColor={colors.white}
-            leftComponent={
-              <IconButton
-                mode="contained"
-                icon="chevron-left"
-                iconColor={colors.black}
-                onPress={() => navigation.goBack()}
-                size={18}
-              />
-            }
-            titleColor={colors.black}
-            */
             title="Edit Schedule"
+            theme={CUSTOM_HEADER_THEME.WHITE}
             rightComponent={
               <IconButton icon="delete" iconColor={colors.white} onPress={onPressDeleteSchedule} />
             }
@@ -133,7 +125,19 @@ const EditScheduleScreen = () => {
             <View style={styles.contentContainer}>
               <CustomInput label={'Name'} value={name} setValue={setName} />
               <CustomInput label={'Address'} value={place} setValue={setPlace} type="place" />
-              <CustomInput label={'Date'} value={startAt} setValue={setStartAt} type="date" />
+              <CustomInput
+                label={'Date'}
+                value={startAt}
+                setValue={value => {
+                  setStartAt(
+                    dayjs(startAt)
+                      .set('hour', dayjs(value).hour())
+                      .set('minute', dayjs(value).minute())
+                      .format('YYYY-MM-DD HH:mm'),
+                  );
+                }}
+                type="date"
+              />
               <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
             </View>
             <MainButton
@@ -155,7 +159,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingBottom: 10,
   },
   contentContainer: {
     flex: 1,

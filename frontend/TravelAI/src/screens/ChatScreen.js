@@ -26,10 +26,8 @@ const ChatScreen = () => {
   const sendMessage = React.useCallback(async () => {
     if (_.isEmpty(inputContent)) return;
     if (useChatGPT) {
-      console.log('sessionChat/sendAssistantMessage ::', currentSessionID, inputContent);
       socket.emit('sessionChat/sendAssistantMessage', currentSessionID, inputContent);
     } else {
-      console.log('sessionChat/sendMessage ::', currentSessionID, inputContent);
       socket.emit('sessionChat/sendMessage', currentSessionID, inputContent);
     }
     setInputContent('');
@@ -78,7 +76,6 @@ const ChatScreen = () => {
 
   useEffect(() => {
     navigation.addListener('focus', async () => {
-      console.log('focus ::', currentSessionID);
       socket.emit('sessionChat/getMessages', currentSessionID);
     });
     () => {

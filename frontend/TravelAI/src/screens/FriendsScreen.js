@@ -8,7 +8,7 @@ import {
   getFriendsWaiting,
   rejectFriends,
 } from '../services/api';
-import {Avatar, FAB, IconButton, List} from 'react-native-paper';
+import {FAB, IconButton} from 'react-native-paper';
 import {useNavigation, useRoute, useNavigationState, CommonActions} from '@react-navigation/native';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
@@ -17,6 +17,7 @@ import colors from '../theme/colors';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
 import EmptyComponent from '../component/atoms/EmptyComponent';
+import UserItem from '../component/molecules/UserItem';
 
 const FriendsTab = createMaterialTopTabNavigator();
 
@@ -80,24 +81,23 @@ const Friends = () => {
   return (
     <FlatList
       style={styles.container}
+      contentContainerStyle={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_TOP(10)]}
       data={friends}
       keyExtractor={item => item.user_id.toString()}
       refreshing={refreshing}
       onRefresh={() => setRefreshing(true)}
       renderItem={({item}) => (
-        <List.Item
-          style={STYLES.PADDING_LEFT(30)}
-          title={item.username}
-          left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-          right={props => (
+        <UserItem
+          user={item}
+          rightComponent={user => (
             <IconButton
-              {...props}
-              icon="delete"
+              icon="account-minus"
+              iconColor={colors.red}
               onPress={() =>
                 requestAlert(
                   'Delete Friend',
-                  `Are you sure you want to delete ${item.username} as a friend?`,
-                  () => deleteFriendConfirm(item.user_id),
+                  `Are you sure you want to delete ${user.username} as a friend?`,
+                  () => deleteFriendConfirm(user.user_id),
                 )
               }
             />
@@ -110,9 +110,6 @@ const Friends = () => {
 };
 
 const Received = () => {
-  const navigation = useNavigation();
-  const navigationState = useNavigationState(state => state);
-
   // states
   const [requests, setRequests] = React.useState([]);
   const [refreshing, setRefreshing] = React.useState(true);
@@ -126,6 +123,32 @@ const Received = () => {
       console.error(err);
     }
   };
+
+  // effects
+  React.useEffect(() => {
+    if (refreshing) {
+      fetchFriendsWaiting().finally(() => {
+        setRefreshing(false);
+      });
+    }
+  }, [refreshing]);
+
+  return (
+    <FlatList
+      style={styles.container}
+      contentContainerStyle={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_TOP(10)]}
+      data={requests}
+      refreshing={refreshing}
+      onRefresh={() => setRefreshing(true)}
+      renderItem={({item}) => <UserItem user={item} rightComponent={receivedUserRightComponent} />}
+      ListEmptyComponent={<EmptyComponent text="You have no received friend requests yet" />}
+    />
+  );
+};
+
+const receivedUserRightComponent = user => {
+  const navigation = useNavigation();
+  const navigationState = useNavigationState(state => state);
 
   const acceptFriendRequestConfirm = async user_id => {
     try {
@@ -159,55 +182,31 @@ const Received = () => {
     }
   };
 
-  // effects
-  React.useEffect(() => {
-    if (refreshing) {
-      fetchFriendsWaiting().finally(() => {
-        setRefreshing(false);
-      });
-    }
-  }, [refreshing]);
-
   return (
-    <FlatList
-      style={styles.container}
-      data={requests}
-      refreshing={refreshing}
-      onRefresh={() => setRefreshing(true)}
-      renderItem={({item}) => (
-        <List.Item
-          title={item.username}
-          left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-          right={props => (
-            <View style={STYLES.FLEX_ROW}>
-              <IconButton
-                {...props}
-                icon="check"
-                onPress={() =>
-                  requestAlert(
-                    'Accept Friend Request',
-                    `Are you sure you want to accept ${item.username}'s friend request?`,
-                    () => acceptFriendRequestConfirm(item.user_id),
-                  )
-                }
-              />
-              <IconButton
-                {...props}
-                icon="delete"
-                onPress={() =>
-                  requestAlert(
-                    'Reject Friend Request',
-                    `Are you sure you want to reject ${item.username}'s friend request?`,
-                    () => rejectFriendRequestConfirm(item.user_id),
-                  )
-                }
-              />
-            </View>
-          )}
-        />
-      )}
-      ListEmptyComponent={<EmptyComponent text="You have no received friend requests yet" />}
-    />
+    <View style={[STYLES.FLEX_ROW]}>
+      <IconButton
+        icon="check"
+        iconColor={colors.primary}
+        onPress={() =>
+          requestAlert(
+            'Accept Friend Request',
+            `Are you sure you want to accept ${user.username}'s friend request?`,
+            () => acceptFriendRequestConfirm(user.user_id),
+          )
+        }
+      />
+      <IconButton
+        icon="close"
+        iconColor={colors.red}
+        onPress={() =>
+          requestAlert(
+            'Reject Friend Request',
+            `Are you sure you want to reject ${user.username}'s friend request?`,
+            () => rejectFriendRequestConfirm(user.user_id),
+          )
+        }
+      />
+    </View>
   );
 };
 
@@ -258,24 +257,22 @@ const Sent = () => {
   return (
     <FlatList
       style={styles.container}
+      contentContainerStyle={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_TOP(10)]}
       data={requests}
       refreshing={refreshing}
       onRefresh={() => setRefreshing(true)}
       renderItem={({item}) => (
-        <List.Item
-          refreshing={refreshing}
-          style={STYLES.PADDING_LEFT(15)}
-          title={item.username}
-          left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-          right={props => (
+        <UserItem
+          user={item}
+          rightComponent={user => (
             <IconButton
-              {...props}
-              icon="delete"
+              icon="close"
+              iconColor={colors.red}
               onPress={() =>
                 requestAlert(
                   'Cancel Friend Request',
-                  `Are you sure you want to cancel ${item.username}'s friend request?`,
-                  () => cancelFriendRequestConfirm(item.user_id),
+                  `Are you sure you want to cancel ${user.username}'s friend request?`,
+                  () => cancelFriendRequestConfirm(user.user_id),
                 )
               }
             />

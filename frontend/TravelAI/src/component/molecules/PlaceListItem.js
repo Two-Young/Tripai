@@ -4,6 +4,7 @@ import {Button, Image, ListItem} from '@rneui/themed';
 import {API_URL_PROD, deleteLocation, locatePlacePhoto} from '../../services/api';
 import {arrayBufferToBase64} from '../../utils/utils';
 import {STYLES} from '../../styles/Stylesheets';
+import colors from '../../theme/colors';
 
 const PlaceListItem = props => {
   const {item, onPress, setArr} = props;
@@ -66,7 +67,7 @@ const PlaceListItem = props => {
           onPress={() => onPressDelete(reset)}
           onLongPress={reset}
           icon={{name: 'delete', color: 'white'}}
-          buttonStyle={{minHeight: '100%', backgroundColor: 'red'}}
+          buttonStyle={{minHeight: '100%', backgroundColor: colors.red}}
         />
       )}>
       {imageData && (

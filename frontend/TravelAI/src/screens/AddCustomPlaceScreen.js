@@ -7,10 +7,10 @@ import {createLocation, locateDetail, locatePin} from '../services/api';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import colors from '../theme/colors';
-import CustomHeader from '../component/molecules/CustomHeader';
+import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
-import {Button, IconButton} from 'react-native-paper';
+import {Button, FAB, IconButton} from 'react-native-paper';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -119,8 +119,10 @@ const AddCustomPlaceScreen = () => {
 
   return (
     <Pressable style={{flex: 1}} onPress={Keyboard.dismiss}>
-      <SafeArea>
-        <CustomHeader title="Add Custom Place" />
+      <SafeArea
+        top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
+        bottom={{inactive: true}}>
+        <CustomHeader title="Add Custom Place" theme={CUSTOM_HEADER_THEME.WHITE} useMenu={false} />
         <View style={styles.locationSearchRow}>
           <View style={styles.locationSearchBarContainer}>
             <Text style={styles.labelText}>latitude</Text>
@@ -167,10 +169,14 @@ const AddCustomPlaceScreen = () => {
               {marker && marker.coordinate && <Marker coordinate={marker?.coordinate} />}
             </MapView>
           </View>
-          <View style={[STYLES.PADDING_HORIZONTAL(5), STYLES.PADDING_VERTICAL(10)]}>
-            <Button mode="contained" onPress={onPressAddPlace}>
-              Add Place
-            </Button>
+          <View style={styles.addCustomPlaceButtonContainer}>
+            <FAB
+              style={styles.addCustomPlaceButton}
+              icon={'map-marker-plus'}
+              label="Add Place"
+              color={colors.white}
+              onPress={onPressAddPlace}
+            />
           </View>
         </View>
       </SafeArea>
@@ -215,5 +221,15 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     color: colors.black,
+  },
+  addCustomPlaceButtonContainer: {
+    position: 'absolute',
+    width: '100%',
+    bottom: 0,
+    paddingBottom: 20,
+  },
+  addCustomPlaceButton: {
+    marginHorizontal: 20,
+    backgroundColor: colors.primary,
   },
 });
