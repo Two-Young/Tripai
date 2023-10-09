@@ -24,6 +24,7 @@ const ChatScreen = () => {
   const flatListRef = React.useRef();
 
   const sendMessage = React.useCallback(async () => {
+    if (_.isEmpty(inputContent)) return;
     if (useChatGPT) {
       console.log('sessionChat/sendAssistantMessage ::', currentSessionID, inputContent);
       socket.emit('sessionChat/sendAssistantMessage', currentSessionID, inputContent);
@@ -89,7 +90,7 @@ const ChatScreen = () => {
     if (messages.length) {
       setTimeout(() => {
         flatListRef.current.scrollToEnd();
-      }, 100);
+      }, 500);
     }
   }, [flatListRef]);
 

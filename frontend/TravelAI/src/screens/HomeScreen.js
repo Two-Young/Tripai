@@ -1,24 +1,22 @@
-import {StyleSheet, View, FlatList, Text, ScrollView} from 'react-native';
+import {StyleSheet, View, FlatList, Text} from 'react-native';
 import React, {useEffect} from 'react';
 import defaultStyle from '../styles/styles';
 import PlaceListItem from '../component/molecules/PlaceListItem';
 import colors from '../theme/colors';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
-import {getFriends, getLocations, leaveSession} from '../services/api';
-import {useRecoilValue, useRecoilValueLoadable} from 'recoil';
+import {getLocations, leaveSession} from '../services/api';
+import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import {FAB, IconButton, Searchbar} from 'react-native-paper';
+import {FAB, IconButton} from 'react-native-paper';
 import _ from 'lodash';
-import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
-import Modal from 'react-native-modal';
-import FriendsModal from '../component/organisms/FriendsModal';
 import userAtom from '../recoil/user/user';
 import {getSessionMembers} from '../services/api';
 import {Avatar, List} from 'react-native-paper';
 import {STYLES} from '../styles/Stylesheets';
 import {SemiBold} from '../theme/fonts';
 import Clipboard from '@react-native-community/clipboard';
+import {showSuccessToast} from '../utils/utils';
 
 const HomeScreen = () => {
   // hooks
@@ -131,6 +129,7 @@ const HomeScreen = () => {
                         size={16}
                         onPress={() => {
                           Clipboard.setString(currentSession?.session_code);
+                          showSuccessToast('copied session code');
                         }}
                       />
                     </View>
@@ -144,16 +143,6 @@ const HomeScreen = () => {
                 <List.Item
                   title={item.username}
                   left={props => <Avatar.Image size={36} source={{uri: item.profile_image}} />}
-                  // right={props =>
-                  //   user?.user_info?.user_id !== item.user_id && (
-                  //     <IconButton
-                  //       icon="close"
-                  //       size={16}
-                  //       onPress={() => onPressExpelMember(item?.user_id)}
-                  //       style={[STYLES.PADDING(0), STYLES.MARGIN(0)]}
-                  //     />
-                  //   )
-                  // }
                 />
               )}
               ListFooterComponent={() => (
@@ -173,8 +162,6 @@ const HomeScreen = () => {
                       onPress={onPressLeave}
                       label="Exit"
                     />
-                    {/* <IconButton icon="account" mode="contained" onPress={onPressFriends} />
-                    <IconButton icon="door-open" mode="contained" onPress={onPressLeave} /> */}
                   </View>
                   <View style={styles.line} />
                   <Text style={styles.label}>Places</Text>
@@ -197,8 +184,6 @@ const HomeScreen = () => {
             />
           )}
         />
-
-        {/* <FriendsModal visible={fmVisible} setVisible={setFmVisible} /> */}
       </View>
     </>
   );

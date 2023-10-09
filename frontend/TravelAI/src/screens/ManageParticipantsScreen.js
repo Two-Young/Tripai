@@ -1,6 +1,6 @@
 import React from 'react';
-import {StyleSheet, View, FlatList} from 'react-native';
-import {Text, Searchbar, Avatar, IconButton, List} from 'react-native-paper';
+import {StyleSheet, View, FlatList, SectionList, Text} from 'react-native';
+import {Searchbar, Avatar, IconButton, List} from 'react-native-paper';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {useRecoilValue} from 'recoil';
 import userAtom from '../recoil/user/user';
@@ -19,12 +19,11 @@ import SafeArea from '../component/molecules/SafeArea';
 import colors from '../theme/colors';
 import CustomHeader from '../component/molecules/CustomHeader';
 import {STYLES} from '../styles/Stylesheets';
+import {Medium} from '../theme/fonts';
 
 const ManageParticipantsScreen = () => {
   // hooks
   const navigation = useNavigation();
-  const route = useRoute();
-  const user = useRecoilValue(userAtom);
 
   const session = useRecoilValue(sessionAtom);
   const sessionID = React.useMemo(() => session?.session_id, [session]);
@@ -37,8 +36,8 @@ const ManageParticipantsScreen = () => {
   const [joined, setJoined] = React.useState([]);
   const [inviting, setInviting] = React.useState([]);
   const [requested, setRequested] = React.useState([]);
-  const [searched, setSearched] = React.useState([]);
 
+  // functions
   const fetchJoined = React.useCallback(async () => {
     try {
       const res = await getSessionMembers(sessionID);
@@ -52,15 +51,6 @@ const ManageParticipantsScreen = () => {
     try {
       const res = await getSessionInvitationWaitings(sessionID);
       setInviting(res);
-    } catch (err) {
-      console.error(err);
-    }
-  }, [sessionID]);
-
-  const fetchRequested = React.useCallback(async () => {
-    try {
-      const res = await getSessionJoinRequests(sessionID);
-      setRequested(res);
     } catch (err) {
       console.error(err);
     }
@@ -102,38 +92,56 @@ const ManageParticipantsScreen = () => {
     [sessionID],
   );
 
-  const onConfirmRequest = React.useCallback(
-    async (friendID, accept) => {
-      try {
-        await confirmSessionJoinRequest(sessionID, friendID, accept);
-        fetchJoined();
-        fetchRequested();
-      } catch (err) {
-        console.error(err);
-      }
-    },
-    [sessionID],
-  );
-
   // effects
   React.useEffect(() => {
     if (sessionID) {
       fetchJoined();
       fetchInviting();
-      fetchRequested();
     }
   }, [sessionID]);
 
-  React.useEffect(() => {
+  const filteredFriends = React.useMemo(() => {
     if (searchQuery.length > 0) {
-      const filtered = friends.filter(friend =>
+      return friends.filter(friend =>
         friend.username.toLowerCase().includes(searchQuery.toLowerCase()),
       );
-      setSearched(filtered);
     } else {
-      setSearched(friends);
+      return friends;
     }
   }, [searchQuery, friends]);
+
+  const getJoinStatus = React.useCallback(
+    friendID => {
+      const joinedFriend = joined.find(joinedFriend => joinedFriend.user_id === friendID);
+      const invitingFriend = inviting.find(invitingFriend => invitingFriend.user_id === friendID);
+      if (joinedFriend) {
+        return 'joined';
+      } else if (invitingFriend) {
+        return 'inviting';
+      } else {
+        return 'none';
+      }
+    },
+    [joined, inviting, requested],
+  );
+
+  const sections = React.useMemo(() => {
+    const joinedSection = {
+      title: 'Participants',
+      data: joined,
+    };
+    const invitingSection = {
+      title: 'Inviting',
+      data: inviting,
+    };
+    const notInvitedSection = {
+      title: 'Not Invited',
+      data: friends.filter(friend => getJoinStatus(friend?.user_id) === 'none'),
+    };
+    return [joinedSection, invitingSection, notInvitedSection];
+  }, [joined, inviting, requested]);
+
+  console.log({filteredFriends});
 
   return (
     <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
@@ -151,70 +159,83 @@ const ManageParticipantsScreen = () => {
         backgroundColor={colors.white}
         rightComponent={<></>}
       />
-      <View style={[styles.container, STYLES.PADDING(20)]}>
-        <Text>Joined</Text>
-        <FlatList
-          style={{flex: 1}}
-          data={joined}
-          renderItem={({item}) => (
-            <List.Item
-              title={item.username}
-              left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-              right={props =>
-                user?.user_info?.user_id !== item.user_id && (
-                  <IconButton icon="close" onPress={() => onPressExpelMember(item?.user_id)} />
-                )
+      <SectionList
+        sections={sections}
+        contentContainerStyle={[STYLES.PADDING(20)]}
+        ListHeaderComponent={() => (
+          <Searchbar
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Serach the friend"
+            placeholderTextColor={'gray'}
+            style={{
+              borderRadius: 16,
+              backgroundColor: '#F5F4F6',
+              marginBottom: 10,
+            }}
+          />
+        )}
+        renderSectionHeader={({section: {title}}) => {
+          return (
+            <View
+              style={[
+                STYLES.FLEX_ROW_ALIGN_CENTER,
+                STYLES.PADDING_TOP(10),
+                STYLES.PADDING_BOTTOM(10),
+                {backgroundColor: colors.white},
+              ]}>
+              <Text style={[styles.sectionLabel]}>{title}</Text>
+              <Text style={[styles.sectionNumberLabel]}>
+                {' '}
+                {sections.find(section => section.title === title)?.data.length}
+              </Text>
+            </View>
+          );
+        }}
+        renderItem={({item}) => (
+          <List.Item
+            title={item.username}
+            left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
+            style={[STYLES.PADDING_RIGHT(0)]}
+            right={props => {
+              const joinStatus = getJoinStatus(item?.user_id);
+              switch (joinStatus) {
+                case 'joined':
+                  return (
+                    <>
+                      <IconButton icon="check-decagram" iconColor={colors.primary} />
+                      <IconButton
+                        icon="account-minus"
+                        iconColor="red"
+                        onPress={() => onPressExpelMember(item?.user_id)}
+                        borderless={false}
+                      />
+                    </>
+                  );
+                case 'inviting':
+                  return (
+                    <>
+                      <IconButton icon="account-clock" iconColor={colors.gray} />
+                      <IconButton
+                        icon="cancel"
+                        iconColor="red"
+                        onPress={() => onPressCancelInvitation(item?.user_id)}
+                      />
+                    </>
+                  );
+                default:
+                  return (
+                    <IconButton
+                      icon="account-plus"
+                      iconColor={colors.primary}
+                      onPress={() => onPressInviteFriend(item?.user_id)}
+                    />
+                  );
               }
-            />
-          )}
-        />
-        <Text>Inviting</Text>
-        <FlatList
-          style={{flex: 1}}
-          data={inviting}
-          renderItem={({item}) => (
-            <List.Item
-              title={item.username}
-              left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-              right={props => (
-                <IconButton icon="close" onPress={() => onPressCancelInvitation(item?.user_id)} />
-              )}
-            />
-          )}
-        />
-        <Text>Requested</Text>
-        <FlatList
-          style={{flex: 1}}
-          data={requested}
-          renderItem={({item}) => (
-            <List.Item
-              title={item.username}
-              left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-              right={props => (
-                <View style={{flexDirection: 'row'}}>
-                  <IconButton icon="check" onPress={() => onConfirmRequest(item?.user_id, true)} />
-                  <IconButton icon="close" onPress={() => onConfirmRequest(item?.user_id, false)} />
-                </View>
-              )}
-            />
-          )}
-        />
-        <Text>Search</Text>
-        <Searchbar value={searchQuery} onChangeText={setSearchQuery} />
-        <FlatList
-          style={{flex: 1}}
-          data={searched}
-          renderItem={({item}) => (
-            <List.Item
-              title={item.username}
-              left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-              right={props => (
-                <IconButton icon="plus" onPress={() => onPressInviteFriend(item?.user_id)} />
-              )}
-            />
-          )}
-        />
-      </View>
+            }}
+          />
+        )}
+      />
     </SafeArea>
   );
 };
@@ -222,6 +243,13 @@ const ManageParticipantsScreen = () => {
 export default ManageParticipantsScreen;
 
 const styles = StyleSheet.create({
+  sectionLabel: {
+    ...Medium(16),
+  },
+  sectionNumberLabel: {
+    ...Medium(16),
+    color: colors.gray,
+  },
   iconButton: {
     width: 30,
     height: 30,
