@@ -111,6 +111,7 @@ const EditScheduleScreen = () => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{flex: 1}}>
           <CustomHeader
+            /*
             backgroundColor={colors.white}
             leftComponent={
               <IconButton
@@ -121,10 +122,11 @@ const EditScheduleScreen = () => {
                 size={18}
               />
             }
-            title="Edit Schedule"
             titleColor={colors.black}
+            */
+            title="Edit Schedule"
             rightComponent={
-              <IconButton icon="delete" iconColor="#000" onPress={onPressDeleteSchedule} />
+              <IconButton icon="delete" iconColor={colors.white} onPress={onPressDeleteSchedule} />
             }
           />
           <View style={styles.container}>

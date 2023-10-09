@@ -82,7 +82,7 @@ const BudgetScreen = () => {
 
   return (
     <>
-      <CustomHeader title={'BUDGET'} />
+      <CustomHeader title={'BUDGET'} leftComponent={<React.Fragment />} />
       <View style={defaultStyle.container}>
         <View style={[STYLES.WIDTH_100, STYLES.MARGIN_TOP(4), STYLES.HEIGHT(48)]}>
           <CalendarProvider date={dayjs().format('YYYY-MM-DD')}>

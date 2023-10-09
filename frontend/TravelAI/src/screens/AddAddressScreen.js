@@ -1,9 +1,8 @@
-import {StyleSheet, View, Pressable, Keyboard, FlatList, Touchable} from 'react-native';
+import {StyleSheet, View, Pressable, Keyboard, FlatList} from 'react-native';
 import React, {useMemo} from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
 import {Header as HeaderRNE} from '@rneui/themed';
-import {useNavigation, useRoute, CommonActions, useNavigationState} from '@react-navigation/native';
+import {useNavigation, CommonActions, useNavigationState} from '@react-navigation/native';
 import _ from 'lodash';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
@@ -12,6 +11,9 @@ import {Searchbar, Text} from 'react-native-paper';
 import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
 import PlaceImageCard from '../component/atoms/PlaceImageCard';
 import {TouchableOpacity} from 'react-native-gesture-handler';
+import {STYLES} from '../styles/Stylesheets';
+import SafeArea from '../component/molecules/SafeArea';
+import {SemiBold} from './../theme/fonts';
 
 const AddAddressScreen = () => {
   // hooks
@@ -95,8 +97,8 @@ const AddAddressScreen = () => {
   }, [searchQuery]);
 
   return (
-    <Pressable onPress={Keyboard.dismiss} style={{flex: 1}}>
-      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
+    <Pressable onPress={Keyboard.dismiss} style={STYLES.FLEX(1)}>
+      <SafeArea>
         <HeaderRNE
           backgroundColor="#fff"
           barStyle="dark-content"
@@ -128,7 +130,7 @@ const AddAddressScreen = () => {
             )}
           />
         </View>
-      </SafeAreaView>
+      </SafeArea>
     </Pressable>
   );
 };
@@ -139,5 +141,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  label: {
+    ...SemiBold(16),
   },
 });

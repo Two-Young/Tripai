@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, Keyboard, TouchableWithoutFeedback, View} from 'react-native';
+import {StyleSheet, Keyboard, TouchableWithoutFeedback, View, Pressable} from 'react-native';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
@@ -18,6 +18,9 @@ import {
 import {Header} from '@rneui/themed';
 import reactotron from 'reactotron-react-native';
 import colors from '../theme/colors';
+import {STYLES} from '../styles/Stylesheets';
+import SafeArea from '../component/molecules/SafeArea';
+import CustomHeader from '../component/molecules/CustomHeader';
 
 const AddPlaceScreen = () => {
   // hooks
@@ -86,21 +89,9 @@ const AddPlaceScreen = () => {
   }, [searchKeyword]);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={defaultStyle.container}>
-      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-        <Header
-          backgroundColor="#fff"
-          barStyle="dark-content"
-          leftComponent={
-            <IconButton
-              mode="contained"
-              icon="chevron-left"
-              iconColor="#000"
-              onPress={() => navigation.goBack()}
-            />
-          }
-          centerComponent={{text: 'Add Place', style: defaultStyle.heading}}
-        />
+    <Pressable onPress={Keyboard.dismiss} style={STYLES.FLEX(1)}>
+      <SafeArea>
+        <CustomHeader title="Add Place" />
         <View style={styles.container}>
           <Searchbar
             value={searchKeyword}
@@ -130,8 +121,8 @@ const AddPlaceScreen = () => {
             Place is already added.
           </Snackbar>
         </Portal>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+      </SafeArea>
+    </Pressable>
   );
 };
 
@@ -141,6 +132,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    paddingHorizontal: 10,
+    padding: 16,
   },
 });

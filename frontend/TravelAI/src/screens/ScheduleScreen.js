@@ -193,7 +193,7 @@ const ScheduleScreen = () => {
 
   return (
     <>
-      <CustomHeader title={'SCHEDULE'} />
+      <CustomHeader title={'SCHEDULE'} leftComponent={<React.Fragment />} />
       <FlatList
         ListHeaderComponent={
           <>

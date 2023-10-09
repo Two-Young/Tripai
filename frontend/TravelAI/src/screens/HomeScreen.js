@@ -109,7 +109,7 @@ const HomeScreen = () => {
 
   return (
     <>
-      <CustomHeader title={'HOME'} />
+      <CustomHeader title={'HOME'} leftComponent={<React.Fragment />} />
       <View style={defaultStyle.container}>
         <FlatList
           ListHeaderComponent={() => (
