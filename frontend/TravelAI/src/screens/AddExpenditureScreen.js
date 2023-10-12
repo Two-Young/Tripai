@@ -3,14 +3,17 @@ import React from 'react';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
 
-const EditBudgetScreen = () => {
+const AddExpenditureScreen = () => {
   return (
     <SafeArea>
-      <CustomHeader title="Edit Budget" />
+      <CustomHeader title="Add Expenditure" rightComponent={<View />} />
+      <View style={styles.container}>
+        <Text>Add Expenditure Screen</Text>
+      </View>
     </SafeArea>
   );
 };
 
-export default EditBudgetScreen;
+export default AddExpenditureScreen;
 
 const styles = StyleSheet.create({});

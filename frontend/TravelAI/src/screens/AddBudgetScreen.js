@@ -31,44 +31,42 @@ const AddBudgetScreen = () => {
   return (
     <SafeArea>
       <Pressable style={[STYLES.FLEX(1)]} onPress={Keyboard.dismiss} accessible={false}>
-        <SafeArea>
-          <CustomHeader title="Add Budget" rightComponent={<View />} />
-          <View style={styles.container}>
-            <View style={styles.searchbarWrapper}>
-              <Searchbar
-                placeholder="Search the country"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-            <FlatList
-              data={currencies.filter(
-                item =>
-                  item.currency_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  item.currency_code.toLowerCase().includes(searchQuery.toLowerCase()),
-              )}
-              renderItem={item => (
-                <CurrencyListItem
-                  item={{
-                    ...item.item,
-                    country: countries.find(i => i.country_code === item.item.country_code),
-                  }}
-                  checked={_.isEqual(defaultCurrency, item.item)}
-                  onChecked={() => {
-                    if (_.isEqual(defaultCurrency, item.item)) {
-                      setDefaultCurrency(defaultCurrencyObject);
-                    } else {
-                      setDefaultCurrency(item.item);
-                    }
-                  }}
-                />
-              )}
+        <CustomHeader title="Add Budget" rightComponent={<View />} />
+        <View style={styles.container}>
+          <View style={styles.searchbarWrapper}>
+            <Searchbar
+              placeholder="Search the country"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
           </View>
-          <View style={STYLES.PADDING(16)}>
-            <MainButton text="Add" disabled={_.isEqual(defaultCurrency, defaultCurrencyObject)} />
-          </View>
-        </SafeArea>
+          <FlatList
+            data={currencies.filter(
+              item =>
+                item.currency_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.currency_code.toLowerCase().includes(searchQuery.toLowerCase()),
+            )}
+            renderItem={item => (
+              <CurrencyListItem
+                item={{
+                  ...item.item,
+                  country: countries.find(i => i.country_code === item.item.country_code),
+                }}
+                checked={_.isEqual(defaultCurrency, item.item)}
+                onChecked={() => {
+                  if (_.isEqual(defaultCurrency, item.item)) {
+                    setDefaultCurrency(defaultCurrencyObject);
+                  } else {
+                    setDefaultCurrency(item.item);
+                  }
+                }}
+              />
+            )}
+          />
+        </View>
+        <View style={STYLES.PADDING(16)}>
+          <MainButton text="Add" disabled={_.isEqual(defaultCurrency, defaultCurrencyObject)} />
+        </View>
       </Pressable>
     </SafeArea>
   );

@@ -1,10 +1,20 @@
-import {StyleSheet, Text, View, FlatList, TouchableOpacity} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+  Keyboard,
+  Pressable,
+  TextInput,
+} from 'react-native';
 import React from 'react';
 import colors from '../theme/colors';
 import {FAB} from 'react-native-paper';
 import BudgetWithCurrencyItem from '../component/molecules/BudgetWithCurrencyItem';
 import {STYLES} from '../styles/Stylesheets';
 import {useNavigation} from '@react-navigation/native';
+import Modal from 'react-native-modal';
 
 const defaultBudget = [
   {
@@ -29,6 +39,8 @@ const SetBudgetScreen = () => {
 
   // states
   const [budgets, setBudgets] = React.useState(defaultBudget);
+  const [isModalVisible, setModalVisible] = React.useState(false);
+  const [value, setValue] = React.useState('');
 
   // functions
 
@@ -43,7 +55,7 @@ const SetBudgetScreen = () => {
         data={budgets}
         keyExtractor={item => item.id.toString()}
         renderItem={({item}) => (
-          <TouchableOpacity onPress={() => navigation.navigate('EditBudget', {budget: item})}>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
             <BudgetWithCurrencyItem item={item} />
           </TouchableOpacity>
         )}
@@ -57,6 +69,38 @@ const SetBudgetScreen = () => {
           />
         }
       />
+      <Modal isVisible={isModalVisible} onBackdropPress={Keyboard.dismiss}>
+        <Pressable onPress={Keyboard.dismiss} style={styles.editModal}>
+          <View style={STYLES.FLEX(1)}>
+            <Text>
+              Set your budget for <Text style={{fontWeight: 'bold'}}>KRW</Text>
+            </Text>
+            <TextInput
+              style={
+                (STYLES.MARGIN_TOP(10),
+                {
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.grey,
+                  paddingVertical: 5,
+                })
+              }
+              value={value}
+              onChangeText={text => setValue(text)}
+              keyboardType="numeric"
+            />
+          </View>
+          <View style={styles.buttonWrap}>
+            <TouchableOpacity
+              style={[styles.textButton, STYLES.MARGIN_RIGHT(5)]}
+              onPress={() => setModalVisible(false)}>
+              <Text>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.textButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.save}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
@@ -72,5 +116,21 @@ const styles = StyleSheet.create({
   fab: {
     alignItems: 'center',
     backgroundColor: colors.primary,
+  },
+  editModal: {
+    backgroundColor: colors.white,
+    height: 200,
+    borderRadius: 10,
+    padding: 20,
+  },
+  textButton: {
+    padding: 5,
+  },
+  save: {
+    color: colors.primary,
+  },
+  buttonWrap: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
 });

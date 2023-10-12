@@ -24,7 +24,7 @@ import AddFriendsScreen from '../screens/AddFriendsScreen';
 import SessionRequestsScreen from '../screens/SessionRequestsScreen.js';
 import ManageParticipantsScreen from '../screens/ManageParticipantsScreen.js';
 import AddBudgetScreen from '../screens/AddBudgetScreen.js';
-import EditBudgetScreen from '../screens/EditBudgetScreen.js';
+import AddExpenditureScreen from './../screens/AddExpenditureScreen';
 
 const Stack = createStackNavigator();
 
@@ -107,7 +107,7 @@ const RootNavigator = () => {
         <Stack.Screen name="EditSchedule" component={EditScheduleScreen} />
         <Stack.Screen name="Receipt" component={ReceiptScreen} />
         <Stack.Screen name="AddBudget" component={AddBudgetScreen} />
-        <Stack.Screen name="EditBudget" component={EditBudgetScreen} />
+        <Stack.Screen name="AddExpenditure" component={AddExpenditureScreen} />
       </Stack.Group>
       {/* OnBoard */}
       {/* Tab */}
