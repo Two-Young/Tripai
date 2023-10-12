@@ -26,6 +26,7 @@ export const gray_text = '#A1B2C6';
 
 const colors = {
   primary: '#0D6EFD',
+  secondary: '#7DAEFD',
   white: '#FFFFFF',
   lightgray: '#E9E9EB',
   black: '#000000',

@@ -76,7 +76,7 @@ function SignInScreen(props) {
           <View style={STYLES.FLEX(1)} />
           <Image source={mainLogo} style={styles.mainLogo} />
           <View style={[STYLES.FLEX(1), STYLES.JUSTIFY_CENTER]}>
-            <Text style={styles.subTitle}>{'Ai 기반의\n여행플래닝 플랫폼'}</Text>
+            <Text style={styles.subTitle}>{'AI-based\ntravel platform'}</Text>
           </View>
         </View>
         <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
@@ -96,10 +96,7 @@ function SignInScreen(props) {
           ))}
         </View>
         <View style={[STYLES.FLEX_ROW, STYLES.FLEX_END]}>
-          <Text style={[styles.signUpText, STYLES.MARGIN_TOP(30)]}>Don't have an account? </Text>
-          <TouchableOpacity>
-            <Text style={styles.signUpButtonText}>Sign up</Text>
-          </TouchableOpacity>
+          <Text style={[styles.signUpText, STYLES.MARGIN_TOP(30)]}>Use your social account.</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -141,11 +138,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   signUpText: {
-    ...Fonts.Regular(16),
-  },
-  signUpButtonText: {
-    ...Fonts.Bold(16),
-    color: '#801C1C',
+    ...Fonts.Regular(14),
   },
 });
 

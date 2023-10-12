@@ -11,7 +11,7 @@ import {Light} from '../theme/fonts';
 import {searchIcon} from '../assets/images';
 import {arrowRight} from '../assets/images';
 import MainButton from '../component/atoms/MainButton';
-import CustomHeader from '../component/molecules/CustomHeader';
+import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
 
@@ -46,24 +46,12 @@ const AddTravelScreen = () => {
     }
   }, [countries]);
 
+  console.log(selected);
+
   return (
     <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
-      <CustomHeader
-        backgroundColor={'white'}
-        leftComponent={
-          <IconButton
-            mode="contained"
-            icon="chevron-left"
-            iconColor="#000"
-            size={18}
-            onPress={() => navigation.goBack()}
-          />
-        }
-        title="Choose the countries"
-        titleColor="black"
-        rightComponent={<></>}
-      />
-      <View style={styles.container}>
+      <CustomHeader title="Choose the countries" theme={CUSTOM_HEADER_THEME.WHITE} />
+      <View style={[STYLES.FLEX(1)]}>
         <Text style={styles.description}>
           {'Choose all the countries you want to\nadd to your trip'}
         </Text>
