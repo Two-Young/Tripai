@@ -10,6 +10,7 @@ import (
 	"travel-ai/log"
 	"travel-ai/third_party/google_cloud/cloud_vision"
 	"travel-ai/third_party/opencv"
+	"travel-ai/third_party/taggun_receipt_ocr"
 	"travel-ai/util"
 
 	"github.com/gin-gonic/gin"
@@ -108,6 +109,77 @@ func ImagePreprocess(c *gin.Context) {
 		}
 		log.Debug("temp file deleted: " + dest)
 	}(f)
+
+	taggunResp, err := taggun_receipt_ocr.ParseReceipt(f)
+	if err != nil {
+		log.Error(err)
+		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	totalAmount := 0.0
+	totalAmountUnit := "" // KRW, USD, JPY, ...
+	totalAmountConfident := false
+	if taggunResp.TotalAmount.ConfidenceLevel >= 0.5 {
+		totalAmount = taggunResp.TotalAmount.Data
+		totalAmountUnit = taggunResp.TotalAmount.CurrencyCode
+		totalAmountConfident = true
+	} else {
+		log.Debugf("total amount confidence level is too low: %v", taggunResp.TotalAmount.ConfidenceLevel)
+	}
+
+	taxAmount := 0.0
+	taxAmountUnit := "" // KRW, USD, JPY, ...
+	taxAmountConfident := false
+	if taggunResp.TaxAmount.ConfidenceLevel >= 0.5 {
+		taxAmount = taggunResp.TaxAmount.Data
+		taxAmountUnit = taggunResp.TaxAmount.CurrencyCode
+		taxAmountConfident = true
+	} else {
+		log.Debugf("tax amount confidence level is too low: %v", taggunResp.TaxAmount.ConfidenceLevel)
+	}
+
+	type Item struct {
+		Name   string
+		Amount int
+		Price  float64
+	}
+	items := make(map[int]Item)
+	for _, amountRaw := range taggunResp.Amounts {
+		itemRaw, ok := items[amountRaw.Index]
+		if !ok {
+			itemRaw = Item{
+				Amount: 1,
+			}
+		}
+		itemRaw.Name = amountRaw.Text
+		itemRaw.Price = amountRaw.Data
+		items[amountRaw.Index] = itemRaw
+	}
+	for _, numberRaw := range taggunResp.Numbers {
+		itemRaw, ok := items[numberRaw.Index]
+		if !ok {
+			itemRaw = Item{}
+		}
+		itemRaw.Amount = numberRaw.Data
+		items[numberRaw.Index] = itemRaw
+	}
+
+	if !totalAmountConfident {
+		totalAmount = 0.0
+		for _, item := range items {
+			totalAmount += item.Price
+		}
+	}
+
+	if !taxAmountConfident {
+		taxAmount = 0.0
+	}
+
+	log.Debugf("total amount: %v", totalAmount)
+	log.Debugf("total amount unit: %v", totalAmountUnit)
+	log.Debugf("tax amount: %v", taxAmount)
+	log.Debugf("tax amount unit: %v", taxAmountUnit)
 
 	fileInfo, _ := f.Stat()
 	fileSize := fileInfo.Size()

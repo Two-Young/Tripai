@@ -463,3 +463,33 @@ type BudgetCreateRequestDto struct {
 type BudgetDeleteRequestDto struct {
 	BudgetId string `json:"budget_id" binding:"required"`
 }
+
+/* ---------------- Expenditure ---------------- */
+
+type ExpenditureGetRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type ExpenditureGetResponseItem struct {
+	ExpenditureId string  `json:"expenditure_id"`
+	Name          string  `json:"name"`
+	TotalPrice    float64 `json:"total_price"`
+	CurrencyCode  string  `json:"currency_code"`
+	Category      string  `json:"category"`
+	IsCustom      bool    `json:"is_custom"`
+}
+
+type ExpenditureGetResponseDto []ExpenditureGetResponseItem
+
+type ExpenditureCreateRequestDto struct {
+	Name         string  `json:"name" binding:"required"`
+	TotalPrice   float64 `json:"total_price" binding:"required"`
+	CurrencyCode string  `json:"currency_code" binding:"required"`
+	Category     string  `json:"category" binding:"required"`
+	IsCustom     bool    `json:"is_custom" binding:"required"`
+	SessionId    string  `json:"session_id" binding:"required"`
+}
+
+type ExpenditureDeleteRequestDto struct {
+	ExpenditureId string `json:"expenditure_id" binding:"required"`
+}

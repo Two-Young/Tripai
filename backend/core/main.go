@@ -16,6 +16,7 @@ import (
 	"travel-ai/third_party/google_cloud/places"
 	"travel-ai/third_party/open_ai"
 	"travel-ai/third_party/pexels"
+	"travel-ai/third_party/taggun_receipt_ocr"
 
 	"github.com/joho/godotenv"
 )
@@ -86,6 +87,7 @@ func main() {
 	cloud_vision.Initialize()
 	places.Initialize()
 	pexels.Initialize()
+	taggun_receipt_ocr.Initialize()
 
 	// Preload
 	if err := platform.Preload(); err != nil {

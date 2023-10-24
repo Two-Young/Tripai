@@ -9,27 +9,10 @@ import (
 )
 
 var (
-	CountriesMap map[string]Country
-	AppServerHost   string
+	CountriesMap  map[string]Country
+	AppServerHost string
 	AppServerPort = os.Getenv("APP_SERVER_PORT")
 )
-
-type Currency struct {
-	Code   string `json:"code"`
-	Name   string `json:"name"`
-	Symbol string `json:"symbol"`
-}
-
-type Country struct {
-	CCA2       string     `json:"country_code"`
-	CCA3       string     `json:"country_code3"`
-	Alt        string     `json:"alt"`
-	Png        string     `json:"png"`
-	Svg        string     `json:"svg"`
-	CommonName string     `json:"common_name"`
-	Region     string     `json:"region"`
-	Currencies []Currency `json:"currencies"`
-}
 
 func Preload() error {
 	// load countries & currency data

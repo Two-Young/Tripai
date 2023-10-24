@@ -117,7 +117,8 @@ func CheckPermissionByReceiptId(uid string, receiptId string) (bool, error) {
 		}
 		return false, err
 	}
-	yes, err := IsSessionMember(uid, receipt.SessionId)
+	// TODO (IMPORTANT) :: fix this (get expenditure by receipt id and check with session Id of expenditure)
+	yes, err := IsSessionMember(uid, receipt.ExpenditureId)
 	if !yes {
 		if err != nil {
 			return false, err

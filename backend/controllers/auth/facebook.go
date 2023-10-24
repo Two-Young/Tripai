@@ -53,6 +53,8 @@ func SignWithFacebook(c *gin.Context) {
 		return
 	}
 
+	log.Debugf("facebook credential: %v", facebookCredential)
+
 	// Get user's information using Facebook Graph API
 	userInfoUrl := fmt.Sprintf("https://graph.facebook.com/me&fields=id,name,email,picture")
 	respUserInfo, err := http.Get(userInfoUrl)
