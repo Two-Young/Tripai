@@ -17,6 +17,7 @@
     "@react-native-community/clipboard": "^1.5.1",
     "@react-native-google-signin/google-signin": "^10.0.1",
     "@react-native-masked-view/masked-view": "^0.2.9",
+    "@react-native-picker/picker": "^2.5.1",
     "@react-native-seoul/kakao-login": "^5.2.6",
     "@react-native-seoul/naver-login": "^3.0.0-rc.2",
     "@react-navigation/bottom-tabs": "^6.5.7",

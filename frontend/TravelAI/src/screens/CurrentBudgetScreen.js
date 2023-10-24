@@ -16,6 +16,7 @@ import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {Light, SemiBold} from './../theme/fonts';
 import {FAB, List} from 'react-native-paper';
+import {useNavigation} from '@react-navigation/native';
 
 const Card = ({children, style}) => {
   const flipAnimation = React.useRef(new Animated.Value(0)).current;
@@ -123,6 +124,7 @@ const DayItem = ({item, selectedDay, onPress}) => {
 const CurrentBudgetScreen = () => {
   // hooks
   const currentSession = useRecoilValue(sessionAtom);
+  const navigation = useNavigation();
 
   const {start_at, end_at} = currentSession;
 
@@ -156,9 +158,20 @@ const CurrentBudgetScreen = () => {
     },
   ]);
 
+  const [open, setOpen] = React.useState(false);
+
   const spentPercent = React.useMemo(() => (spent / budget) * 100, [spent, budget]);
   const remaining = React.useMemo(() => budget - spent, [budget, spent]);
   const remainingPercent = React.useMemo(() => (remaining / budget) * 100, [remaining, budget]);
+
+  // functions
+  const onStateChange = ({open}) => setOpen(open);
+
+  const onPressAddExpenditure = () => {
+    navigation.navigate('AddExpenditure', {
+      date: selectedDay?.date,
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -212,7 +225,32 @@ const CurrentBudgetScreen = () => {
           ListEmptyComponent={<Text>Empty</Text>}
         />
       </View>
-      <FAB style={styles.fab} icon="plus" color="#fff" />
+      <FAB.Group
+        fabStyle={styles.fab}
+        open={open}
+        visible
+        icon={open ? 'close' : 'plus'}
+        color={colors.white}
+        actions={[
+          {
+            icon: 'email',
+            label: '1/n',
+            onPress: () => console.log('Pressed email'),
+          },
+          {
+            icon: 'email',
+            label: 'custom',
+            onPress: onPressAddExpenditure,
+          },
+          {icon: 'close', onPress: () => {}},
+        ]}
+        onStateChange={onStateChange}
+        onPress={() => {
+          if (open) {
+            // do something if the speed dial is open
+          }
+        }}
+      />
     </View>
   );
 };
