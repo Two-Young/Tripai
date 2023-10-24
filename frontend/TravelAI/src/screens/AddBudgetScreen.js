@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View, Keyboard, Pressable, FlatList} from 'react-native';
+import {StyleSheet, View, Keyboard, Pressable, FlatList} from 'react-native';
 import React from 'react';
 import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
@@ -11,6 +11,7 @@ import CurrencyListItem from '../component/molecules/CurrencyListItem';
 import _ from 'lodash';
 import colors from '../theme/colors';
 import MainButton from '../component/atoms/MainButton';
+import {useNavigation, CommonActions, useNavigationState} from '@react-navigation/native';
 
 const defaultCurrencyObject = {
   currency_code: '',
@@ -23,10 +24,24 @@ const AddBudgetScreen = () => {
   // hooks
   const currencies = useRecoilValue(currenciesAtom);
   const countries = useRecoilValue(countriesAtom);
+  const navigation = useNavigation();
+  const navigationState = useNavigationState(state => state);
 
   // states
   const [defaultCurrency, setDefaultCurrency] = React.useState(defaultCurrencyObject);
   const [searchQuery, setSearchQuery] = React.useState('');
+
+  // TODO:: 추가했을 때 실제 서버와 동작
+
+  // functions
+  const onPressAdd = async () => {
+    const target = navigationState.routes[navigationState.routes.length - 2];
+    navigation.dispatch({
+      ...CommonActions.setParams({refresh: true}),
+      source: target.key,
+    });
+    navigation.goBack();
+  };
 
   return (
     <SafeArea>

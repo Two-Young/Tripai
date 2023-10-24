@@ -14,10 +14,8 @@ import {STYLES} from '../styles/Stylesheets';
 import dayjs from 'dayjs';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import reactotron from 'reactotron-react-native';
-import EmptyComponent from './../component/atoms/EmptyComponent';
 import {Light, SemiBold} from './../theme/fonts';
-import {List} from 'react-native-paper';
+import {FAB, List} from 'react-native-paper';
 
 const Card = ({children, style}) => {
   const flipAnimation = React.useRef(new Animated.Value(0)).current;
@@ -146,8 +144,6 @@ const CurrentBudgetScreen = () => {
     return dates;
   }, [startAt, endAt]);
 
-  reactotron.log({tripDays});
-
   // states
   const [budget, setBudget] = React.useState(0);
   const [spent, setSpent] = React.useState(0);
@@ -216,6 +212,7 @@ const CurrentBudgetScreen = () => {
           ListEmptyComponent={<Text>Empty</Text>}
         />
       </View>
+      <FAB style={styles.fab} icon="plus" color="#fff" />
     </View>
   );
 };
@@ -298,5 +295,13 @@ const styles = StyleSheet.create({
     width: 50,
     height: 1,
     backgroundColor: '#7D848D',
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    bottom: 0,
+    right: 0,
+    alignItems: 'center',
+    backgroundColor: colors.primary,
   },
 });
