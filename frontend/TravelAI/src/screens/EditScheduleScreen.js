@@ -136,7 +136,7 @@ const EditScheduleScreen = () => {
                       .format('YYYY-MM-DD HH:mm'),
                   );
                 }}
-                type="date"
+                type="time"
               />
               <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
             </View>

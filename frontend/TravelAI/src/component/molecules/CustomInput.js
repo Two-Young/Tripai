@@ -21,18 +21,22 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
     }
   }, [type, route.params?.place]);
 
-  const onFocus = useCallback(() => {
-    switch (type) {
-      case 'place':
-        handleSetAddress();
-        ref.current.blur();
-        break;
-      case 'date':
-        setOpen(true);
-        ref.current.blur();
-        break;
-    }
-  }, [type]);
+  const onFocus = useCallback(
+    e => {
+      switch (type) {
+        case 'place':
+          handleSetAddress();
+          ref.current.blur();
+          break;
+        case 'time':
+        case 'date':
+          setOpen(true);
+          ref.current.blur();
+          break;
+      }
+    },
+    [type],
+  );
 
   const ref = React.useRef(null);
 
@@ -40,8 +44,10 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
     switch (type) {
       case 'place':
         return value?.address ?? '';
-      case 'date':
+      case 'time':
         return dayjs(value).format('HH:mm');
+      case 'date':
+        return dayjs(value).format('YYYY-MM-DD HH:mm');
       default:
         return value;
     }
@@ -59,14 +65,15 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
           value={showValue}
           {...(type !== 'date' && {onChangeText: setValue})}
           {...(type === 'multiline' && {multiline: true})}
+          showSoftInputOnFocus={type === 'text'}
         />
       </View>
-      {type === 'date' && value.length > 0 && (
+      {(type === 'date' || type === 'time') && value.length > 0 && (
         <DatePicker
           modal
           open={open}
           date={new Date(value)}
-          mode="time"
+          mode={type === 'date' ? 'datetime' : 'time'}
           onConfirm={date => {
             setOpen(false);
             setValue(date);

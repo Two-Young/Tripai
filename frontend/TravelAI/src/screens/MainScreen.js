@@ -109,7 +109,7 @@ const MainScreen = () => {
 
   return (
     <SafeArea bottom={{inactive: true}}>
-      <CustomHeader title={'WELCOME'} leftComponent={<View />} />
+      <CustomHeader title={'WELCOME'} useBack={false} />
       <FlatList
         contentContainerStyle={[STYLES.PADDING_BOTTOM(10)]}
         showsVerticalScrollIndicator={false}

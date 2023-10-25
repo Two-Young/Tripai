@@ -13,6 +13,7 @@
   "dependencies": {
     "-": "^0.0.1",
     "@googlemaps/polyline-codec": "^1.0.28",
+    "@gorhom/bottom-sheet": "^4.5.1",
     "@react-native-async-storage/async-storage": "^1.18.2",
     "@react-native-community/clipboard": "^1.5.1",
     "@react-native-google-signin/google-signin": "^10.0.1",
