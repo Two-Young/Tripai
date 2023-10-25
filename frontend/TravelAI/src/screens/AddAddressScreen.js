@@ -14,6 +14,8 @@ import {TouchableOpacity} from 'react-native-gesture-handler';
 import {STYLES} from '../styles/Stylesheets';
 import SafeArea from '../component/molecules/SafeArea';
 import {SemiBold} from './../theme/fonts';
+import colors from '../theme/colors';
+import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 
 const AddAddressScreen = () => {
   // hooks
@@ -98,14 +100,18 @@ const AddAddressScreen = () => {
 
   return (
     <Pressable onPress={Keyboard.dismiss} style={STYLES.FLEX(1)}>
-      <SafeArea>
-        <HeaderRNE
-          backgroundColor="#fff"
-          barStyle="dark-content"
-          centerComponent={{text: 'Location', style: defaultStyle.heading}}
-        />
+      <SafeArea
+        top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
+        bottom={{inactive: true}}>
+        <CustomHeader title={'Select address'} theme={CUSTOM_HEADER_THEME.WHITE} useMenu={false} />
         <View style={styles.container}>
-          <Searchbar value={searchQuery} onChangeText={setSearchQuery} />
+          <Searchbar
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search address"
+            placeholderTextColor={colors.gray}
+            style={styles.searchBar}
+          />
           <FlatList
             style={{flex: 1}}
             ListHeaderComponent={() => (
@@ -115,7 +121,7 @@ const AddAddressScreen = () => {
                     {...{isZeroResult, searchResult, onPressListItem, onPressFooterItem}}
                   />
                 )}
-                <Text>Quick Select</Text>
+                <Text style={styles.label}>Registerd Places</Text>
               </React.Fragment>
             )}
             contentContainerStyle={{paddingTop: 16}}
@@ -143,6 +149,13 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   label: {
+    marginTop: 20,
+    marginBottom: 10,
     ...SemiBold(16),
+  },
+  searchBar: {
+    borderRadius: 16,
+    backgroundColor: colors.searchBar,
+    marginBottom: 10,
   },
 });

@@ -117,6 +117,7 @@ export const authGoogleSign = async idToken => {
     const response = await api.post('/auth/google/sign', {id_token: idToken});
     return response.data;
   } catch (error) {
+    console.error(JSON.stringify(error));
     throw error;
   }
 };
@@ -135,6 +136,7 @@ export const authNaverSign = async accessToken => {
     const response = await api.post('/auth/naver/sign', {id_token: accessToken});
     return response.data;
   } catch (error) {
+    console.error(JSON.stringify(error));
     console.error(error);
     throw error;
   }
@@ -274,6 +276,7 @@ export const createSession = async (country_codes, start_at, end_at) => {
 
 export const deleteSession = async session_id => {
   try {
+    console.log('session_id : ', session_id);
     const response = await api.delete('/platform/session', {
       data: {
         session_id,

@@ -3,7 +3,7 @@ import React from 'react';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import {IconButton, Portal, Snackbar} from 'react-native-paper';
 import {getCurrencies, getSessions, locateCountries} from '../services/api';
-import {useRecoilValue, useSetRecoilState} from 'recoil';
+import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import userAtom from '../recoil/user/user';
 import colors from '../theme/colors';
@@ -15,14 +15,15 @@ import CustomHeader from '../component/molecules/CustomHeader';
 import TravelItem from '../component/molecules/TravelItem';
 import {Fonts} from '../theme';
 import LinearGradient from 'react-native-linear-gradient';
+import {sessionsAtom} from '../recoil/session/sessions';
 
 const MainScreen = () => {
   /* states */
-  const [sessions, setSessions] = React.useState([]); // 세션 목록
   const [refreshing, setRefreshing] = React.useState(false); // refresh 여부
   const [snackbarVisible, setSnackbarVisible] = React.useState(false); // snackbar visible 여부
   // const [menuVisible, setMenuVisible] = React.useState(false); // menu visible 여부
 
+  const [sessions, setSessions] = useRecoilState(sessionsAtom);
   const setCountries = useSetRecoilState(countriesAtom);
   const setCurrencies = useSetRecoilState(currenciesAtom);
 

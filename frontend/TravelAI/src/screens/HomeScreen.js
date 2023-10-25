@@ -1,11 +1,11 @@
-import {StyleSheet, View, FlatList, Text} from 'react-native';
+import {StyleSheet, View, FlatList, Text, Alert} from 'react-native';
 import React, {useEffect} from 'react';
 import defaultStyle from '../styles/styles';
 import PlaceListItem from '../component/molecules/PlaceListItem';
 import colors from '../theme/colors';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import {getLocations, leaveSession} from '../services/api';
-import {useRecoilValue} from 'recoil';
+import {useRecoilValue, useRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {FAB, IconButton} from 'react-native-paper';
 import _ from 'lodash';
@@ -17,11 +17,15 @@ import {STYLES} from '../styles/Stylesheets';
 import {SemiBold} from '../theme/fonts';
 import Clipboard from '@react-native-community/clipboard';
 import {showSuccessToast} from '../utils/utils';
+import {deleteSession} from '../services/api';
+import {sessionsAtom} from '../recoil/session/sessions';
 
 const HomeScreen = () => {
   // hooks
   const navigation = useNavigation();
   const route = useRoute();
+
+  const [sessions, setSessions] = useRecoilState(sessionsAtom);
   const user = useRecoilValue(userAtom);
   const currentSession = useRecoilValue(sessionAtom);
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
@@ -69,25 +73,30 @@ const HomeScreen = () => {
   const onPressLeave = async () => {
     try {
       await leaveSession(currentSessionID);
-      navigation.navigate('Main');
+      setSessions(sessions.filter(session => session.session_id !== currentSessionID));
+      navigation.goBack();
     } catch (err) {
       console.error(err);
     }
   };
 
   // 세션 삭제
-  const onPressDeleteSession = async session => {
-    Alert.alert('Delete Item', 'Are you sure you want to delete this item?', [
-      {text: 'Cancel', style: 'cancel'},
-      {text: 'Delete', onPress: () => onDelete(session), style: 'destructive'},
-    ]);
+  const onPressDeleteSession = async () => {
+    Alert.alert(
+      `Delete ${currentSession.name}`,
+      `Are you sure you want to delete ${currentSession.name}?`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Delete', onPress: () => onDelete(currentSession), style: 'destructive'},
+      ],
+    );
   };
 
-  const onDelete = async session => {
+  const onDelete = async () => {
     try {
-      await deleteSession(session.session_id);
-      setSessions(sessions.filter(sess => sess.session_id !== session.session_id));
-      setSnackbarVisible(true);
+      await deleteSession(currentSessionID);
+      setSessions(sessions.filter(session => session.session_id !== currentSessionID));
+      navigation.goBack();
     } catch (err) {
       console.error(err);
     }
@@ -125,9 +134,6 @@ const HomeScreen = () => {
       });
     }
   }, [route.params?.place, currentSessionID]);
-
-  console.log(currentSessionID, currentSession);
-  console.log(user);
 
   return (
     <View style={defaultStyle.container}>
