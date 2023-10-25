@@ -1,25 +1,16 @@
-import {
-  StyleSheet,
-  TextInput,
-  View,
-  FlatList,
-  Pressable,
-  Keyboard,
-  Alert,
-  Image,
-  Text,
-} from 'react-native';
+import {StyleSheet, View, FlatList, Pressable, Keyboard, Alert, Text} from 'react-native';
 import React from 'react';
-import {ActivityIndicator, Avatar, IconButton, List} from 'react-native-paper';
+import {Avatar, IconButton, List, Searchbar} from 'react-native-paper';
 import {requestFriends, searchFriends} from '../services/api';
-import {useNavigation, useNavigationState, CommonActions} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import {STYLES} from '../styles/Stylesheets';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
 import colors from '../theme/colors';
-import {Icon} from '@rneui/themed';
-import {searchIcon} from '../assets/images';
 import {showErrorToast, showSuccessToast} from '../utils/utils';
+import {useRecoilState} from 'recoil';
+import {sentFriendsAtom} from '../recoil/friends/friends';
+import {getFriendsWaiting} from '../services/api';
 
 const AddFriendListItem = ({item, onPress}) => {
   return (
@@ -50,17 +41,25 @@ const AddFriendListEmptyComponent = ({isResult}) => {
 };
 
 const AddFriendsScreen = () => {
-  // hooks
-  const navigation = useNavigation();
-  const navigationState = useNavigationState(state => state);
-
   // states
   const [query, setQuery] = React.useState('');
   const [searchResults, setSearchResults] = React.useState([]);
   const [isSearching, setIsSearching] = React.useState(false);
   const [isResult, setIsResult] = React.useState(false);
 
+  // recoil
+  const [sentFriends, setSentFriends] = useRecoilState(sentFriendsAtom);
+
   // functions
+  const fetchFriendsWaiting = async () => {
+    try {
+      const data = await getFriendsWaiting();
+      setSentFriends(data.sent);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const search = async () => {
     try {
       if (query.length === 0) {
@@ -98,51 +97,37 @@ const AddFriendsScreen = () => {
   const onPressOK = async user_id => {
     try {
       await requestFriends(user_id);
-      const target = navigationState.routes[navigationState.routes.length - 2];
-      navigation.dispatch({
-        ...CommonActions.setParams({refresh: true}),
-        source: target.key,
-      });
+      await fetchFriendsWaiting();
       showSuccessToast('Friend request sent');
     } catch (err) {
       showErrorToast(err);
     }
   };
 
-  const onPressClear = () => {
-    setQuery('');
-    setSearchResults([]);
-    setIsResult(false);
-  };
+  useFocusEffect(() => {
+    fetchFriendsWaiting();
+  });
 
   return (
     <Pressable onPress={Keyboard.dismiss} style={STYLES.FLEX(1)}>
       <SafeArea>
         <CustomHeader title="Add Friends" rightComponent={<React.Fragment />} />
         <View style={styles.container}>
-          <View style={styles.searchBarWrapper}>
-            <Image source={searchIcon} style={styles.searchIcon} />
-            <TextInput
-              style={[STYLES.FLEX(1), {color: colors.black}]}
-              placeholder="Search"
-              onChangeText={setQuery}
-              value={query}
-              returnKeyType="search"
-              onSubmitEditing={search}
-            />
-            {query.length > 0 &&
-              (isSearching ? (
-                <View style={STYLES.PADDING(5)}>
-                  <ActivityIndicator size={14} color="gray" />
-                </View>
-              ) : (
-                <Pressable style={STYLES.PADDING(5)} onPress={onPressClear}>
-                  <Icon name="close" size={14} color="gray" />
-                </Pressable>
-              ))}
-          </View>
+          <Searchbar
+            placeholder="Search user name"
+            onChangeText={setQuery}
+            value={query}
+            placeholderTextColor={colors.gray}
+            onClear={() => {
+              setQuery('');
+            }}
+            onBlur={search}
+            style={styles.searchBar}
+          />
           <FlatList
-            data={searchResults}
+            data={searchResults.filter(
+              item => !sentFriends.map(item => item.user_id).includes(item.user_id),
+            )}
             renderItem={({item}) => <AddFriendListItem item={item} onPress={onPressAdd} />}
             ListEmptyComponent={<AddFriendListEmptyComponent isResult={isResult} />}
           />
@@ -168,5 +153,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.searchBar,
     borderRadius: 8,
     paddingHorizontal: 12,
+  },
+  searchBar: {
+    borderRadius: 16,
+    backgroundColor: colors.searchBar,
+    marginBottom: 10,
   },
 });

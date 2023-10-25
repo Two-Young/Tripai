@@ -214,7 +214,7 @@ const ManageParticipantsScreen = () => {
   );
 
   return (
-    <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
+    <SafeArea top={{style: {backgroundColor: colors.primary}, barStyle: 'light-content'}}>
       <CustomHeader
         title="Manage Participants"
         leftComponent={

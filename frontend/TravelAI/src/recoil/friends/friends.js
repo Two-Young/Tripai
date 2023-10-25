@@ -6,6 +6,16 @@ export const friendsAtom = atom({
   default: [],
 });
 
+export const sentFriendsAtom = atom({
+  key: 'sentFriends',
+  default: [],
+});
+
+export const receivedFriendsAtom = atom({
+  key: 'receivedFriends',
+  default: [],
+});
+
 export const getFriendsSelector = selector({
   key: 'friends/get',
   get: async ({get}) => {
