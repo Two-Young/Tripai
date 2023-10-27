@@ -13,7 +13,7 @@ import CustomHeader from '../component/molecules/CustomHeader';
 import CustomInput from '../component/molecules/CustomInput';
 import colors from '../theme/colors';
 import {Picker} from '@react-native-picker/picker';
-import BottomSheet from '@gorhom/bottom-sheet';
+import BottomSheet, {BottomSheetFlatList} from '@gorhom/bottom-sheet';
 import {STYLES} from '../styles/Stylesheets';
 import {getSessionMembers} from '../services/api';
 import {useRecoilValue} from 'recoil';
@@ -21,13 +21,24 @@ import sessionAtom from '../recoil/session/session';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
+import {Icon} from '@rneui/themed';
+import {Button} from 'react-native-paper';
 
 const FlatListRenderItem = ({data}) => {
   const {item, participants, setParticipants} = data;
+
+  const inputRef = React.useRef(null);
+
   return (
     <View style={styles.individualWrapper}>
-      <Text style={[styles.bottomSheetText, styles.individualText]}>{item.item?.username}</Text>
+      <View style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.FLEX(1)]}>
+        <TouchableOpacity style={styles.minusButton}>
+          <Icon name="remove" size={12} color={colors.white} />
+        </TouchableOpacity>
+        <Text style={[styles.bottomSheetText, styles.individualText]}>{item.item?.username}</Text>
+      </View>
       <TextInput
+        ref={inputRef}
         style={[styles.bottomSheetText, styles.individualInput, styles.individualText]}
         placeholder="0"
         placeholderTextColor={colors.white}
@@ -48,6 +59,26 @@ const FlatListRenderItem = ({data}) => {
             newData[item.index].amount = '';
           }
           setParticipants(newData);
+        }}
+        onFocus={() => {
+          inputRef.current.setNativeProps({
+            style: {
+              ...styles.bottomSheetText,
+              ...styles.individualInput,
+              ...styles.individualText,
+              backgroundColor: '#00000020',
+            },
+          });
+        }}
+        onBlur={() => {
+          inputRef.current.setNativeProps({
+            style: {
+              ...styles.bottomSheetText,
+              ...styles.individualInput,
+              ...styles.individualText,
+              backgroundColor: 'transparent',
+            },
+          });
         }}
       />
     </View>
@@ -113,8 +144,8 @@ const ExpenditureBottomSheet = ({data}) => {
             />
           </View>
         </View>
-        <View style={(STYLES.FLEX(1), STYLES.MARGIN_TOP(20))}>
-          <FlatList
+        <View style={styles.bottomSheetHide}>
+          <BottomSheetFlatList
             contentContainerStyle={styles.bottomSheetFlatList}
             data={participants}
             keyExtractor={item => item.user_id}
@@ -127,7 +158,30 @@ const ExpenditureBottomSheet = ({data}) => {
                 }}
               />
             )}
+            ListHeaderComponent={
+              <View>
+                <Button
+                  theme={{
+                    colors: {
+                      primary: '#376BB9',
+                    },
+                  }}
+                  icon={'format-list-bulleted'}
+                  mode={'contained'}>
+                  Distribute
+                </Button>
+              </View>
+            }
           />
+          <TouchableOpacity
+            onPress={() => {
+              setParticipants(prev => [
+                ...prev,
+                {user_id: 'id' + Math.random().toString(16).slice(2), username: 'test', amount: ''},
+              ]);
+            }}>
+            <Text style={[styles.bottomSheetText, STYLES.MARGIN_TOP(10)]}>Add Participant</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </BottomSheet>
@@ -146,6 +200,7 @@ const AddExpenditureScreen = () => {
   const [total, setTotal] = React.useState('0');
   const [participants, setParticipants] = React.useState([]);
   const [receipt, setReceipt] = React.useState(null);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = React.useState(true);
 
   const currentSession = useRecoilValue(sessionAtom);
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
@@ -178,7 +233,11 @@ const AddExpenditureScreen = () => {
     }
   };
 
-  const onPressEditReceipt = () => {};
+  const onPressEditReceipt = () => {
+    navigation.navigate('EditReceipt', {
+      receipt: receipt,
+    });
+  };
 
   // effects
   React.useEffect(() => {
@@ -197,7 +256,13 @@ const AddExpenditureScreen = () => {
           <Picker.Item label="Shopping" value="shopping" />
           <Picker.Item label="Etc" value="etc" />
         </Picker>
-        <CustomInput label={'Name'} value={name} setValue={setName} />
+        <CustomInput
+          label={'Name'}
+          value={name}
+          setValue={setName}
+          onFocus={() => setIsBottomSheetOpen(false)}
+          onBlur={() => setIsBottomSheetOpen(true)}
+        />
         <CustomInput
           label={'Date'}
           value={time}
@@ -224,21 +289,21 @@ const AddExpenditureScreen = () => {
             </ImageBackground>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.receiptButton}>
-            <Text style={styles.receiptText} onPress={onPressUploadReceipt}>
-              Upload Receipt
-            </Text>
+          <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
+            <Text style={styles.receiptText}>Upload Receipt</Text>
           </TouchableOpacity>
         )}
       </View>
-      <ExpenditureBottomSheet
-        data={{
-          total: total,
-          setTotal: setTotal,
-          participants: participants,
-          setParticipants: setParticipants,
-        }}
-      />
+      {isBottomSheetOpen && (
+        <ExpenditureBottomSheet
+          data={{
+            total: total,
+            setTotal: setTotal,
+            participants: participants,
+            setParticipants: setParticipants,
+          }}
+        />
+      )}
     </SafeArea>
   );
 };
@@ -261,6 +326,15 @@ const styles = StyleSheet.create({
   },
   bottomSheetIndicator: {
     backgroundColor: colors.white,
+    width: 39,
+    height: 3,
+  },
+  bottomSheetHide: {
+    flex: 1,
+    backgroundColor: '#1D3E71',
+    color: colors.white,
+    paddingVertical: 15,
+    marginTop: 10,
   },
   totalWrapper: {
     flexDirection: 'row',
@@ -269,7 +343,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   bottomSheetFlatList: {
-    paddingHorizontal: 10,
+    paddingLeft: 10,
+    paddingRight: 5,
   },
   bottomSheetText: {
     color: colors.white,
@@ -294,11 +369,10 @@ const styles = StyleSheet.create({
   },
   individualText: {
     fontSize: 14,
-    flex: 1,
   },
   individualInput: {
     margin: 0,
-    padding: 0,
+    paddingVertical: 0,
     fontSize: 14,
   },
   receiptButton: {
@@ -324,5 +398,14 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 10,
+  },
+  minusButton: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.black,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
   },
 });

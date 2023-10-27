@@ -224,33 +224,8 @@ const CurrentBudgetScreen = () => {
           ItemSeparatorComponent={<View style={STYLES.PADDING_VERTICAL(5)} />}
           ListEmptyComponent={<Text>Empty</Text>}
         />
+        <FAB style={styles.fab} icon="plus" color={colors.white} onPress={onPressAddExpenditure} />
       </View>
-      <FAB.Group
-        fabStyle={styles.fab}
-        open={open}
-        visible
-        icon={open ? 'close' : 'plus'}
-        color={colors.white}
-        actions={[
-          {
-            icon: 'email',
-            label: '1/n',
-            onPress: () => console.log('Pressed email'),
-          },
-          {
-            icon: 'email',
-            label: 'custom',
-            onPress: onPressAddExpenditure,
-          },
-          {icon: 'close', onPress: () => {}},
-        ]}
-        onStateChange={onStateChange}
-        onPress={() => {
-          if (open) {
-            // do something if the speed dial is open
-          }
-        }}
-      />
     </View>
   );
 };
@@ -336,7 +311,6 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    margin: 16,
     bottom: 0,
     right: 0,
     alignItems: 'center',

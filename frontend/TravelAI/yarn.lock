@@ -4037,11 +4037,6 @@
   "resolved" "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz"
   "version" "1.0.0"
 
-"fsevents@^2.3.2", "fsevents@~2.3.2":
-  "integrity" "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA=="
-  "resolved" "https://registry.npmjs.org/fsevents/-/fsevents-2.3.2.tgz"
-  "version" "2.3.2"
-
 "function-bind@^1.1.1":
   "integrity" "sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A=="
   "resolved" "https://registry.npmjs.org/function-bind/-/function-bind-1.1.1.tgz"
@@ -6219,6 +6214,11 @@
   dependencies:
     "prop-types" "^15.7.2"
 
+"react-native-avoid-softinput@^4.0.1":
+  "integrity" "sha512-feMt+Pb/wEcuobbIRDHXj1leXT15uC8CekgwMb/t8s61kWy5ifCGtX/YqDZMDRiD0sqeFLZx0gykLQOSrCpybA=="
+  "resolved" "https://registry.npmjs.org/react-native-avoid-softinput/-/react-native-avoid-softinput-4.0.1.tgz"
+  "version" "4.0.1"
+
 "react-native-calendars@^1.1299.0":
   "integrity" "sha512-b59svUAIDMPy5mYpwdyBFkyv3Fne897O7TB99AjALKs5s3ciR3cuH5GGMbD6e+M79r4cY78xiauZH3eCS2u1uw=="
   "resolved" "https://registry.npmjs.org/react-native-calendars/-/react-native-calendars-1.1299.0.tgz"
@@ -6346,6 +6346,11 @@
   dependencies:
     "react-freeze" "^1.0.0"
     "warn-once" "^0.1.0"
+
+"react-native-select-dropdown@^3.4.0":
+  "integrity" "sha512-9xK1z4tYpwMxp3hsM0y1+xfqq/JoMh+l7sBsJ81b2eikFwT6ZbndFBqupQXrsQ1akce9hgC/10Nkzj0LjVjeXQ=="
+  "resolved" "https://registry.npmjs.org/react-native-select-dropdown/-/react-native-select-dropdown-3.4.0.tgz"
+  "version" "3.4.0"
 
 "react-native-size-matters@^0.4.0":
   "integrity" "sha512-8/C0htHrFWeUm9N8JegmadovUfgTWkGBkDPZ1N3YkXtDWb+98Ya2gThiKcu445r8c7YhcrBfnHz/mYsXIusaOQ=="

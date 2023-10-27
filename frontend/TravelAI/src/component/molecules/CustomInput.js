@@ -4,7 +4,7 @@ import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import DatePicker from 'react-native-date-picker';
 import dayjs from 'dayjs';
 
-const CustomInput = ({label, value, setValue, type = 'text'}) => {
+const CustomInput = ({label, value, setValue, type = 'text', onFocus, onBlur}) => {
   const navigation = useNavigation();
   const route = useRoute();
 
@@ -21,7 +21,7 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
     }
   }, [type, route.params?.place]);
 
-  const onFocus = useCallback(
+  const onFocusInput = useCallback(
     e => {
       switch (type) {
         case 'place':
@@ -59,7 +59,17 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
         <Text style={styles.label}>{label}</Text>
         <TextInput
           ref={ref}
-          onFocus={onFocus}
+          onFocus={() => {
+            onFocusInput();
+            if (onFocus) {
+              onFocus();
+            }
+          }}
+          onBlur={() => {
+            if (onBlur) {
+              onBlur();
+            }
+          }}
           style={[styles.input, {...(type === 'multiline' && {height: 100})}]}
           placeholder="Type something"
           value={showValue}
