@@ -97,14 +97,6 @@ const AddScheduleScreen = () => {
               onPress={handleAdd}
               disabled={addDisabled}
             />
-            {/* <FAB
-              style={styles.addScheduleButton}
-              icon={'calendar-month'}
-              color={colors.white}
-              label="Add Schedule"
-              onPress={handleAdd}
-              disabled={addDisabled}
-            /> */}
           </View>
         </View>
       </TouchableWithoutFeedback>

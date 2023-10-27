@@ -200,7 +200,7 @@ const MyRequestScreen = () => {
         <Pressable onPress={Keyboard.dismiss} style={STYLES.PADDING(16)}>
           <View style={styles.searchBarWrapper}>
             <TextInput
-              style={STYLES.FLEX(1)}
+              style={[STYLES.FLEX(1), STYLES.PADDING(8)]}
               placeholder="Type session code here"
               value={sessionCode}
               onChangeText={setSessionCode}

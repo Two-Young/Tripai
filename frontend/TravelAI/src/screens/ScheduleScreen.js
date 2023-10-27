@@ -69,7 +69,7 @@ const ScheduleScreen = () => {
   };
 
   const handleAddingSchedule = () => {
-    navigation.navigate('AddSchedule', {day: days[currentIndex - 1]});
+    navigation.navigate('AddSchedule', {day: days[currentIndex - 1].toString()});
   };
 
   const onPressScheduleCard = item => {

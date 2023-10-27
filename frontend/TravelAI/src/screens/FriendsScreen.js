@@ -9,7 +9,13 @@ import {
   rejectFriends,
 } from '../services/api';
 import {FAB, IconButton} from 'react-native-paper';
-import {useNavigation, useRoute, useNavigationState, CommonActions} from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  useNavigationState,
+  CommonActions,
+  useFocusEffect,
+} from '@react-navigation/native';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
 import {STYLES} from '../styles/Stylesheets';
@@ -18,6 +24,8 @@ import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs
 import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
 import EmptyComponent from '../component/atoms/EmptyComponent';
 import UserItem from '../component/molecules/UserItem';
+import {useRecoilState} from 'recoil';
+import {friendsAtom, receivedFriendsAtom, sentFriendsAtom} from '../recoil/friends/friends';
 
 const FriendsTab = createMaterialTopTabNavigator();
 
@@ -40,8 +48,10 @@ const Friends = () => {
   const route = useRoute();
 
   // states
-  const [friends, setFriends] = React.useState([]);
   const [refreshing, setRefreshing] = React.useState(true);
+
+  // recoil
+  const [friends, setFriends] = useRecoilState(friendsAtom);
 
   const fetchFriends = async () => {
     try {
@@ -63,13 +73,6 @@ const Friends = () => {
   };
 
   // effects
-
-  React.useEffect(() => {
-    if (route.params?.refresh) {
-      setRefreshing(true);
-    }
-  }, [route.params?.refresh]);
-
   React.useEffect(() => {
     if (refreshing) {
       fetchFriends().finally(() => {
@@ -78,12 +81,16 @@ const Friends = () => {
     }
   }, [refreshing]);
 
+  useFocusEffect(() => {
+    fetchFriends();
+  });
+
   return (
     <FlatList
       style={styles.container}
       contentContainerStyle={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_TOP(10)]}
       data={friends}
-      keyExtractor={item => item.user_id.toString()}
+      // keyExtractor={item => item.user_id.toString()}
       refreshing={refreshing}
       onRefresh={() => setRefreshing(true)}
       renderItem={({item}) => (
@@ -111,16 +118,37 @@ const Friends = () => {
 
 const Received = () => {
   // states
-  const [requests, setRequests] = React.useState([]);
   const [refreshing, setRefreshing] = React.useState(true);
+
+  const [receivedFriends, setReceivedFriends] = useRecoilState(receivedFriendsAtom);
 
   // functions
   const fetchFriendsWaiting = async () => {
     try {
       const data = await getFriendsWaiting();
-      setRequests(data.received);
+      setReceivedFriends(data.received);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const acceptFriendRequestConfirm = async user_id => {
+    try {
+      await acceptFriends(user_id);
+      showSuccessToast('Friend request accepted');
+      setReceivedFriends(receivedFriends.filter(item => item.user_id !== user_id));
+    } catch (err) {
+      showErrorToast(err);
+    }
+  };
+
+  const rejectFriendRequestConfirm = async user_id => {
+    try {
+      await rejectFriends(user_id);
+      showSuccessToast('Friend request rejected');
+      setReceivedFriends(receivedFriends.filter(item => item.user_id !== user_id));
+    } catch (err) {
+      showErrorToast(err);
     }
   };
 
@@ -133,96 +161,64 @@ const Received = () => {
     }
   }, [refreshing]);
 
+  useFocusEffect(() => {
+    fetchFriendsWaiting();
+  });
+
   return (
     <FlatList
       style={styles.container}
       contentContainerStyle={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_TOP(10)]}
-      data={requests}
+      data={receivedFriends}
       refreshing={refreshing}
       onRefresh={() => setRefreshing(true)}
-      renderItem={({item}) => <UserItem user={item} rightComponent={receivedUserRightComponent} />}
+      renderItem={({item}) => (
+        <UserItem
+          user={item}
+          rightComponent={() => (
+            <View style={[STYLES.FLEX_ROW]}>
+              <IconButton
+                icon="check"
+                iconColor={colors.primary}
+                onPress={() =>
+                  requestAlert(
+                    'Accept Friend Request',
+                    `Are you sure you want to accept ${item.username}'s friend request?`,
+                    () => acceptFriendRequestConfirm(item.user_id),
+                  )
+                }
+              />
+              <IconButton
+                icon="close"
+                iconColor={colors.red}
+                onPress={() =>
+                  requestAlert(
+                    'Reject Friend Request',
+                    `Are you sure you want to reject ${item.username}'s friend request?`,
+                    () => rejectFriendRequestConfirm(item.user_id),
+                  )
+                }
+              />
+            </View>
+          )}
+        />
+      )}
       ListEmptyComponent={<EmptyComponent text="You have no received friend requests yet" />}
     />
   );
 };
 
-const receivedUserRightComponent = user => {
-  const navigation = useNavigation();
-  const navigationState = useNavigationState(state => state);
-
-  const acceptFriendRequestConfirm = async user_id => {
-    try {
-      await acceptFriends(user_id);
-      setRequests(requests.filter(item => item.user_id !== user_id));
-      showSuccessToast('Friend request accepted');
-      navigation.dispatch({
-        ...CommonActions.setParams({
-          refresh: true,
-        }),
-        source: navigationState.routes[0].key,
-      });
-    } catch (err) {
-      showErrorToast(err);
-    }
-  };
-
-  const rejectFriendRequestConfirm = async user_id => {
-    try {
-      await rejectFriends(user_id);
-      setRequests(requests.filter(item => item.user_id !== user_id));
-      showSuccessToast('Friend request rejected');
-      navigation.dispatch({
-        ...CommonActions.setParams({
-          refresh: true,
-        }),
-        source: navigationState.routes[0].key,
-      });
-    } catch (err) {
-      showErrorToast(err);
-    }
-  };
-
-  return (
-    <View style={[STYLES.FLEX_ROW]}>
-      <IconButton
-        icon="check"
-        iconColor={colors.primary}
-        onPress={() =>
-          requestAlert(
-            'Accept Friend Request',
-            `Are you sure you want to accept ${user.username}'s friend request?`,
-            () => acceptFriendRequestConfirm(user.user_id),
-          )
-        }
-      />
-      <IconButton
-        icon="close"
-        iconColor={colors.red}
-        onPress={() =>
-          requestAlert(
-            'Reject Friend Request',
-            `Are you sure you want to reject ${user.username}'s friend request?`,
-            () => rejectFriendRequestConfirm(user.user_id),
-          )
-        }
-      />
-    </View>
-  );
-};
-
 const Sent = () => {
-  // hooks
-  const {refreshing: shouldRefresh, setRefreshing: setShouldRefresh} =
-    React.useContext(RefreshContext);
-
   // states
-  const [requests, setRequests] = React.useState([]);
   const [refreshing, setRefreshing] = React.useState(true);
+
+  // recoil
+  const [sentFriends, setSentFriends] = useRecoilState(sentFriendsAtom);
 
   const fetchFriendsWaiting = async () => {
     try {
       const data = await getFriendsWaiting();
-      setRequests(data.sent);
+      setSentFriends(data.sent);
     } catch (err) {
       console.error(err);
     }
@@ -232,20 +228,13 @@ const Sent = () => {
     try {
       await cancelFriends(user_id);
       showSuccessToast('Friend request cancelled');
-      setRequests(requests.filter(item => item.user_id !== user_id));
+      setSentFriends(sentFriends.filter(item => item.user_id !== user_id));
     } catch (err) {
       showErrorToast(err);
     }
   };
 
   // effects
-  React.useEffect(() => {
-    if (shouldRefresh) {
-      fetchFriendsWaiting();
-      setShouldRefresh(false);
-    }
-  }, [shouldRefresh]);
-
   React.useEffect(() => {
     if (refreshing) {
       fetchFriendsWaiting().finally(() => {
@@ -258,7 +247,7 @@ const Sent = () => {
     <FlatList
       style={styles.container}
       contentContainerStyle={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_TOP(10)]}
-      data={requests}
+      data={sentFriends}
       refreshing={refreshing}
       onRefresh={() => setRefreshing(true)}
       renderItem={({item}) => (
@@ -349,9 +338,9 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    margin: 10,
+    margin: 20,
     right: 0,
-    bottom: 10,
+    bottom: 20,
     backgroundColor: colors.primary,
   },
 });

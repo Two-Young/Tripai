@@ -1,23 +1,12 @@
 import React from 'react';
 import {StyleSheet, Keyboard, TouchableWithoutFeedback, View, Pressable} from 'react-native';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import defaultStyle from '../styles/styles';
 import {createLocation, locateAutoComplete, locateLocation} from '../services/api';
 import sessionAtom from '../recoil/session/session';
 import {useRecoilValue} from 'recoil';
 import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
-import {
-  ActivityIndicator,
-  FAB,
-  IconButton,
-  Modal,
-  Portal,
-  Searchbar,
-  Snackbar,
-} from 'react-native-paper';
-import {Header} from '@rneui/themed';
-import reactotron from 'reactotron-react-native';
+import {ActivityIndicator, FAB, Modal, Portal, Searchbar, Snackbar} from 'react-native-paper';
 import colors from '../theme/colors';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
