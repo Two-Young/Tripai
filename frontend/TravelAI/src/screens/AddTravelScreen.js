@@ -53,9 +53,11 @@ const AddTravelScreen = () => {
   return (
     <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
       <DismissKeyboard>
-        <View style={STYLES.FLEX(1)}>
-          <CustomHeader title="Choose the countries" theme={CUSTOM_HEADER_THEME.WHITE} />
-          <View style={[STYLES.FLEX(1)]}>
+        <CustomHeader title="Choose the countries" theme={CUSTOM_HEADER_THEME.WHITE} />
+      </DismissKeyboard>
+      <View style={[STYLES.FLEX(1)]}>
+        <DismissKeyboard>
+          <View>
             <Text style={styles.description}>
               {'Choose all the countries you want to\nadd to your trip'}
             </Text>
@@ -73,29 +75,29 @@ const AddTravelScreen = () => {
                 }}
               />
             </View>
-            <FlatList
-              removeClippedSubviews
-              initialNumToRender={20}
-              data={countries.filter(country =>
-                country.common_name.toLowerCase().includes(search.toLowerCase()),
-              )}
-              keyExtractor={item => item?.country_code}
-              renderItem={({item}) => (
-                <CountryListItem item={item} selected={selected} setSelected={setSelected} />
-              )}
-              disableVirtualization={false}
-            />
-            {selected.length > 0 && (
-              <SelectedCountrySection
-                countries={countries}
-                selected={selected}
-                setSelected={setSelected}
-                onPress={onPressNext}
-              />
-            )}
           </View>
-        </View>
-      </DismissKeyboard>
+        </DismissKeyboard>
+        <FlatList
+          removeClippedSubviews
+          initialNumToRender={20}
+          data={countries.filter(country =>
+            country.common_name.toLowerCase().includes(search.toLowerCase()),
+          )}
+          keyExtractor={item => item?.country_code}
+          renderItem={({item}) => (
+            <CountryListItem item={item} selected={selected} setSelected={setSelected} />
+          )}
+          disableVirtualization={false}
+        />
+        {selected.length > 0 && (
+          <SelectedCountrySection
+            countries={countries}
+            selected={selected}
+            setSelected={setSelected}
+            onPress={onPressNext}
+          />
+        )}
+      </View>
     </SafeArea>
   );
 };
