@@ -11,12 +11,11 @@ import {
 } from 'react-native';
 import React from 'react';
 import colors from '../theme/colors';
-import {FAB} from 'react-native-paper';
 import BudgetWithCurrencyItem from '../component/molecules/BudgetWithCurrencyItem';
 import {STYLES} from '../styles/Stylesheets';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Modal from 'react-native-modal';
-import reactotron from 'reactotron-react-native';
+import {Icon} from '@rneui/themed';
 
 const defaultBudget = [
   {
@@ -176,12 +175,9 @@ const SetBudgetScreen = () => {
         )}
         ItemSeparatorComponent={<View style={STYLES.PADDING_VERTICAL(10)} />}
         ListFooterComponent={
-          <FAB
-            style={[styles.fab, STYLES.MARGIN(20)]}
-            icon="plus"
-            color="#fff"
-            onPress={handleAddBudget}
-          />
+          <TouchableOpacity onPress={handleAddBudget} style={styles.fab}>
+            <Icon name="plus" type="material-community" size={28} color={colors.white} />
+          </TouchableOpacity>
         }
       />
       <BudgetModal
@@ -205,6 +201,9 @@ const styles = StyleSheet.create({
   fab: {
     alignItems: 'center',
     backgroundColor: colors.primary,
+    borderRadius: 10,
+    margin: 10,
+    padding: 5,
   },
   editModal: {
     backgroundColor: colors.white,
