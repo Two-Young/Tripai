@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View, FlatList, Image} from 'react-native';
+import {StyleSheet, Text, View, FlatList, Image, TouchableWithoutFeedback} from 'react-native';
 import React from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {useRecoilState} from 'recoil';
@@ -14,6 +14,7 @@ import MainButton from '../component/atoms/MainButton';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
 
 const AddTravelScreen = () => {
   // state
@@ -23,6 +24,9 @@ const AddTravelScreen = () => {
 
   // hook
   const navigation = useNavigation();
+
+  // ref
+  const inputRef = React.useRef(null);
 
   // function
   const getCountries = async () => {
@@ -46,49 +50,52 @@ const AddTravelScreen = () => {
     }
   }, [countries]);
 
-  console.log(selected);
-
   return (
     <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
-      <CustomHeader title="Choose the countries" theme={CUSTOM_HEADER_THEME.WHITE} />
-      <View style={[STYLES.FLEX(1)]}>
-        <Text style={styles.description}>
-          {'Choose all the countries you want to\nadd to your trip'}
-        </Text>
-        <View style={styles.searchbarWrapper}>
-          <Searchbar
-            icon={searchIcon}
-            placeholder="Search the country"
-            placeholderTextColor={'gray'}
-            value={search}
-            onChangeText={setSearch}
-            style={{
-              borderRadius: 8,
-              backgroundColor: '#F5F4F6',
-            }}
-          />
+      <DismissKeyboard>
+        <View style={STYLES.FLEX(1)}>
+          <CustomHeader title="Choose the countries" theme={CUSTOM_HEADER_THEME.WHITE} />
+          <View style={[STYLES.FLEX(1)]}>
+            <Text style={styles.description}>
+              {'Choose all the countries you want to\nadd to your trip'}
+            </Text>
+            <View style={styles.searchbarWrapper}>
+              <Searchbar
+                ref={inputRef}
+                icon={searchIcon}
+                placeholder="Search the country"
+                placeholderTextColor={'gray'}
+                value={search}
+                onChangeText={setSearch}
+                style={{
+                  borderRadius: 8,
+                  backgroundColor: '#F5F4F6',
+                }}
+              />
+            </View>
+            <FlatList
+              removeClippedSubviews
+              initialNumToRender={20}
+              data={countries.filter(country =>
+                country.common_name.toLowerCase().includes(search.toLowerCase()),
+              )}
+              keyExtractor={item => item?.country_code}
+              renderItem={({item}) => (
+                <CountryListItem item={item} selected={selected} setSelected={setSelected} />
+              )}
+              disableVirtualization={false}
+            />
+            {selected.length > 0 && (
+              <SelectedCountrySection
+                countries={countries}
+                selected={selected}
+                setSelected={setSelected}
+                onPress={onPressNext}
+              />
+            )}
+          </View>
         </View>
-        <FlatList
-          removeClippedSubviews
-          initialNumToRender={20}
-          data={countries.filter(country =>
-            country.common_name.toLowerCase().includes(search.toLowerCase()),
-          )}
-          keyExtractor={item => item?.country_code}
-          renderItem={({item}) => (
-            <CountryListItem item={item} selected={selected} setSelected={setSelected} />
-          )}
-          disableVirtualization={false}
-        />
-        {selected.length > 0 && (
-          <SelectedCountrySection
-            countries={countries}
-            selected={selected}
-            setSelected={setSelected}
-            onPress={onPressNext}
-          />
-        )}
-      </View>
+      </DismissKeyboard>
     </SafeArea>
   );
 };
