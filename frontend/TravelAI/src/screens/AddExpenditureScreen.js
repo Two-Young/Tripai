@@ -463,10 +463,11 @@ const ManageParticipantsModal = ({data}) => {
       onBackdropPress={() => {
         setIsVisible(false);
       }}>
-      <View style={styles.container}>
-        <Text>Manage Participants</Text>
+      <View style={[styles.modal]}>
+        <Text style={styles.modalTitle}>Manage Participants</Text>
         <Searchbar value={search} onChangeText={setSearch} placeholder="Search" />
         <FlatList
+          style={STYLES.MARGIN_TOP(10)}
           data={filteredMembers}
           keyExtractor={item => item.user_id}
           renderItem={({item}) => (
@@ -866,6 +867,20 @@ const styles = StyleSheet.create({
   dropdown3RowTxtStyle: {
     fontSize: 14,
     color: colors.black,
+    textAlign: 'center',
+  },
+  modal: {
+    width: '100%',
+    height: '50%',
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    padding: 15,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.black,
+    marginBottom: 15,
     textAlign: 'center',
   },
 });
