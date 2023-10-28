@@ -18,6 +18,10 @@ const SettlementScreen = () => {
     ]);
   };
 
+  React.useEffect(() => {
+    fetchSettlements();
+  }, []);
+
   return (
     <View>
       <FlatList data={settlements} keyExtractor={item => item.id} />

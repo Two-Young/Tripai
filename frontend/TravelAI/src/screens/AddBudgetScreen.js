@@ -2,7 +2,7 @@ import {StyleSheet, View, Keyboard, Pressable, FlatList} from 'react-native';
 import React from 'react';
 import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
-import CustomHeader from '../component/molecules/CustomHeader';
+import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import {Searchbar} from 'react-native-paper';
 import {useRecoilValue} from 'recoil';
 import currenciesAtom from '../recoil/currencies/currencies';
@@ -12,6 +12,7 @@ import _ from 'lodash';
 import colors from '../theme/colors';
 import MainButton from '../component/atoms/MainButton';
 import {useNavigation, CommonActions, useNavigationState} from '@react-navigation/native';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
 
 const defaultCurrencyObject = {
   currency_code: '',
@@ -44,10 +45,16 @@ const AddBudgetScreen = () => {
   };
 
   return (
-    <SafeArea>
-      <Pressable style={[STYLES.FLEX(1)]} onPress={Keyboard.dismiss} accessible={false}>
-        <CustomHeader title="Add Budget" rightComponent={<View />} />
-        <View style={styles.container}>
+    <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
+      <DismissKeyboard>
+        <CustomHeader
+          title="Add Budget"
+          theme={CUSTOM_HEADER_THEME.WHITE}
+          rightComponent={<React.Fragment />}
+        />
+      </DismissKeyboard>
+      <View style={styles.container}>
+        <DismissKeyboard>
           <View style={styles.searchbarWrapper}>
             <Searchbar
               placeholder="Search the country"
@@ -55,34 +62,34 @@ const AddBudgetScreen = () => {
               onChangeText={setSearchQuery}
             />
           </View>
-          <FlatList
-            data={currencies.filter(
-              item =>
-                item.currency_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.currency_code.toLowerCase().includes(searchQuery.toLowerCase()),
-            )}
-            renderItem={item => (
-              <CurrencyListItem
-                item={{
-                  ...item.item,
-                  country: countries.find(i => i.country_code === item.item.country_code),
-                }}
-                checked={_.isEqual(defaultCurrency, item.item)}
-                onChecked={() => {
-                  if (_.isEqual(defaultCurrency, item.item)) {
-                    setDefaultCurrency(defaultCurrencyObject);
-                  } else {
-                    setDefaultCurrency(item.item);
-                  }
-                }}
-              />
-            )}
-          />
-        </View>
-        <View style={STYLES.PADDING(16)}>
-          <MainButton text="Add" disabled={_.isEqual(defaultCurrency, defaultCurrencyObject)} />
-        </View>
-      </Pressable>
+        </DismissKeyboard>
+        <FlatList
+          data={currencies.filter(
+            item =>
+              item.currency_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              item.currency_code.toLowerCase().includes(searchQuery.toLowerCase()),
+          )}
+          renderItem={item => (
+            <CurrencyListItem
+              item={{
+                ...item.item,
+                country: countries.find(i => i.country_code === item.item.country_code),
+              }}
+              checked={_.isEqual(defaultCurrency, item.item)}
+              onChecked={() => {
+                if (_.isEqual(defaultCurrency, item.item)) {
+                  setDefaultCurrency(defaultCurrencyObject);
+                } else {
+                  setDefaultCurrency(item.item);
+                }
+              }}
+            />
+          )}
+        />
+      </View>
+      <View style={STYLES.PADDING(16)}>
+        <MainButton text="Add" disabled={_.isEqual(defaultCurrency, defaultCurrencyObject)} />
+      </View>
     </SafeArea>
   );
 };

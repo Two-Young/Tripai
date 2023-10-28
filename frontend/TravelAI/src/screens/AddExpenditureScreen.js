@@ -1,7 +1,7 @@
 import {StyleSheet, Text, TextInput, TouchableOpacity, View, ImageBackground} from 'react-native';
 import React from 'react';
 import SafeArea from '../component/molecules/SafeArea';
-import CustomHeader from '../component/molecules/CustomHeader';
+import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import CustomInput from '../component/molecules/CustomInput';
 import colors from '../theme/colors';
 import BottomSheet, {BottomSheetFlatList} from '@gorhom/bottom-sheet';
@@ -582,8 +582,16 @@ const AddExpenditureScreen = () => {
   }, [currentSessionID]);
 
   return (
-    <SafeArea>
-      <CustomHeader title="Add Expenditure" rightComponent={<View />} />
+    <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
+      <CustomHeader
+        title="Add Expenditure"
+        theme={CUSTOM_HEADER_THEME.WHITE}
+        rightComponent={
+          <TouchableOpacity onPress={() => {}}>
+            <Text style={styles.headerRightText}>Add</Text>
+          </TouchableOpacity>
+        }
+      />
       <View style={styles.container}>
         <Text style={[styles.label, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>Category</Text>
         <SelectDropdown
