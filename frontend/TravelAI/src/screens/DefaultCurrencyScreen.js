@@ -1,9 +1,9 @@
-import {StyleSheet, View, Keyboard, FlatList, Image, Pressable} from 'react-native';
+import {StyleSheet, View, Keyboard, FlatList, Pressable} from 'react-native';
 import React from 'react';
 import colors from '../theme/colors';
 import {useRecoilValue} from 'recoil';
 import currenciesAtom from '../recoil/currencies/currencies';
-import {Divider, List, Searchbar} from 'react-native-paper';
+import {Searchbar} from 'react-native-paper';
 import Checkbox from '../component/atoms/Checkbox';
 import countriesAtom from '../recoil/countries/countries';
 import {STYLES} from '../styles/Stylesheets';

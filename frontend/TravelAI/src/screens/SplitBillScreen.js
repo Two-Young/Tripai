@@ -64,7 +64,7 @@ const SplitBillScreen = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
+      {/* <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
         <View style={styles.container}>
           <Header
             backgroundColor="#fff"
@@ -158,7 +158,7 @@ const SplitBillScreen = () => {
           </ScrollView>
           <Button mode="contained">{loading ? 'Adding...' : 'Add'}</Button>
         </View>
-      </SafeAreaView>
+      </SafeAreaView> */}
     </TouchableWithoutFeedback>
   );
 };

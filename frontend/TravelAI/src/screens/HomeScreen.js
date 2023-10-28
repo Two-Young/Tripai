@@ -4,7 +4,7 @@ import defaultStyle from '../styles/styles';
 import PlaceListItem from '../component/molecules/PlaceListItem';
 import colors from '../theme/colors';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
-import {getLocations, leaveSession} from '../services/api';
+import {getLocations, getSessionCurrencies, leaveSession} from '../services/api';
 import {useRecoilValue, useRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {FAB, IconButton} from 'react-native-paper';
