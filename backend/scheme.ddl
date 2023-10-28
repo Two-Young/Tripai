@@ -107,10 +107,64 @@ create table expenditures
     total_price   double       not null,
     currency_code varchar(3)   not null,
     category      varchar(50)  not null,
-    is_custom     tinyint(1)   not null,
+    payed_at      datetime     null,
     sid           varchar(255) null,
     constraint expenditures_sessions_sid_fk
         foreign key (sid) references sessions (sid)
+            on delete cascade
+);
+
+create table expenditure_distribution
+(
+    eid   varchar(255) not null,
+    uid   varchar(255) not null,
+    num   bigint       not null,
+    denom bigint       not null,
+    constraint expenditure_distribution_pk
+        unique (eid, uid),
+    constraint expenditure_distribution_expenditures_eid_fk
+        foreign key (eid) references expenditures (eid)
+            on delete cascade,
+    constraint expenditure_distribution_users_uid_fk
+        foreign key (uid) references users (uid)
+            on delete cascade
+);
+
+create table expenditure_items
+(
+    eiid  varchar(255) not null
+        primary key,
+    label varchar(255) not null,
+    price double       not null,
+    eid   varchar(255) not null,
+    constraint expenditure_items_expenditures_eid_fk
+        foreign key (eid) references expenditures (eid)
+            on delete cascade
+);
+
+create table expenditure_item_allocation
+(
+    eiid varchar(255) not null,
+    uid  varchar(255) not null,
+    primary key (eiid, uid),
+    constraint expenditure_item_allocation_expenditure_items_eiid_fk
+        foreign key (eiid) references expenditure_items (eiid)
+            on delete cascade,
+    constraint expenditure_item_allocation_users_uid_fk
+        foreign key (uid) references users (uid)
+);
+
+create table expenditure_payers
+(
+    eid varchar(255) not null,
+    uid varchar(255) not null,
+    constraint expenditure_payers_pk
+        unique (eid, uid),
+    constraint expenditure_payers_expenditures_eid_fk
+        foreign key (eid) references expenditures (eid)
+            on delete cascade,
+    constraint expenditure_payers_users_uid_fk
+        foreign key (uid) references users (uid)
             on delete cascade
 );
 
@@ -129,48 +183,6 @@ create table locations
         unique (sid, place_id),
     constraint locations_sessions_sid_fk
         foreign key (sid) references sessions (sid)
-            on delete cascade
-);
-
-create table receipts
-(
-    rid               varchar(255) not null
-        primary key,
-    original_filename varchar(255) null,
-    filename          varchar(255) null,
-    width             int          not null,
-    height            int          not null,
-    eid               varchar(255) null,
-    constraint receipts_expenditures_eid_fk
-        foreign key (eid) references expenditures (eid)
-            on delete cascade
-);
-
-create table receipt_items
-(
-    riid  varchar(255) not null
-        primary key,
-    rid   varchar(255) null,
-    label varchar(255) not null,
-    price double       not null,
-    constraint receipt_items_receipts_rid_fk
-        foreign key (rid) references receipts (rid)
-            on delete cascade
-);
-
-create table receipt_items_users
-(
-    riid   varchar(255) not null,
-    uid    varchar(255) not null,
-    width  int          null,
-    height int          null,
-    constraint receipt_items_users_pk
-        unique (riid, uid),
-    constraint receipt_items_users_receipt_items_riid_fk
-        foreign key (riid) references receipt_items (riid)
-            on delete cascade,
-    constraint receipt_items_users_users_uid_fk
-        foreign key (uid) references users (uid)
             on delete cascade
 );
 

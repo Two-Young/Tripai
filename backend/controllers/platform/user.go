@@ -32,6 +32,7 @@ func GetUserProfile(c *gin.Context) {
 		Username:            userEntity.Username,
 		AllowNicknameSearch: userEntity.AllowNicknameSearch,
 		ProfileImage:        *userEntity.ProfileImage,
+		DefaultCurrencyCode: userEntity.DefaultCurrencyCode,
 	}
 
 	c.JSON(http.StatusOK, resp)
@@ -42,10 +43,11 @@ func EditUserProfile(c *gin.Context) {
 
 	formUsername := c.PostForm("username")
 	formAllowNicknameSearch := c.PostForm("allow_nickname_search")
+	formDefaultCurrencyCode := c.PostForm("default_currency_code")
 
-	if formUsername == "" || formAllowNicknameSearch == "" {
-		log.Error("username or allow_nickname_search not found on form")
-		util2.AbortWithStrJson(c, http.StatusBadRequest, "username or allow_nickname_search not found on form")
+	if formUsername == "" || formAllowNicknameSearch == "" || formDefaultCurrencyCode == "" {
+		log.Error("username or allow_nickname_search or default_currency_code not found on form")
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "username or allow_nickname_search or default_currency_code not found on form")
 		return
 	}
 
@@ -53,6 +55,18 @@ func EditUserProfile(c *gin.Context) {
 	if err != nil {
 		log.Error(err)
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid allow_nickname_search")
+		return
+	}
+
+	// check default currency code
+	supported, err := platform.IsSupportedCurrency(formDefaultCurrencyCode)
+	if err != nil {
+		log.Error(err)
+		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
+		return
+	}
+	if !supported {
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid default_currency_code")
 		return
 	}
 

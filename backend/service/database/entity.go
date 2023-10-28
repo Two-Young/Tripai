@@ -10,6 +10,7 @@ type UserEntity struct {
 	ProfileImage        *string `db:"profile_image" json:"profile_image"`
 	Platform            *string `db:"platform" json:"platform"`
 	AllowNicknameSearch bool    `db:"allow_nickname_search" json:"allow_nickname_search"`
+	DefaultCurrencyCode string  `db:"default_currency_code" json:"default_currency_code"`
 }
 
 type FriendEntity struct {
@@ -83,29 +84,37 @@ type ScheduleEntity struct {
 }
 
 type ExpenditureEntity struct {
-	ExpenditureId string  `db:"eid" json:"expenditure_id"`
-	Name          string  `db:"name" json:"name"`
-	TotalPrice    float64 `db:"total_price" json:"price"`
-	CurrencyCode  string  `db:"currency_code" json:"currency_code"`
-	Category      string  `db:"category" json:"category"`
-	IsCustom      bool    `db:"is_custom" json:"is_custom"`
-	SessionId     string  `db:"sid" json:"session_id"`
+	ExpenditureId string     `db:"eid" json:"expenditure_id"`
+	Name          string     `db:"name" json:"name"`
+	TotalPrice    float64    `db:"total_price" json:"price"`
+	CurrencyCode  string     `db:"currency_code" json:"currency_code"`
+	Category      string     `db:"category" json:"category"`
+	PayedAt       *time.Time `db:"payed_at" json:"payed_at"`
+	SessionId     string     `db:"sid" json:"session_id"`
 }
 
-type ReceiptEntity struct {
-	ReceiptId        string `db:"rid" json:"receipt_id"`
-	OriginalFilename string `db:"original_filename" json:"original_filename"`
-	Filename         string `db:"filename" json:"filename"`
-	Width            int    `db:"width" json:"width"`
-	Height           int    `db:"height" json:"height"`
-	ExpenditureId    string `db:"eid" json:"expenditure_id"`
+type ExpenditurePayerEntity struct {
+	ExpenditureId string `db:"eid" json:"expenditure_id"`
+	UserId        string `db:"uid" json:"user_id"`
 }
 
-type ReceiptItemEntity struct {
-	ReceiptItemId string  `db:"riid" json:"receipt_item_id"`
-	Label         string  `db:"label" json:"label"`
-	Price         float64 `db:"price" json:"price"`
-	ReceiptId     string  `db:"rid" json:"receipt_id"`
+type ExpenditureDistributionEntity struct {
+	ExpenditureId string `db:"eid" json:"expenditure_id"`
+	UserId        string `db:"uid" json:"user_id"`
+	Numerator     int64  `db:"num" json:"numerator"`
+	Denominator   int64  `db:"denom" json:"denominator"`
+}
+
+type ExpenditureItemEntity struct {
+	ExpenditureItemId string  `db:"eiid" json:"expenditure_item_id"`
+	Label             string  `db:"label" json:"label"`
+	Price             float64 `db:"price" json:"price"`
+	ExpenditureId     string  `db:"eid" json:"expenditure_id"`
+}
+
+type ExpenditureItemAllocationEntity struct {
+	ExpenditureItemId string `db:"eiid" json:"expenditure_item_id"`
+	UserId            string `db:"uid" json:"user_id"`
 }
 
 type SessionThumbnailCacheEntity struct {

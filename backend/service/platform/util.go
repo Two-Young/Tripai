@@ -1,8 +1,6 @@
 package platform
 
 import (
-	"database/sql"
-	"errors"
 	"fmt"
 	"math/rand"
 	"regexp"
@@ -109,25 +107,6 @@ func IsInvitedToSession(uid string, sessionId string) (bool, error) {
 	return exists, nil
 }
 
-func CheckPermissionByReceiptId(uid string, receiptId string) (bool, error) {
-	receipt, err := database_io.GetReceipt(receiptId)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil
-		}
-		return false, err
-	}
-	// TODO (IMPORTANT) :: fix this (get expenditure by receipt id and check with session Id of expenditure)
-	yes, err := IsSessionMember(uid, receipt.ExpenditureId)
-	if !yes {
-		if err != nil {
-			return false, err
-		}
-		return false, nil
-	}
-	return true, nil
-}
-
 func DoesChatRoomExist(roomId string) (bool, error) {
 	var count int
 	if err := database.DB.Get(&count,
@@ -144,6 +123,29 @@ func IsParticipantOfChatRoom(chatroomId string, userId string) (bool, error) {
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func GetSupportedCurrencies() (map[string]Currency, error) {
+	currencies := make(map[string]Currency)
+	for _, country := range CountriesMap {
+		for _, currency := range country.Currencies {
+			currencies[currency.Code] = Currency{
+				Code:   currency.Code,
+				Name:   currency.Name,
+				Symbol: currency.Symbol,
+			}
+		}
+	}
+	return currencies, nil
+}
+
+func IsSupportedCurrency(currencyCode string) (bool, error) {
+	supportedCurrencies, err := GetSupportedCurrencies()
+	if err != nil {
+		return false, err
+	}
+	_, ok := supportedCurrencies[currencyCode]
+	return ok, nil
 }
 
 func GetSupportedSessionCurrencies(sessionId string) (map[string]Currency, error) {
@@ -173,6 +175,15 @@ func GetSupportedSessionCurrencies(sessionId string) (map[string]Currency, error
 		}
 	}
 	return supportedCurrencies, nil
+}
+
+func IsSupportedCurrencyInSession(currencyCode string, sessionId string) (bool, error) {
+	currencies, err := GetSupportedSessionCurrencies(sessionId)
+	if err != nil {
+		return false, err
+	}
+	_, ok := currencies[currencyCode]
+	return ok, nil
 }
 
 func GetSupportedSessionCurrenciesByCountry(sessionId string) (map[string][]Currency, error) {
@@ -207,4 +218,9 @@ func GetSupportedSessionCurrenciesByCountry(sessionId string) (map[string][]Curr
 	}
 
 	return supportedCurrencies, nil
+}
+
+func IsValidExpenditureCategory(category string) bool {
+	_, ok := ExpenditureCategories[category]
+	return ok
 }

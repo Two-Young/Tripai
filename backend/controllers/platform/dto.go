@@ -1,5 +1,13 @@
 package platform
 
+import "time"
+
+/* ---------------- Common ---------------- */
+type Fraction struct {
+	Numerator   int64 `json:"num" binding:"required"`
+	Denominator int64 `json:"denom" binding:"required"`
+}
+
 /* ---------------- Locate ---------------- */
 type locateCoordinate struct {
 	Latitude  float64 `json:"latitude"`
@@ -254,86 +262,6 @@ type scheduleDeleteRequestDto struct {
 	ScheduleId string `json:"schedule_id" binding:"required"`
 }
 
-/* ---------------- Receipt ---------------- */
-type receiptTextItemBoundary struct {
-	Top    int `json:"top"`
-	Left   int `json:"left"`
-	Width  int `json:"width"`
-	Height int `json:"height"`
-}
-
-type receiptItemBox struct {
-	ReceiptItemBoxId string                  `json:"box_id"`
-	Text             string                  `json:"text"`
-	Boundary         receiptTextItemBoundary `json:"boundary"`
-}
-
-type receiptLabelItem struct {
-	ReceiptIemBoxId *string `json:"box_id"`
-	Text            string  `json:"text"`
-}
-
-type receiptPriceItem struct {
-	ReceiptIemBoxId *string `json:"box_id"`
-	Value           float64 `json:"value"`
-}
-
-type receiptTextItem struct {
-	ReceiptItemId string           `json:"item_id"`
-	Label         receiptLabelItem `json:"label"`
-	Price         receiptPriceItem `json:"price"`
-}
-
-type receiptImageResolution struct {
-	Width  int `json:"width"`
-	Height int `json:"height"`
-}
-
-type receiptGetRequestDto struct {
-	SessionId string `form:"session_id" binding:"required"`
-}
-
-type receiptGetResponseItem struct {
-	ReceiptId string `json:"receipt_id"`
-	Name      string `json:"name"`
-}
-
-type receiptGetResponseDto []receiptGetResponseItem
-
-type receiptGetImageRequestDto struct {
-	ReceiptId string `form:"receipt_id" binding:"required"`
-}
-
-type receiptGetCurrentRequestDto struct {
-	ReceiptId string `form:"receipt_id" binding:"required"`
-}
-
-type receiptGetCurrentResponseDto struct {
-	ItemBoxes  []receiptItemBox       `json:"item_boxes"`
-	Items      []receiptTextItem      `json:"items"`
-	Resolution receiptImageResolution `json:"resolution"`
-}
-
-type receiptUploadRequestDto struct {
-	SessionId string `form:"session_id" binding:"required"`
-}
-
-type receiptSelectedBoxInfo struct {
-	Custom *bool   `json:"custom" binding:"required"`
-	BoxId  *string `json:"box_id" binding:"required"`
-	Text   string  `json:"text" binding:"required"`
-}
-
-type receiptSelectedTextItem struct {
-	Label receiptSelectedBoxInfo `json:"label" binding:"required"`
-	Price receiptSelectedBoxInfo `json:"price" binding:"required"`
-}
-
-type receiptSubmitRequestDto struct {
-	ReceiptId string                    `json:"receipt_id" binding:"required"`
-	Items     []receiptSelectedTextItem `json:"items" binding:"required"`
-}
-
 /* ---------------- Currency ---------------- */
 type currencyGetSupportedResponseItem struct {
 	CountryCode    string `json:"country_code"`
@@ -410,6 +338,7 @@ type userGetProfileResponseDto struct {
 	Username            string `json:"username"`
 	ProfileImage        string `json:"profile_image"`
 	AllowNicknameSearch bool   `json:"allow_nickname_search"`
+	DefaultCurrencyCode string `json:"default_currency_code"`
 }
 
 /* ---------------- Chats ---------------- */
@@ -442,6 +371,7 @@ type ChatInviteRequestDto struct {
 }
 
 /* ---------------- Budgets ---------------- */
+
 type BudgetGetRequestDto struct {
 	SessionId string `form:"session_id" binding:"required"`
 }
@@ -455,41 +385,103 @@ type BudgetGetResponseItem struct {
 type BudgetGetResponseDto []BudgetGetResponseItem
 
 type BudgetCreateRequestDto struct {
-	CurrencyCode string  `json:"currency_code" binding:"required"`
-	Amount       float64 `json:"amount" binding:"required"`
-	SessionId    string  `json:"session_id" binding:"required"`
+	CurrencyCode string   `json:"currency_code" binding:"required"`
+	Amount       *float64 `json:"amount" binding:"required"`
+	SessionId    string   `json:"session_id" binding:"required"`
 }
 
 type BudgetDeleteRequestDto struct {
 	BudgetId string `json:"budget_id" binding:"required"`
 }
 
-/* ---------------- Expenditure ---------------- */
-
-type ExpenditureGetRequestDto struct {
+type BudgetSummaryGetRequestDto struct {
 	SessionId string `form:"session_id" binding:"required"`
 }
 
-type ExpenditureGetResponseItem struct {
-	ExpenditureId string  `json:"expenditure_id"`
-	Name          string  `json:"name"`
-	TotalPrice    float64 `json:"total_price"`
-	CurrencyCode  string  `json:"currency_code"`
-	Category      string  `json:"category"`
-	IsCustom      bool    `json:"is_custom"`
+type BudgetSummaryGetResponseItem struct {
 }
 
-type ExpenditureGetResponseDto []ExpenditureGetResponseItem
+/* ---------------- Expenditure ---------------- */
+
+type ExpendituresGetRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type ExpendituresGetResponseItem struct {
+	ExpenditureId string     `json:"expenditure_id"`
+	Category      string     `json:"category"`
+	Name          string     `json:"name"`
+	TotalPrice    float64    `json:"total_price"`
+	CurrencyCode  string     `json:"currency_code"`
+	PayedAt       *time.Time `json:"payed_at"`
+	HasReceipt    bool       `json:"has_receipt"`
+}
+
+type ExpendituresGetResponseDto []ExpendituresGetResponseItem
+
+type ExpenditureGetRequestDto struct {
+	ExpenditureId string `form:"expenditure_id" binding:"required"`
+}
+
+type ExpenditureGetResponseDistributionItem struct {
+	UserId string   `json:"user_id"`
+	Amount Fraction `json:"amount"`
+}
+
+type ExpenditureGetResponseDto struct {
+	Name         string                                   `json:"name"`
+	TotalPrice   float64                                  `json:"total_price"`
+	CurrencyCode string                                   `json:"currency_code"`
+	Category     string                                   `json:"category"`
+	PayersId     []string                                 `json:"payers_id"`
+	Distribution []ExpenditureGetResponseDistributionItem `json:"distribution"`
+	PayedAt      *time.Time                               `json:"payed_at"`
+}
 
 type ExpenditureCreateRequestDto struct {
-	Name         string  `json:"name" binding:"required"`
-	TotalPrice   float64 `json:"total_price" binding:"required"`
-	CurrencyCode string  `json:"currency_code" binding:"required"`
-	Category     string  `json:"category" binding:"required"`
-	IsCustom     bool    `json:"is_custom" binding:"required"`
-	SessionId    string  `json:"session_id" binding:"required"`
+	Name         string   `json:"name" binding:"required"`
+	Category     string   `json:"category" binding:"required"`
+	TotalPrice   *float64 `json:"total_price" binding:"required"`
+	CurrencyCode string   `json:"currency_code" binding:"required"`
+	PayersId     []string `json:"payers_id" binding:"required"`
+	Distribution []struct {
+		UserId string   `json:"user_id" binding:"required"`
+		Amount Fraction `json:"amount" binding:"required"`
+	} `json:"distribution" binding:"required"`
+	Items []struct {
+		Label       string   `json:"label" binding:"required"`
+		Price       *float64 `json:"price" binding:"required"`
+		Allocations []string `json:"allocations" binding:"required"`
+	} `json:"items" binding:"required"`
+	PayedAt   *time.Time `json:"payed_at"`
+	SessionId string     `json:"session_id" binding:"required"`
 }
 
 type ExpenditureDeleteRequestDto struct {
 	ExpenditureId string `json:"expenditure_id" binding:"required"`
+}
+
+// receipts
+
+type ExpenditureReceiptGetRequestDto struct {
+	ExpenditureId string `form:"expenditure_id" binding:"required"`
+}
+
+type ExpenditureReceiptGetResponseItem struct {
+	Label string  `json:"label"`
+	Price float64 `json:"price"`
+}
+
+type ExpenditureReceiptUploadRequestDto struct {
+	ExpenditureId string `form:"expenditure_id" binding:"required"`
+}
+
+type ExpenditureReceiptUploadResponseItem struct {
+	Label string  `json:"label"`
+	Price float64 `json:"price"`
+}
+
+type ExpenditureReceiptUploadResponseDto struct {
+	CurrencyCode *string                                `json:"currency_code"`
+	Items        []ExpenditureReceiptUploadResponseItem `json:"items"`
 }

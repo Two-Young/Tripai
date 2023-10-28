@@ -1,13 +1,15 @@
 package platform
 
 var (
-	CategoryMeal      = "meal"      // 식사
-	CategoryLodgment  = "lodgment"  // 숙박
-	CategoryTransport = "transport" // 교통
-	CategoryShopping  = "shopping"  // 쇼핑
-	CategoryActivity  = "activity"  // 액티비티
-	CategoryEtc       = "etc"       // 기타
-	CategoryUnknown   = "unknown"   // 알 수 없음
+	ExpenditureCategories = map[string]string{
+		"CategoryMeal":      "meal",
+		"CategoryLodgment":  "lodgment",
+		"CategoryTransport": "transport",
+		"CategoryShopping":  "shopping",
+		"CategoryActivity":  "activity",
+		"CategoryEtc":       "etc",
+		"CategoryUnknown":   "unknown",
+	}
 )
 
 type Currency struct {

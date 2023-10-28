@@ -102,8 +102,13 @@ func CreateBudget(c *gin.Context) {
 		return
 	}
 
+	if body.Amount == nil {
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "amount is required")
+		return
+	}
+
 	// validate amount
-	if body.Amount < 0 {
+	if *body.Amount < 0 {
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "amount should be positive")
 		return
 	}
@@ -119,7 +124,7 @@ func CreateBudget(c *gin.Context) {
 	if err := database_io.InsertBudgetTx(tx, database.BudgetEntity{
 		BudgetId:     budgetId,
 		CurrencyCode: body.CurrencyCode,
-		Amount:       body.Amount,
+		Amount:       *body.Amount,
 	}); err != nil {
 		log.Error(err)
 		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -133,6 +138,10 @@ func CreateBudget(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, nil)
+}
+
+func EditBudget(c *gin.Context) {
+	// TODO :: implement
 }
 
 func DeleteBudget(c *gin.Context) {
@@ -196,9 +205,14 @@ func DeleteBudget(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
+func BudgetSummary(c *gin.Context) {
+}
+
 func UseBudgetRouter(g *gin.RouterGroup) {
 	rg := g.Group("/budget")
 	rg.GET("", Budgets)
 	rg.PUT("", CreateBudget)
+	rg.POST("", EditBudget)
 	rg.DELETE("", DeleteBudget)
+	rg.GET("/summary", BudgetSummary)
 }
