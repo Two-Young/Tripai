@@ -1,4 +1,3 @@
-import {StyleSheet} from 'react-native';
 import React from 'react';
 import colors from '../theme/colors';
 import CustomHeader from '../component/molecules/CustomHeader';
@@ -34,9 +33,3 @@ const BudgetScreen = () => {
 };
 
 export default BudgetScreen;
-
-const styles = StyleSheet.create({
-  fab: {
-    backgroundColor: colors.primary,
-  },
-});

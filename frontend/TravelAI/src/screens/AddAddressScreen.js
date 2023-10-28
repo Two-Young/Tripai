@@ -1,7 +1,5 @@
 import {StyleSheet, View, Pressable, Keyboard, FlatList} from 'react-native';
 import React, {useMemo} from 'react';
-import defaultStyle from '../styles/styles';
-import {Header as HeaderRNE} from '@rneui/themed';
 import {useNavigation, CommonActions, useNavigationState} from '@react-navigation/native';
 import _ from 'lodash';
 import {useRecoilValue} from 'recoil';

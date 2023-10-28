@@ -14,7 +14,7 @@ import {STYLES} from '../styles/Stylesheets';
 import dayjs from 'dayjs';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import {Light, SemiBold} from './../theme/fonts';
+import {SemiBold} from './../theme/fonts';
 import {FAB, List} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 

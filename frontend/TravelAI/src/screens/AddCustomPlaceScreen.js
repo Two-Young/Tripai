@@ -1,6 +1,5 @@
-import {Dimensions, Keyboard, Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
+import {Dimensions, StyleSheet, Text, TextInput, View} from 'react-native';
 import React, {useMemo} from 'react';
-import defaultStyle from '../styles/styles';
 import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
 import {useNavigation, CommonActions, useNavigationState} from '@react-navigation/native';
 import {createLocation, locateDetail, locatePin} from '../services/api';
@@ -10,7 +9,8 @@ import colors from '../theme/colors';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
-import {Button, FAB, IconButton} from 'react-native-paper';
+import {FAB, IconButton} from 'react-native-paper';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -118,7 +118,7 @@ const AddCustomPlaceScreen = () => {
   }, [place]);
 
   return (
-    <Pressable style={{flex: 1}} onPress={Keyboard.dismiss}>
+    <DismissKeyboard>
       <SafeArea
         top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
         bottom={{inactive: true}}>
@@ -180,7 +180,7 @@ const AddCustomPlaceScreen = () => {
           </View>
         </View>
       </SafeArea>
-    </Pressable>
+    </DismissKeyboard>
   );
 };
 

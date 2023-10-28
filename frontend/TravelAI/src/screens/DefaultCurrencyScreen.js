@@ -4,12 +4,10 @@ import colors from '../theme/colors';
 import {useRecoilValue} from 'recoil';
 import currenciesAtom from '../recoil/currencies/currencies';
 import {Searchbar} from 'react-native-paper';
-import Checkbox from '../component/atoms/Checkbox';
 import countriesAtom from '../recoil/countries/countries';
 import {STYLES} from '../styles/Stylesheets';
 import CustomHeader from '../component/molecules/CustomHeader';
 import SafeArea from '../component/molecules/SafeArea';
-import reactotron from 'reactotron-react-native';
 import _ from 'lodash';
 import CurrencyListItem from '../component/molecules/CurrencyListItem';
 
@@ -28,8 +26,6 @@ const DefaultCurrencyScreen = () => {
   // states
   const [defaultCurrency, setDefaultCurrency] = React.useState(defaultCurrencyObject);
   const [searchQuery, setSearchQuery] = React.useState('');
-
-  reactotron.log(defaultCurrency);
 
   return (
     <Pressable style={[STYLES.FLEX(1)]} onPress={Keyboard.dismiss} accessible={false}>

@@ -24,7 +24,9 @@ const ChatScreen = () => {
   const flatListRef = React.useRef();
 
   const sendMessage = React.useCallback(async () => {
-    if (_.isEmpty(inputContent)) return;
+    if (_.isEmpty(inputContent)) {
+      return;
+    }
     if (useChatGPT) {
       socket.emit('sessionChat/sendAssistantMessage', currentSessionID, inputContent);
     } else {
@@ -98,7 +100,7 @@ const ChatScreen = () => {
         ref={flatListRef}
         data={messages}
         renderItem={({item, index}) => <MessageItem {...item} />}
-        contentContainerStyle={{padding: 16}}
+        contentContainerStyle={STYLES.PADDING(16)}
       />
       <View style={[styles.inputComponent, {backgroundColor: useChatGPT ? '#74AA9C' : '#E5E5EA'}]}>
         <TouchableOpacity
@@ -112,7 +114,7 @@ const ChatScreen = () => {
           iconColor={useChatGPT ? '#74AA9C' : colors.white}
           containerColor={useChatGPT ? colors.white : colors.primary}
           size={16}
-          style={{margin: 0}}
+          style={STYLES.MARGIN(0)}
           onPress={sendMessage}
         />
       </View>
@@ -136,7 +138,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: 'white',
     borderRadius: 8,
     padding: 8,
     marginRight: 10,

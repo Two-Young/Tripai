@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Image, StyleSheet, TouchableOpacity} from 'react-native';
 import {checkbox, checkedbox} from '../../assets/images';
 

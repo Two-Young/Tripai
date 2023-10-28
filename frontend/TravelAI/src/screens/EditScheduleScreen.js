@@ -1,5 +1,5 @@
-import {Keyboard, StyleSheet, View, TouchableWithoutFeedback, Alert} from 'react-native';
-import React, {useEffect} from 'react';
+import {StyleSheet, View, Alert} from 'react-native';
+import React from 'react';
 import {IconButton} from 'react-native-paper';
 import {CommonActions, useNavigation, useRoute, useNavigationState} from '@react-navigation/native';
 import colors from '../theme/colors';
@@ -10,6 +10,8 @@ import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHe
 import CustomInput from '../component/molecules/CustomInput';
 import MainButton from '../component/atoms/MainButton';
 import dayjs from 'dayjs';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
+import {STYLES} from '../styles/Stylesheets';
 
 const EditScheduleScreen = () => {
   // states
@@ -24,8 +26,6 @@ const EditScheduleScreen = () => {
   const navigation = useNavigation();
   const navigationState = useNavigationState(state => state);
   const route = useRoute();
-
-  const day = navigationState.routes.slice(-1)[0]?.params?.day;
 
   const tab = navigationState.routes[navigationState.routes.length - 2];
   const target = tab?.state?.routes[1];
@@ -95,10 +95,16 @@ const EditScheduleScreen = () => {
 
   React.useEffect(() => {
     if (route.params?.schedule) {
-      const {schedule_id, name, address, place_id, start_at, memo} = route.params?.schedule;
-      const schedule = route.params?.schedule;
+      const {
+        schedule_id,
+        name: scheduleName,
+        address,
+        place_id,
+        start_at,
+        memo,
+      } = route.params?.schedule;
       setScheduleID(schedule_id);
-      setName(name ?? '');
+      setName(scheduleName ?? '');
       setPlace({
         address,
         place_id,
@@ -108,12 +114,10 @@ const EditScheduleScreen = () => {
     }
   }, [route.params?.schedule]);
 
-  console.log({day});
-
   return (
     <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{flex: 1}}>
+      <DismissKeyboard>
+        <View style={STYLES.FLEX(1)}>
           <CustomHeader
             title="Edit Schedule"
             theme={CUSTOM_HEADER_THEME.WHITE}
@@ -147,7 +151,7 @@ const EditScheduleScreen = () => {
             />
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </DismissKeyboard>
     </SafeArea>
   );
 };

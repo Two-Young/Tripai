@@ -4,7 +4,6 @@ import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
 import CustomInput from '../component/molecules/CustomInput';
 import colors from '../theme/colors';
-import {Picker} from '@react-native-picker/picker';
 import BottomSheet, {BottomSheetFlatList} from '@gorhom/bottom-sheet';
 import {STYLES} from '../styles/Stylesheets';
 import {getSessionMembers} from '../services/api';
@@ -18,7 +17,6 @@ import Checkbox from '../component/atoms/Checkbox';
 import SelectDropdown from 'react-native-select-dropdown';
 import Modal from 'react-native-modal';
 import userAtom from '../recoil/user/user';
-import reactotron from 'reactotron-react-native';
 import {Searchbar} from 'react-native-paper';
 import {FlatList} from 'react-native';
 

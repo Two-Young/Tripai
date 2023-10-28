@@ -1,7 +1,6 @@
 import React from 'react';
-import {StyleSheet, Keyboard, TouchableWithoutFeedback, View, Pressable} from 'react-native';
+import {StyleSheet, Keyboard, View} from 'react-native';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
-import defaultStyle from '../styles/styles';
 import {createLocation, locateAutoComplete, locateLocation} from '../services/api';
 import sessionAtom from '../recoil/session/session';
 import {useRecoilValue} from 'recoil';
@@ -11,6 +10,7 @@ import colors from '../theme/colors';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import {STYLES} from '../styles/Stylesheets';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
 
 const AddPlaceScreen = () => {
   // hooks
@@ -82,10 +82,12 @@ const AddPlaceScreen = () => {
     <SafeArea
       top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
       bottom={{inactive: true}}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={defaultStyle.container}>
-        <View style={[STYLES.FLEX(1)]}>
+      <View style={[STYLES.FLEX(1)]}>
+        <DismissKeyboard>
           <CustomHeader title={'Add Place'} theme={CUSTOM_HEADER_THEME.WHITE} useMenu={false} />
-          <View style={styles.container}>
+        </DismissKeyboard>
+        <View style={styles.container}>
+          <DismissKeyboard>
             <Searchbar
               value={searchKeyword}
               onChangeText={setSearchKeyword}
@@ -96,32 +98,32 @@ const AddPlaceScreen = () => {
               }}
               style={styles.searchBar}
             />
-            <SearchResultFlatList {...{isZeroResult, searchResult, onPressListItem}} />
-          </View>
-          <FAB
-            style={styles.addCustomPlaceButton}
-            icon="map"
-            label="Add Custom Place"
-            color={colors.white}
-            onPress={navigateToAddCustomPlace}
-          />
-          <Portal>
-            <Modal visible={loadingModalVisible} dismissable={false}>
-              <ActivityIndicator animating={true} size="large" />
-            </Modal>
-          </Portal>
-          <Portal>
-            <Snackbar
-              visible={dupSnackBarVisible}
-              onDismiss={() => setDupSnackbarVisible(false)}
-              action={{
-                label: 'Close',
-              }}>
-              Place is already added.
-            </Snackbar>
-          </Portal>
+          </DismissKeyboard>
+          <SearchResultFlatList {...{isZeroResult, searchResult, onPressListItem}} />
         </View>
-      </TouchableWithoutFeedback>
+        <FAB
+          style={styles.addCustomPlaceButton}
+          icon="map"
+          label="Add Custom Place"
+          color={colors.white}
+          onPress={navigateToAddCustomPlace}
+        />
+        <Portal>
+          <Modal visible={loadingModalVisible} dismissable={false}>
+            <ActivityIndicator animating={true} size="large" />
+          </Modal>
+        </Portal>
+        <Portal>
+          <Snackbar
+            visible={dupSnackBarVisible}
+            onDismiss={() => setDupSnackbarVisible(false)}
+            action={{
+              label: 'Close',
+            }}>
+            Place is already added.
+          </Snackbar>
+        </Portal>
+      </View>
     </SafeArea>
   );
 };

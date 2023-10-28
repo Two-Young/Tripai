@@ -1,6 +1,5 @@
-import {Keyboard, StyleSheet, View, TouchableWithoutFeedback} from 'react-native';
-import React, {useEffect} from 'react';
-import {FAB, IconButton} from 'react-native-paper';
+import {StyleSheet, View} from 'react-native';
+import React from 'react';
 import {CommonActions, useNavigation, useNavigationState} from '@react-navigation/native';
 import colors from '../theme/colors';
 import {createSchedule} from '../services/api';
@@ -11,6 +10,8 @@ import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHe
 import CustomInput from '../component/molecules/CustomInput';
 import dayjs from 'dayjs';
 import MainButton from '../component/atoms/MainButton';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
+import {STYLES} from '../styles/Stylesheets';
 
 const AddScheduleScreen = () => {
   // states
@@ -59,18 +60,13 @@ const AddScheduleScreen = () => {
 
   // memo
   const addDisabled = React.useMemo(() => {
-    return name.length === 0 || !Boolean(place?.address);
+    return name.length === 0 || !place?.address;
   }, [name, place]);
 
   return (
     <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
-      <TouchableWithoutFeedback
-        onPress={() => {
-          if (Keyboard.isVisible) {
-            Keyboard.dismiss();
-          }
-        }}>
-        <View style={{flex: 1}}>
+      <DismissKeyboard>
+        <View style={STYLES.FLEX(1)}>
           <CustomHeader title="Add Schedule" theme={CUSTOM_HEADER_THEME.WHITE} useMenu={false} />
           <View style={styles.container}>
             <View style={styles.contentContainer}>
@@ -99,7 +95,7 @@ const AddScheduleScreen = () => {
             />
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </DismissKeyboard>
     </SafeArea>
   );
 };

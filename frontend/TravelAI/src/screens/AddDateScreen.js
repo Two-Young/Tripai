@@ -130,7 +130,7 @@ const AddDateScreen = () => {
           onDayPress={onDayPress}
         />
       </View>
-      <View style={{padding: 10}}>
+      <View style={STYLES.PADDING(10)}>
         <MainButton text={'Create'} disabled={!firstDate && !lastDate} onPress={onPressCreate} />
       </View>
     </SafeArea>
