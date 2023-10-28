@@ -2,8 +2,8 @@ import {FlatList, StyleSheet, Text, View, Alert} from 'react-native';
 import React from 'react';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import {IconButton, Portal, Snackbar} from 'react-native-paper';
-import {deleteSession, getCurrencies, getSessions, locateCountries} from '../services/api';
-import {useRecoilValue, useSetRecoilState} from 'recoil';
+import {getCurrencies, getSessions, locateCountries} from '../services/api';
+import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import userAtom from '../recoil/user/user';
 import colors from '../theme/colors';
@@ -15,14 +15,15 @@ import CustomHeader from '../component/molecules/CustomHeader';
 import TravelItem from '../component/molecules/TravelItem';
 import {Fonts} from '../theme';
 import LinearGradient from 'react-native-linear-gradient';
+import {sessionsAtom} from '../recoil/session/sessions';
 
 const MainScreen = () => {
   /* states */
-  const [sessions, setSessions] = React.useState([]); // 세션 목록
   const [refreshing, setRefreshing] = React.useState(false); // refresh 여부
   const [snackbarVisible, setSnackbarVisible] = React.useState(false); // snackbar visible 여부
   // const [menuVisible, setMenuVisible] = React.useState(false); // menu visible 여부
 
+  const [sessions, setSessions] = useRecoilState(sessionsAtom);
   const setCountries = useSetRecoilState(countriesAtom);
   const setCurrencies = useSetRecoilState(currenciesAtom);
 
@@ -44,24 +45,6 @@ const MainScreen = () => {
   const onPressSession = session => {
     setCurrentSession(session);
     navigation.navigate('Tab');
-  };
-
-  // 세션 삭제
-  const onPressDeleteSession = async session => {
-    Alert.alert('Delete Item', 'Are you sure you want to delete this item?', [
-      {text: 'Cancel', style: 'cancel'},
-      {text: 'Delete', onPress: () => onDelete(session), style: 'destructive'},
-    ]);
-  };
-
-  const onDelete = async session => {
-    try {
-      await deleteSession(session.session_id);
-      setSessions(sessions.filter(sess => sess.session_id !== session.session_id));
-      setSnackbarVisible(true);
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   // 세션 목록 가져오기
@@ -106,10 +89,6 @@ const MainScreen = () => {
     }
   };
 
-  // const openMenu = () => {
-  //   setMenuVisible(true);
-  // };
-
   /* effects */
 
   React.useEffect(() => {
@@ -123,7 +102,7 @@ const MainScreen = () => {
     if (route.params?.refresh) {
       onRefresh().finally(() => {
         navigation.dispatch({
-          ...CommonActions.setParams({refresh: false, source: route.key}),
+          ...CommonActions.setParams({refresh: false, target: route.key}),
         });
       });
     }
@@ -131,7 +110,7 @@ const MainScreen = () => {
 
   return (
     <SafeArea bottom={{inactive: true}}>
-      <CustomHeader title={'WELCOME'} leftComponent={<View />} />
+      <CustomHeader title={'WELCOME'} useBack={false} />
       <FlatList
         contentContainerStyle={[STYLES.PADDING_BOTTOM(10)]}
         showsVerticalScrollIndicator={false}
@@ -142,13 +121,7 @@ const MainScreen = () => {
             <Text style={styles.textSectionDescription}>What travel do you want to manage?</Text>
           </View>
         }
-        renderItem={({item}) => (
-          <TravelItem
-            travel={item}
-            onPress={() => onPressSession(item)}
-            onPressDelete={() => onPressDeleteSession(item)}
-          />
-        )}
+        renderItem={({item}) => <TravelItem travel={item} onPress={() => onPressSession(item)} />}
         keyExtractor={item => item.session_id}
         refreshing={refreshing}
         onRefresh={onRefresh}

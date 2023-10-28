@@ -26,11 +26,14 @@ export const gray_text = '#A1B2C6';
 
 const colors = {
   primary: '#0D6EFD',
+  secondary: '#7DAEFD',
   white: '#FFFFFF',
   lightgray: '#E9E9EB',
   black: '#000000',
   gray: '#A1B2C6',
   gpt: '#74AA9C',
+  searchBar: '#F5F4F6',
+  red: '#FF1D1D',
 };
 
 export default colors;

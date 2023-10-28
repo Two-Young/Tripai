@@ -8,7 +8,7 @@ import reactotron from 'reactotron-react-native';
 export let socket;
 
 export const initiateSocket = token => {
-  socket = io(API_URL_DEBUG, {
+  socket = io(API_URL_PROD, {
     // 옵션 설정
     path: '/socket.io/',
     autoConnect: false,

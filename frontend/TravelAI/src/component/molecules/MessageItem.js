@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
   profileName: {
     marginTop: 4,
     ...Light(12),
+    textAlign: 'center',
   },
   timestamp: {
     marginHorizontal: 8,

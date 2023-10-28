@@ -1,23 +1,16 @@
 import React from 'react';
-import {StyleSheet, Keyboard, TouchableWithoutFeedback, View} from 'react-native';
+import {StyleSheet, Keyboard, View} from 'react-native';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import defaultStyle from '../styles/styles';
 import {createLocation, locateAutoComplete, locateLocation} from '../services/api';
 import sessionAtom from '../recoil/session/session';
 import {useRecoilValue} from 'recoil';
 import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
-import {
-  ActivityIndicator,
-  IconButton,
-  Modal,
-  Portal,
-  Searchbar,
-  Snackbar,
-} from 'react-native-paper';
-import {Header} from '@rneui/themed';
-import reactotron from 'reactotron-react-native';
+import {ActivityIndicator, FAB, Modal, Portal, Searchbar, Snackbar} from 'react-native-paper';
 import colors from '../theme/colors';
+import SafeArea from '../component/molecules/SafeArea';
+import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
+import {STYLES} from '../styles/Stylesheets';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
 
 const AddPlaceScreen = () => {
   // hooks
@@ -72,7 +65,7 @@ const AddPlaceScreen = () => {
     }
   };
 
-  const onPressFooterItem = () => {
+  const navigateToAddCustomPlace = () => {
     navigation.navigate('AddCustomPlace');
   };
 
@@ -86,35 +79,35 @@ const AddPlaceScreen = () => {
   }, [searchKeyword]);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={defaultStyle.container}>
-      <SafeAreaView edges={['bottom']} style={defaultStyle.container}>
-        <Header
-          backgroundColor="#fff"
-          barStyle="dark-content"
-          leftComponent={
-            <IconButton
-              mode="contained"
-              icon="chevron-left"
-              iconColor="#000"
-              onPress={() => navigation.goBack()}
-            />
-          }
-          centerComponent={{text: 'Add Place', style: defaultStyle.heading}}
-        />
+    <SafeArea
+      top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
+      bottom={{inactive: true}}>
+      <View style={[STYLES.FLEX(1)]}>
+        <DismissKeyboard>
+          <CustomHeader title={'Add Place'} theme={CUSTOM_HEADER_THEME.WHITE} useMenu={false} />
+        </DismissKeyboard>
         <View style={styles.container}>
-          <Searchbar
-            value={searchKeyword}
-            onChangeText={setSearchKeyword}
-            placeholder="Search"
-            placeholderTextColor={'#888'}
-            onClear={() => {
-              setSearchKeyword('');
-            }}
-          />
-          <SearchResultFlatList
-            {...{isZeroResult, searchResult, onPressListItem, onPressFooterItem}}
-          />
+          <DismissKeyboard>
+            <Searchbar
+              value={searchKeyword}
+              onChangeText={setSearchKeyword}
+              placeholder="Search a place"
+              placeholderTextColor={colors.gray}
+              onClear={() => {
+                setSearchKeyword('');
+              }}
+              style={styles.searchBar}
+            />
+          </DismissKeyboard>
+          <SearchResultFlatList {...{isZeroResult, searchResult, onPressListItem}} />
         </View>
+        <FAB
+          style={styles.addCustomPlaceButton}
+          icon="map"
+          label="Add Custom Place"
+          color={colors.white}
+          onPress={navigateToAddCustomPlace}
+        />
         <Portal>
           <Modal visible={loadingModalVisible} dismissable={false}>
             <ActivityIndicator animating={true} size="large" />
@@ -130,8 +123,8 @@ const AddPlaceScreen = () => {
             Place is already added.
           </Snackbar>
         </Portal>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+      </View>
+    </SafeArea>
   );
 };
 
@@ -141,6 +134,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  searchBar: {
+    borderRadius: 16,
+    backgroundColor: colors.searchBar,
+    marginBottom: 10,
+  },
+  addCustomPlaceButton: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+    marginHorizontal: 20,
+    backgroundColor: colors.primary,
   },
 });

@@ -14,14 +14,16 @@ import userAtom from '../recoil/user/user';
 import AddScheduleScreen from '../screens/AddScheduleScreen';
 import EditScheduleScreen from '../screens/EditScheduleScreen';
 import {createNavigationContainerRef} from '@react-navigation/native';
-import SplitBillScreen from '../screens/SplitBillScreen';
-import CustomSplitScreen from '../screens/CustomSplitScreen';
 import ReceiptScreen from '../screens/ReceiptScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import DefaultCurrencyScreen from '../screens/DefaultCurrencyScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import AddFriendsScreen from '../screens/AddFriendsScreen';
-import MyRequestScreen from '../screens/MyRequestScreen.js';
+import SessionRequestsScreen from '../screens/SessionRequestsScreen.js';
+import ManageParticipantsScreen from '../screens/ManageParticipantsScreen.js';
+import AddBudgetScreen from '../screens/AddBudgetScreen.js';
+import AddExpenditureScreen from './../screens/AddExpenditureScreen';
+import EditReceiptScreen from '../screens/EditReceiptScreen.js';
 
 const Stack = createStackNavigator();
 
@@ -81,9 +83,9 @@ const RootNavigator = () => {
         <Stack.Screen name="Tab" component={TabNavigator} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="DefaultCurrency" component={DefaultCurrencyScreen} />
-        <Stack.Screen name="Friends" component={FriendsScreen} />
+        <Stack.Screen name="MyFriends" component={FriendsScreen} />
         <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
-        <Stack.Screen name="MyRequest" component={MyRequestScreen} />
+        <Stack.Screen name="SessionRequests" component={SessionRequestsScreen} />
       </Stack.Group>
       <Stack.Group
         screenOptions={{
@@ -91,17 +93,19 @@ const RootNavigator = () => {
         }}>
         <Stack.Screen name="AddPlace" component={AddPlaceScreen} />
         <Stack.Screen name="AddSchedule" component={AddScheduleScreen} />
-        <Stack.Screen name="SplitBill" component={SplitBillScreen} />
-        <Stack.Screen name="CustomSplit" component={CustomSplitScreen} />
       </Stack.Group>
       <Stack.Group />
       <Stack.Group>
+        <Stack.Screen name="ManageParticipants" component={ManageParticipantsScreen} />
         <Stack.Screen name="AddAddress" component={AddAddressScreen} />
         <Stack.Screen name="AddCustomPlace" component={AddCustomPlaceScreen} />
         <Stack.Screen name="AddTravel" component={AddTravelScreen} />
         <Stack.Screen name="AddDate" component={AddDateScreen} />
         <Stack.Screen name="EditSchedule" component={EditScheduleScreen} />
         <Stack.Screen name="Receipt" component={ReceiptScreen} />
+        <Stack.Screen name="AddBudget" component={AddBudgetScreen} />
+        <Stack.Screen name="AddExpenditure" component={AddExpenditureScreen} />
+        <Stack.Screen name="EditReceipt" component={EditReceiptScreen} />
       </Stack.Group>
       {/* OnBoard */}
       {/* Tab */}

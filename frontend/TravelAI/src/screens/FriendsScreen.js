@@ -1,8 +1,5 @@
-import {FlatList, StyleSheet, Text, View, Alert} from 'react-native';
+import {FlatList, StyleSheet, View} from 'react-native';
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import defaultStyle from '../styles/styles';
-import {Header} from '@rneui/base';
 import {
   acceptFriends,
   cancelFriends,
@@ -11,61 +8,125 @@ import {
   getFriendsWaiting,
   rejectFriends,
 } from '../services/api';
-import {Avatar, FAB, IconButton, List} from 'react-native-paper';
-import {useNavigation} from '@react-navigation/native';
+import {FAB, IconButton} from 'react-native-paper';
+import {
+  useNavigation,
+  useRoute,
+  useNavigationState,
+  CommonActions,
+  useFocusEffect,
+} from '@react-navigation/native';
+import SafeArea from '../component/molecules/SafeArea';
+import CustomHeader from '../component/molecules/CustomHeader';
+import {STYLES} from '../styles/Stylesheets';
+import colors from '../theme/colors';
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
+import EmptyComponent from '../component/atoms/EmptyComponent';
+import UserItem from '../component/molecules/UserItem';
+import {useRecoilState} from 'recoil';
+import {friendsAtom, receivedFriendsAtom, sentFriendsAtom} from '../recoil/friends/friends';
 
-const FriendsScreen = () => {
-  // hooks
-  const navigation = useNavigation();
+const FriendsTab = createMaterialTopTabNavigator();
+
+const FriendsTabNavigator = () => {
+  return (
+    <FriendsTab.Navigator
+      screenOptions={{
+        tabBarIndicatorStyle: {backgroundColor: colors.primary},
+        tabBarLabelStyle: {fontWeight: 'bold'},
+        tabBarStyle: {backgroundColor: colors.white},
+      }}>
+      <FriendsTab.Screen name="Friends" component={Friends} />
+      <FriendsTab.Screen name="Received" component={Received} />
+      <FriendsTab.Screen name="Sent" component={Sent} />
+    </FriendsTab.Navigator>
+  );
+};
+
+const Friends = () => {
+  const route = useRoute();
 
   // states
-  const [friends, setFriends] = React.useState([]);
-  const [receivedFriendsRequest, setReceivedFriendsRequest] = React.useState([]);
-  const [sentFriendsRequest, setSentFriendsRequest] = React.useState([]);
-  const [refresh, setRefresh] = React.useState(true);
+  const [refreshing, setRefreshing] = React.useState(true);
 
-  // functions
-  const onPressAdd = () => {
-    navigation.navigate('AddFriends');
-  };
+  // recoil
+  const [friends, setFriends] = useRecoilState(friendsAtom);
 
   const fetchFriends = async () => {
     try {
       const data = await getFriends();
       setFriends(data);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
-  };
-
-  const fetchFriendsWaiting = async () => {
-    try {
-      const data = await getFriendsWaiting();
-      setReceivedFriendsRequest(data.received);
-      setSentFriendsRequest(data.sent);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const requestAlert = async (title, description, okFunc) => {
-    Alert.alert(title, description, [
-      {
-        text: 'Cancel',
-        onPress: () => {},
-        style: 'cancel',
-      },
-      {
-        text: 'OK',
-        onPress: async () => okFunc(),
-      },
-    ]);
   };
 
   const deleteFriendConfirm = async user_id => {
     try {
       await deleteFriends(user_id);
-      setRefresh(true);
+      showSuccessToast('Friend deleted');
+      setFriends(friends.filter(item => item.user_id !== user_id));
+    } catch (err) {
+      showErrorToast(err);
+    }
+  };
+
+  // effects
+  React.useEffect(() => {
+    if (refreshing) {
+      fetchFriends().finally(() => {
+        setRefreshing(false);
+      });
+    }
+  }, [refreshing]);
+
+  useFocusEffect(() => {
+    fetchFriends();
+  });
+
+  return (
+    <FlatList
+      style={styles.container}
+      contentContainerStyle={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_TOP(10)]}
+      data={friends}
+      // keyExtractor={item => item.user_id.toString()}
+      refreshing={refreshing}
+      onRefresh={() => setRefreshing(true)}
+      renderItem={({item}) => (
+        <UserItem
+          user={item}
+          rightComponent={user => (
+            <IconButton
+              icon="account-minus"
+              iconColor={colors.red}
+              onPress={() =>
+                requestAlert(
+                  'Delete Friend',
+                  `Are you sure you want to delete ${user.username} as a friend?`,
+                  () => deleteFriendConfirm(user.user_id),
+                )
+              }
+            />
+          )}
+        />
+      )}
+      ListEmptyComponent={<EmptyComponent text="You have no friends yet" />}
+    />
+  );
+};
+
+const Received = () => {
+  // states
+  const [refreshing, setRefreshing] = React.useState(true);
+
+  const [receivedFriends, setReceivedFriends] = useRecoilState(receivedFriendsAtom);
+
+  // functions
+  const fetchFriendsWaiting = async () => {
+    try {
+      const data = await getFriendsWaiting();
+      setReceivedFriends(data.received);
     } catch (err) {
       console.error(err);
     }
@@ -73,16 +134,91 @@ const FriendsScreen = () => {
 
   const acceptFriendRequestConfirm = async user_id => {
     try {
-      const data = await acceptFriends(user_id);
-      setRefresh(true);
+      await acceptFriends(user_id);
+      showSuccessToast('Friend request accepted');
+      setReceivedFriends(receivedFriends.filter(item => item.user_id !== user_id));
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
+
   const rejectFriendRequestConfirm = async user_id => {
     try {
-      const data = await rejectFriends(user_id);
-      setRefresh(true);
+      await rejectFriends(user_id);
+      showSuccessToast('Friend request rejected');
+      setReceivedFriends(receivedFriends.filter(item => item.user_id !== user_id));
+    } catch (err) {
+      showErrorToast(err);
+    }
+  };
+
+  // effects
+  React.useEffect(() => {
+    if (refreshing) {
+      fetchFriendsWaiting().finally(() => {
+        setRefreshing(false);
+      });
+    }
+  }, [refreshing]);
+
+  useFocusEffect(() => {
+    fetchFriendsWaiting();
+  });
+
+  return (
+    <FlatList
+      style={styles.container}
+      contentContainerStyle={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_TOP(10)]}
+      data={receivedFriends}
+      refreshing={refreshing}
+      onRefresh={() => setRefreshing(true)}
+      renderItem={({item}) => (
+        <UserItem
+          user={item}
+          rightComponent={() => (
+            <View style={[STYLES.FLEX_ROW]}>
+              <IconButton
+                icon="check"
+                iconColor={colors.primary}
+                onPress={() =>
+                  requestAlert(
+                    'Accept Friend Request',
+                    `Are you sure you want to accept ${item.username}'s friend request?`,
+                    () => acceptFriendRequestConfirm(item.user_id),
+                  )
+                }
+              />
+              <IconButton
+                icon="close"
+                iconColor={colors.red}
+                onPress={() =>
+                  requestAlert(
+                    'Reject Friend Request',
+                    `Are you sure you want to reject ${item.username}'s friend request?`,
+                    () => rejectFriendRequestConfirm(item.user_id),
+                  )
+                }
+              />
+            </View>
+          )}
+        />
+      )}
+      ListEmptyComponent={<EmptyComponent text="You have no received friend requests yet" />}
+    />
+  );
+};
+
+const Sent = () => {
+  // states
+  const [refreshing, setRefreshing] = React.useState(true);
+
+  // recoil
+  const [sentFriends, setSentFriends] = useRecoilState(sentFriendsAtom);
+
+  const fetchFriendsWaiting = async () => {
+    try {
+      const data = await getFriendsWaiting();
+      setSentFriends(data.sent);
     } catch (err) {
       console.error(err);
     }
@@ -90,111 +226,87 @@ const FriendsScreen = () => {
 
   const cancelFriendRequestConfirm = async user_id => {
     try {
-      const data = await cancelFriends(user_id);
-      setRefresh(true);
+      await cancelFriends(user_id);
+      showSuccessToast('Friend request cancelled');
+      setSentFriends(sentFriends.filter(item => item.user_id !== user_id));
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
   // effects
   React.useEffect(() => {
-    if (refresh) {
-      setRefresh(false);
-      fetchFriends();
-      fetchFriendsWaiting();
+    if (refreshing) {
+      fetchFriendsWaiting().finally(() => {
+        setRefreshing(false);
+      });
     }
-  }, [refresh]);
+  }, [refreshing]);
 
   return (
-    <SafeAreaView edges={['top, bottom']} style={defaultStyle.container}>
-      <Header centerComponent={<Text style={defaultStyle.headerTitle}>Friends</Text>} />
-      <View style={styles.container}>
-        <Text>Friends Screen</Text>
-        <FlatList
-          data={friends}
-          renderItem={({item}) => (
-            <List.Item
-              title={item.username}
-              left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-              right={props => (
-                <IconButton
-                  {...props}
-                  icon="delete"
-                  onPress={() =>
-                    requestAlert(
-                      'Delete Friend',
-                      `Are you sure you want to delete ${item.username} as a friend?`,
-                      () => deleteFriendConfirm(item.user_id),
-                    )
-                  }
-                />
-              )}
+    <FlatList
+      style={styles.container}
+      contentContainerStyle={[STYLES.PADDING_HORIZONTAL(20), STYLES.PADDING_TOP(10)]}
+      data={sentFriends}
+      refreshing={refreshing}
+      onRefresh={() => setRefreshing(true)}
+      renderItem={({item}) => (
+        <UserItem
+          user={item}
+          rightComponent={user => (
+            <IconButton
+              icon="close"
+              iconColor={colors.red}
+              onPress={() =>
+                requestAlert(
+                  'Cancel Friend Request',
+                  `Are you sure you want to cancel ${user.username}'s friend request?`,
+                  () => cancelFriendRequestConfirm(user.user_id),
+                )
+              }
             />
           )}
         />
-        <Text>Received Friends Request</Text>
-        <FlatList
-          data={receivedFriendsRequest}
-          renderItem={({item}) => (
-            <List.Item
-              title={item.username}
-              left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-              right={props => (
-                <View style={{flexDirection: 'row'}}>
-                  <IconButton
-                    {...props}
-                    icon="check"
-                    onPress={() =>
-                      requestAlert(
-                        'Accept Friend Request',
-                        `Are you sure you want to accept ${item.username}'s friend request?`,
-                        () => acceptFriendRequestConfirm(item.user_id),
-                      )
-                    }
-                  />
-                  <IconButton
-                    {...props}
-                    icon="delete"
-                    onPress={() =>
-                      requestAlert(
-                        'Reject Friend Request',
-                        `Are you sure you want to reject ${item.username}'s friend request?`,
-                        () => rejectFriendRequestConfirm(item.user_id),
-                      )
-                    }
-                  />
-                </View>
-              )}
-            />
-          )}
-        />
-        <Text>Sent Friends Request</Text>
-        <FlatList
-          data={sentFriendsRequest}
-          renderItem={({item}) => (
-            <List.Item
-              title={item.username}
-              left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
-              right={props => (
-                <IconButton
-                  {...props}
-                  icon="delete"
-                  onPress={() =>
-                    requestAlert(
-                      'Cancel Friend Request',
-                      `Are you sure you want to cancel ${item.username}'s friend request?`,
-                      () => cancelFriendRequestConfirm(item.user_id),
-                    )
-                  }
-                />
-              )}
-            />
-          )}
-        />
-      </View>
-      <FAB icon="plus" style={styles.fab} onPress={onPressAdd} />
-    </SafeAreaView>
+      )}
+      ListEmptyComponent={<EmptyComponent text="You have no sent friend requests yet" />}
+    />
+  );
+};
+
+const RefreshContext = React.createContext({
+  refreshing: false,
+  setRefreshing: () => {},
+});
+
+const FriendsScreen = () => {
+  // state
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  // hooks
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  // functions
+  const onPressAdd = () => {
+    navigation.navigate('AddFriends');
+  };
+
+  // effects
+  React.useEffect(() => {
+    if (route.params?.refresh) {
+      setRefreshing(true);
+      navigation.setParams({refresh: false});
+    }
+  }, [route.params?.refresh]);
+
+  return (
+    <SafeArea>
+      <RefreshContext.Provider value={{refreshing, setRefreshing}}>
+        <CustomHeader title="Friends" rightComponent={<React.Fragment />} />
+        <FriendsTabNavigator />
+        <FAB icon="plus" style={styles.fab} color={colors.white} onPress={onPressAdd} />
+      </RefreshContext.Provider>
+    </SafeArea>
   );
 };
 
@@ -203,12 +315,32 @@ export default FriendsScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    backgroundColor: colors.white,
+  },
+  tabButton: {
+    ...STYLES.FLEX(1),
+    ...STYLES.FLEX_CENTER,
+    ...STYLES.HEIGHT(40),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray,
+  },
+  tabButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  selected: {
+    borderBottomWidth: 3,
+    borderBottomColor: colors.primary,
+  },
+
+  selectedText: {
+    color: colors.primary,
   },
   fab: {
     position: 'absolute',
-    margin: 16,
+    margin: 20,
     right: 0,
-    bottom: 0,
+    bottom: 20,
+    backgroundColor: colors.primary,
   },
 });

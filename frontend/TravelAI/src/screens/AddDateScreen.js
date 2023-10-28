@@ -6,7 +6,7 @@ import {createSession} from '../services/api';
 import {useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import colors from '../theme/colors';
-import CustomHeader from '../component/molecules/CustomHeader';
+import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import SafeArea from '../component/molecules/SafeArea';
 import MainButton from '../component/atoms/MainButton';
 import {STYLES} from './../styles/Stylesheets';
@@ -113,9 +113,13 @@ const AddDateScreen = () => {
 
   // rendering
   return (
-    <SafeArea>
+    <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
       <LoadingModal isVisible={loading} />
-      <CustomHeader title="Choose the date" rightComponent={<></>} />
+      <CustomHeader
+        title="Choose the date"
+        theme={CUSTOM_HEADER_THEME.WHITE}
+        rightComponent={<React.Fragment />}
+      />
       <View style={styles.container}>
         <Text style={styles.description}>Choose the date you want to add to your travel.</Text>
         <CalendarList
@@ -130,7 +134,7 @@ const AddDateScreen = () => {
           onDayPress={onDayPress}
         />
       </View>
-      <View style={{padding: 10}}>
+      <View style={STYLES.PADDING(10)}>
         <MainButton text={'Create'} disabled={!firstDate && !lastDate} onPress={onPressCreate} />
       </View>
     </SafeArea>

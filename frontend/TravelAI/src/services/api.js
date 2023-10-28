@@ -11,7 +11,7 @@ export const API_URL_PROD = 'http://43.200.219.71:10375';
 export const API_URL_DEBUG = 'http://1.237.25.170:10375/';
 
 const api = axios.create({
-  baseURL: API_URL_DEBUG,
+  baseURL: API_URL_PROD,
   timeout: 10000,
 });
 
@@ -117,6 +117,7 @@ export const authGoogleSign = async idToken => {
     const response = await api.post('/auth/google/sign', {id_token: idToken});
     return response.data;
   } catch (error) {
+    console.error(JSON.stringify(error));
     throw error;
   }
 };
@@ -135,6 +136,7 @@ export const authNaverSign = async accessToken => {
     const response = await api.post('/auth/naver/sign', {id_token: accessToken});
     return response.data;
   } catch (error) {
+    console.error(JSON.stringify(error));
     console.error(error);
     throw error;
   }
@@ -255,7 +257,6 @@ export const getSessions = async () => {
     const response = await api.get('/platform/session');
     return response.data;
   } catch (error) {
-    console.error(error);
     throw error;
   }
 };
@@ -275,6 +276,7 @@ export const createSession = async (country_codes, start_at, end_at) => {
 
 export const deleteSession = async session_id => {
   try {
+    console.log('session_id : ', session_id);
     const response = await api.delete('/platform/session', {
       data: {
         session_id,
@@ -547,77 +549,6 @@ export const deleteLocation = async location_id => {
   }
 };
 
-// platform - receipt
-export const getReceipt = async receipt_id => {
-  try {
-    const response = await api.get('/platform/receipt/current', {
-      params: {
-        receipt_id,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const getReceiptImage = async receipt_id => {
-  try {
-    const response = await api.get('/platform/receipt/image', {
-      params: {
-        receipt_id,
-      },
-      responseType: 'arraybuffer',
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const getReceipts = async session_id => {
-  try {
-    const response = await api.get('/platform/receipt', {
-      params: {
-        session_id,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const uploadReceipt = async ({session_id, file}) => {
-  try {
-    const response = await api.post('/platform/receipt/upload', file, {
-      params: {
-        session_id,
-      },
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const submitReceipt = async ({receipt_id, items, name, type}) => {
-  try {
-    const response = await api.post('/platform/receipt/submit', {
-      receipt_id,
-      items,
-      name,
-      type,
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 // platform - currency
 export const getCurrencies = async () => {
   try {
@@ -630,12 +561,191 @@ export const getCurrencies = async () => {
 
 export const getCurrenciesExchangeInfo = async ({from_currency_code, to_currency_code}) => {
   try {
-    const response = await api.get('/platform/currency/exchange', {
+    const response = await api.get('/platform/currency/exchange-rate', {
       params: {
         from_currency_code,
         to_currency_code,
       },
     });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// platform - budget
+export const getBudgetSummary = async session_id => {
+  try {
+    const response = await api.get('/platform/budget/summary', {
+      params: {
+        session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getBudget = async ({session_id}) => {
+  try {
+    const response = await api.get('/platform/budget', {
+      params: {
+        session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const putBudget = async ({currency_code, amount, session_id}) => {
+  try {
+    const response = await api.put('/platform/budget', {
+      currency_code,
+      amount,
+      session_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteBudget = async budget_id => {
+  try {
+    const response = await api.delete('/platform/budget', {
+      data: {
+        budget_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// platform - expenditure
+export const getExpenditures = async session_id => {
+  try {
+    const response = await api.get('/platform/expenditure/list', {
+      params: {
+        session_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getExpenditure = async expenditure_id => {
+  try {
+    const response = await api.get('/platform/expenditure', {
+      params: {
+        expenditure_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const putExpenditure = async ({
+  name,
+  category,
+  total_price,
+  currency_code,
+  payers_id,
+  distribution,
+  payed_at,
+  session_id,
+}) => {
+  try {
+    const response = await api.put('/platform/expenditure', {
+      name,
+      category,
+      total_price,
+      currency_code,
+      payers_id,
+      distribution,
+      payed_at,
+      session_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteExpenditure = async expenditure_id => {
+  try {
+    const response = await api.delete('/platform/expenditure', {
+      data: {
+        expenditure_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getExpenditureReceipt = async expenditure_id => {
+  try {
+    const response = await api.get('/platform/expenditure/receipt', {
+      params: {
+        expenditure_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const putExpenditureReceipt = async ({expenditure_id, receipt}) => {
+  try {
+    const response = await api.put('/platform/expenditure/receipt', {
+      expenditure_id,
+      receipt,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const postExpenditureReceipt = async ({expenditure_id, receipt}) => {
+  try {
+    const response = await api.post('/platform/expenditure/receipt', {
+      expenditure_id,
+      receipt,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteExpenditureReceipt = async expenditure_id => {
+  try {
+    const response = await api.delete('/platform/expenditure/receipt', {
+      data: {
+        expenditure_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getExpenditureCategories = async () => {
+  try {
+    const response = await api.get('/platform/expenditure/categories');
     return response.data;
   } catch (error) {
     throw error;
@@ -659,6 +769,7 @@ export const requestFriends = async target_user_id => {
     });
     return response.data;
   } catch (error) {
+    reactotron.log(error.response);
     throw error;
   }
 };

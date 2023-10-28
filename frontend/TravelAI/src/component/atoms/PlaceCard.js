@@ -3,10 +3,12 @@ import React from 'react';
 import {Card, IconButton} from 'react-native-paper';
 import {STYLES} from '../../styles/Stylesheets';
 import colors from '../../theme/colors';
+import {Regular} from '../../theme/fonts';
+import LinearGradient from 'react-native-linear-gradient';
 
 const RightContent = props => <IconButton icon="chevron-right" iconColor="#000" />;
 
-const PlaceCard = ({item, onPress, isLast}) => {
+const PlaceCard = ({item, onPress, isFirst, isLast, isNext}) => {
   const {start_at} = item;
 
   const time = React.useMemo(() => {
@@ -26,19 +28,32 @@ const PlaceCard = ({item, onPress, isLast}) => {
     }
   }, [item]);
 
+  // console.log(item);
+
   return (
     <View style={[styles.item, STYLES.PADDING_HORIZONTAL(20)]}>
       <View
         style={[
           STYLES.ALIGN_CENTER,
           STYLES.FLEX_CENTER,
-          STYLES.WIDTH(30),
+          STYLES.WIDTH(40),
           STYLES.HEIGHT(50),
           STYLES.MARGIN_RIGHT(20),
         ]}>
-        <View style={styles.circle} />
-        <Text style={styles.itemTimeText}>{time}</Text>
-        {!isLast && <View style={styles.line} />}
+        {!isFirst &&
+          (isNext ? (
+            <LinearGradient
+              colors={[colors.gray, colors.primary]}
+              useAngle={true}
+              angle={180}
+              style={styles.line}
+            />
+          ) : (
+            <View style={styles.line} />
+          ))}
+        <View style={[styles.circle, {backgroundColor: isNext ? colors.primary : colors.gray}]}>
+          <Text style={styles.itemTimeText}>{time}</Text>
+        </View>
       </View>
       <Card
         style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}
@@ -62,25 +77,21 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   circle: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    padding: 3,
+    paddingHorizontal: 6,
+    borderRadius: 16,
     backgroundColor: colors.primary,
   },
   itemTimeText: {
-    position: 'absolute',
-    top: 0,
-    width: 50,
-    textAlign: 'center',
-    fontSize: 12,
-    backgroundColor: colors.white,
-    color: colors.gray,
+    ...Regular(10),
+    color: colors.white,
   },
   line: {
     position: 'absolute',
-    top: 38,
+    top: -42,
     width: 2,
-    height: 40,
+    height: 52,
+    borderRadius: 1,
     backgroundColor: colors.gray,
   },
 });

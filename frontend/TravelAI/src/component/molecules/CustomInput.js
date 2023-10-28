@@ -4,7 +4,7 @@ import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import DatePicker from 'react-native-date-picker';
 import dayjs from 'dayjs';
 
-const CustomInput = ({label, value, setValue, type = 'text'}) => {
+const CustomInput = ({label, value, setValue, type = 'text', onFocus, onBlur}) => {
   const navigation = useNavigation();
   const route = useRoute();
 
@@ -21,18 +21,22 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
     }
   }, [type, route.params?.place]);
 
-  const onFocus = useCallback(() => {
-    switch (type) {
-      case 'place':
-        handleSetAddress();
-        ref.current.blur();
-        break;
-      case 'date':
-        setOpen(true);
-        ref.current.blur();
-        break;
-    }
-  }, [type]);
+  const onFocusInput = useCallback(
+    e => {
+      switch (type) {
+        case 'place':
+          handleSetAddress();
+          ref.current.blur();
+          break;
+        case 'time':
+        case 'date':
+          setOpen(true);
+          ref.current.blur();
+          break;
+      }
+    },
+    [type],
+  );
 
   const ref = React.useRef(null);
 
@@ -40,6 +44,8 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
     switch (type) {
       case 'place':
         return value?.address ?? '';
+      case 'time':
+        return dayjs(value).format('HH:mm');
       case 'date':
         return dayjs(value).format('YYYY-MM-DD HH:mm');
       default:
@@ -53,24 +59,34 @@ const CustomInput = ({label, value, setValue, type = 'text'}) => {
         <Text style={styles.label}>{label}</Text>
         <TextInput
           ref={ref}
-          onFocus={onFocus}
+          onFocus={() => {
+            onFocusInput();
+            if (onFocus) {
+              onFocus();
+            }
+          }}
+          onBlur={() => {
+            if (onBlur) {
+              onBlur();
+            }
+          }}
           style={[styles.input, {...(type === 'multiline' && {height: 100})}]}
           placeholder="Type something"
           value={showValue}
-          onChangeText={setValue}
-          outlineColor="#000"
+          {...(type !== 'date' && {onChangeText: setValue})}
           {...(type === 'multiline' && {multiline: true})}
+          showSoftInputOnFocus={type === 'text'}
         />
       </View>
-      {type === 'date' && (
+      {(type === 'date' || type === 'time') && value.length > 0 && (
         <DatePicker
           modal
           open={open}
           date={new Date(value)}
-          mode="datetime"
+          mode={type === 'date' ? 'datetime' : 'time'}
           onConfirm={date => {
             setOpen(false);
-            setValue(dayjs(date).format('YYYY-MM-DD HH:mm'));
+            setValue(date);
           }}
           onCancel={() => {
             setOpen(false);

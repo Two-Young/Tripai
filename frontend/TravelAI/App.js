@@ -8,6 +8,7 @@ import {AxiosInterceptor} from './src/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors from './src/theme/colors';
 import {SocketManager} from './src/services/socket';
+import Toast from 'react-native-toast-message';
 
 const theme = {
   ...DefaultTheme,
@@ -31,15 +32,18 @@ const App = () => {
   */
 
   return (
-    <RecoilRoot>
-      <PaperProvider theme={theme}>
-        <AxiosInterceptor />
-        <SocketManager />
-        <NavigationContainer ref={navigationRef}>
-          <RootNavigator />
-        </NavigationContainer>
-      </PaperProvider>
-    </RecoilRoot>
+    <>
+      <RecoilRoot>
+        <PaperProvider theme={theme}>
+          <AxiosInterceptor />
+          <SocketManager />
+          <NavigationContainer ref={navigationRef}>
+            <RootNavigator />
+          </NavigationContainer>
+        </PaperProvider>
+      </RecoilRoot>
+      <Toast />
+    </>
   );
 };
 

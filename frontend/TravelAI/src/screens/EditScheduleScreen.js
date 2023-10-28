@@ -1,15 +1,17 @@
-import {Keyboard, StyleSheet, View, TouchableWithoutFeedback, Alert} from 'react-native';
-import React, {useEffect} from 'react';
+import {StyleSheet, View, Alert} from 'react-native';
+import React from 'react';
 import {IconButton} from 'react-native-paper';
 import {CommonActions, useNavigation, useRoute, useNavigationState} from '@react-navigation/native';
 import colors from '../theme/colors';
 import {deleteSchedule, updateSchedule} from '../services/api';
 import _ from 'lodash';
 import SafeArea from '../component/molecules/SafeArea';
-import CustomHeader from '../component/molecules/CustomHeader';
+import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import CustomInput from '../component/molecules/CustomInput';
-import reactotron from 'reactotron-react-native';
 import MainButton from '../component/atoms/MainButton';
+import dayjs from 'dayjs';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
+import {STYLES} from '../styles/Stylesheets';
 
 const EditScheduleScreen = () => {
   // states
@@ -93,45 +95,53 @@ const EditScheduleScreen = () => {
 
   React.useEffect(() => {
     if (route.params?.schedule) {
-      const {schedule_id, name, address, place_id, start_at, memo} = route.params?.schedule;
-      const schedule = route.params?.schedule;
+      const {
+        schedule_id,
+        name: scheduleName,
+        address,
+        place_id,
+        start_at,
+        memo,
+      } = route.params?.schedule;
       setScheduleID(schedule_id);
-      setName(name ?? '');
+      setName(scheduleName ?? '');
       setPlace({
         address,
         place_id,
       });
-      setStartAt(new Date(start_at));
+      setStartAt(dayjs(start_at).format('YYYY-MM-DD HH:mm'));
       setNote(memo ?? '');
     }
   }, [route.params?.schedule]);
 
   return (
     <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{flex: 1}}>
+      <DismissKeyboard>
+        <View style={STYLES.FLEX(1)}>
           <CustomHeader
-            backgroundColor={colors.white}
-            leftComponent={
-              <IconButton
-                mode="contained"
-                icon="chevron-left"
-                iconColor={colors.black}
-                onPress={() => navigation.goBack()}
-                size={18}
-              />
-            }
             title="Edit Schedule"
-            titleColor={colors.black}
+            theme={CUSTOM_HEADER_THEME.WHITE}
             rightComponent={
-              <IconButton icon="delete" iconColor="#000" onPress={onPressDeleteSchedule} />
+              <IconButton icon="delete" iconColor={colors.white} onPress={onPressDeleteSchedule} />
             }
           />
           <View style={styles.container}>
             <View style={styles.contentContainer}>
               <CustomInput label={'Name'} value={name} setValue={setName} />
               <CustomInput label={'Address'} value={place} setValue={setPlace} type="place" />
-              <CustomInput label={'Date'} value={startAt} setValue={setStartAt} type="date" />
+              <CustomInput
+                label={'Date'}
+                value={startAt}
+                setValue={value => {
+                  setStartAt(
+                    dayjs(startAt)
+                      .set('hour', dayjs(value).hour())
+                      .set('minute', dayjs(value).minute())
+                      .format('YYYY-MM-DD HH:mm'),
+                  );
+                }}
+                type="time"
+              />
               <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
             </View>
             <MainButton
@@ -141,7 +151,7 @@ const EditScheduleScreen = () => {
             />
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </DismissKeyboard>
     </SafeArea>
   );
 };
@@ -153,7 +163,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingBottom: 10,
   },
   contentContainer: {
     flex: 1,

@@ -2,41 +2,23 @@ import {Dimensions, FlatList, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import MapView, {Marker, PROVIDER_GOOGLE, Polyline} from 'react-native-maps';
 import {useNavigation, useRoute, CommonActions} from '@react-navigation/native';
-import {getSchedules, getSessions, locateDirection} from '../services/api';
+import {getSchedules, locateDirection} from '../services/api';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import {Button, Card, IconButton} from 'react-native-paper';
+import {IconButton} from 'react-native-paper';
 import colors from '../theme/colors';
-import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
 import {CalendarProvider, WeekCalendar} from 'react-native-calendars';
-import reactotron from 'reactotron-react-native';
 import dayjs from 'dayjs';
 import {STYLES} from '../styles/Stylesheets';
 import {Fonts} from '../theme';
 import PlaceCard from '../component/atoms/PlaceCard';
+import {Medium, Light} from '../theme/fonts';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
-
-const DayButton = props => {
-  const {day, onPress, selected} = props;
-
-  return (
-    <Button
-      style={styles.dayBtn}
-      // contentStyle={styles.dayBtnContent}
-      // labelStyle={styles.dayBtnContent}
-      buttonColor={selected ? colors.primary : colors.white}
-      textColor={selected ? colors.white : colors.black}
-      mode="elevated"
-      onPress={onPress}>
-      {`Day ${day + 1}`}
-    </Button>
-  );
-};
 
 const ScheduleScreen = () => {
   // hooks
@@ -46,8 +28,7 @@ const ScheduleScreen = () => {
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
   // states
-  const [days, setDays] = React.useState([]);
-  const [currentIndex, setCurrentIndex] = React.useState(-1);
+  const [currentIndex, setCurrentIndex] = React.useState(1);
   const [schedules, setSchedules] = React.useState([]);
   const [coords, setCoords] = React.useState([]); // [Place
   const [refreshing, setRefreshing] = React.useState(false);
@@ -88,30 +69,24 @@ const ScheduleScreen = () => {
   };
 
   const handleAddingSchedule = () => {
-    navigation.navigate('AddSchedule', {day: days[currentIndex - 1]});
+    navigation.navigate('AddSchedule', {day: days[currentIndex - 1].toString()});
   };
 
   const onPressScheduleCard = item => {
+    console.log(item);
     navigation.navigate('EditSchedule', {schedule: item});
   };
 
-  const fetchSessionsData = async () => {
-    try {
-      const res = await getSessions();
-      const target = res.find(session => session.session_id === currentSessionID);
-      const {start_at, end_at} = target;
-      const startDate = new Date(start_at);
-      const endDate = new Date(end_at);
-      let tempDays = [];
-      for (let i = startDate; i <= endDate; i.setDate(i.getDate() + 1)) {
-        tempDays.push(new Date(i));
-      }
-      setDays(tempDays);
-      setCurrentIndex(1);
-    } catch (err) {
-      console.error(err);
+  const days = React.useMemo(() => {
+    let result = [];
+    let day = dayjs(currentSession.start_at);
+    while (day.isBefore(dayjs(currentSession.end_at))) {
+      result.push(new Date(day));
+      day = day.add(1, 'day');
     }
-  };
+    result.push(new Date(day));
+    return result;
+  }, [currentSession]);
 
   const fetchPlatformScheduleData = async () => {
     try {
@@ -127,13 +102,6 @@ const ScheduleScreen = () => {
     await fetchPlatformScheduleData();
     setRefreshing(false);
   };
-
-  // effects
-  React.useEffect(() => {
-    if (currentSessionID) {
-      fetchSessionsData();
-    }
-  }, []);
 
   React.useEffect(() => {
     if (currentSessionID && currentIndex > 0) {
@@ -191,9 +159,45 @@ const ScheduleScreen = () => {
     }
   }, [route?.params?.refresh]);
 
+  const markedDates = React.useMemo(() => {
+    let markedDates = {};
+    let day = dayjs(currentSession.start_at);
+    let isFirst = true;
+    let index = 1;
+    while (day.isBefore(dayjs(currentSession.end_at))) {
+      markedDates[day.format('YYYY-MM-DD')] = {
+        startingDay: isFirst,
+        endingDay: false,
+        color: currentIndex === index ? colors.primary : colors.secondary,
+        textColor: colors.white,
+      };
+      isFirst = false;
+      day = day.add(1, 'day');
+      index++;
+      continue;
+    }
+    markedDates[currentSession.end_at] = {
+      endingDay: true,
+      color: currentIndex === index ? colors.primary : colors.secondary,
+      textColor: colors.white,
+    };
+    return markedDates;
+  }, [schedules, currentIndex]);
+
+  const nextScheduleIndex = React.useMemo(() => {
+    let result = 0;
+    for (let i = 0; i < schedules.length; i++) {
+      if (dayjs(schedules[i].start_at).isAfter(dayjs())) {
+        break;
+      }
+      result = i;
+    }
+    return result;
+  }, [schedules]);
+
   return (
-    <>
-      <CustomHeader title={'SCHEDULE'} />
+    <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>
+      <CustomHeader title={'SCHEDULE'} leftComponent={<React.Fragment />} />
       <FlatList
         ListHeaderComponent={
           <>
@@ -204,41 +208,36 @@ const ScheduleScreen = () => {
                 STYLES.HEIGHT(64),
                 {backgroundColor: colors.primary},
               ]}>
-              <Text style={styles.title}>{`Day ${currentIndex}`}</Text>
+              <Text style={styles.title}>{currentSession.name}</Text>
               <Text style={[styles.dates, STYLES.MARGIN_TOP(4)]}>
                 {currentSession.start_at} ~ {currentSession.end_at}
               </Text>
             </View>
-            <View
-              style={[
-                STYLES.WIDTH_100,
-                STYLES.MARGIN_TOP(4),
-                STYLES.HEIGHT(48),
-                {backgroundColor: 'green'},
-              ]}>
+            <View style={[STYLES.WIDTH_100, STYLES.HEIGHT(80), {backgroundColor: 'green'}]}>
               <CalendarProvider date={dayjs().format('YYYY-MM-DD')}>
                 <WeekCalendar
                   testID={'containder'}
-                  hideDayNames={true}
-                  firstDay={1}
-                  // allowShadow={false}
-                  // markedDates={{
-                  //   [currentSession.start_at]: {
-                  //     startingDay: true,
-                  //     endingDay: false,
-                  //     color: colors.primary,
-                  //     textColor: colors.white,
-                  //   },
-                  //   [currentSession.end_at]: {
-                  //     endingDay: true,
-                  //     color: colors.primary,
-                  //     textColor: colors.white,
-                  //   },
-                  // }}
+                  hideDayNames={false}
+                  initialDate={dayjs(currentSession.start_at).format('YYYY-MM-DD')}
+                  minDate={dayjs(currentSession.start_at).format('YYYY-MM-DD')}
+                  maxDate={dayjs(currentSession.end_at).format('YYYY-MM-DD')}
+                  onDayPress={date => {
+                    console.log(date);
+                    const newIndex = dayjs(date.dateString).diff(
+                      dayjs(currentSession.start_at),
+                      'day',
+                    );
+                    console.log(newIndex);
+                    if (newIndex < 0) return;
+                    if (newIndex >= days.length) return;
+                    setCurrentIndex(newIndex + 1);
+                  }}
+                  markingType="period"
+                  markedDates={markedDates}
                 />
               </CalendarProvider>
             </View>
-            <View style={[STYLES.WIDTH_100, STYLES.HEIGHT(160), {backgroundColor: 'red'}]}>
+            <View style={[STYLES.WIDTH_100, STYLES.HEIGHT(160), {backgroundColor: colors.red}]}>
               <MapView
                 ref={mapRef}
                 style={styles.map}
@@ -264,37 +263,32 @@ const ScheduleScreen = () => {
                 )}
               </MapView>
             </View>
-            <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.flatList}
-              contentContainerStyle={styles.dayFlatListContent}
-              data={days}
-              renderItem={({item, index}) => (
-                <DayButton
-                  day={index}
-                  onPress={() => onPressDay(index + 1)}
-                  selected={index === currentIndex - 1}
-                />
-              )}
-              ItemSeparatorComponent={<View style={[STYLES.WIDTH(10)]} />}
-              keyExtractor={item => item.toString()}
-            />
+            <View style={[STYLES.PADDING(20)]}>
+              <Text style={styles.dayTitle}>
+                {`Day ${currentIndex}   `}
+                <Text style={[styles.daySubtitle, STYLES.MARGIN_LEFT(10)]}>
+                  {dayjs(currentSession.start_at)
+                    .add(currentIndex - 1, 'day')
+                    .format('M. D. ddd')}
+                </Text>
+              </Text>
+            </View>
           </>
         }
-        style={{flex: 1, backgroundColor: colors.primary}}
-        contentContainerStyle={{flex: 1, backgroundColor: colors.white}}
+        style={{backgroundColor: colors.white}}
         data={schedules}
         renderItem={({item, index}) => (
           <PlaceCard
             item={item}
             onPress={onPressScheduleCard}
+            isFirst={0 === index}
             isLast={schedules.length - 1 === index}
+            isNext={nextScheduleIndex === index}
           />
         )}
         keyExtractor={item => item?.schedule_id?.toString()}
         ListFooterComponent={
-          <View style={[STYLES.ALIGN_CENTER, STYLES.PADDING_LEFT(50), STYLES.HEIGHT(80)]}>
+          <View style={[STYLES.ALIGN_CENTER, STYLES.HEIGHT(80)]}>
             <IconButton
               icon={'plus-circle'}
               iconColor={colors.primary}
@@ -306,23 +300,19 @@ const ScheduleScreen = () => {
         refreshing={refreshing}
         onRefresh={onRefresh}
       />
-    </>
+    </View>
   );
 };
 
 export default ScheduleScreen;
 
 const styles = StyleSheet.create({
-  dayBtn: {
-    // paddingVertical: 6,
-    // paddingHorizontal: 16,
-  },
+  dayBtn: {},
   dayBtnContent: {
     margin: 0,
     padding: 0,
     ...Fonts.SemiBold(11),
-    backgroundColor: 'red',
-    // borderRadius: 0,
+    backgroundColor: colors.red,
   },
   container: {
     height: 300,
@@ -354,8 +344,12 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   dayTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    ...Medium(18),
+    color: colors.black,
+  },
+  daySubtitle: {
+    marginLeft: 10,
+    ...Light(14),
     color: colors.black,
   },
   dayFlatListContent: {

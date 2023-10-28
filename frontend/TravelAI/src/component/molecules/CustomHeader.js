@@ -7,12 +7,28 @@ import {useNavigation} from '@react-navigation/native';
 import MenuDrawer from '../organisms/MenuDrawer';
 import {Fonts} from '../../theme';
 
-const CustomHeader = ({backgroundColor, leftComponent, title, titleColor, rightComponent}) => {
+export const CUSTOM_HEADER_THEME = {
+  WHITE: {
+    background: colors.white,
+    content: colors.black,
+  },
+  PRIMARY: {
+    background: colors.primary,
+    content: colors.white,
+  },
+};
+
+const CustomHeader = ({
+  title,
+  rightComponent,
+  theme = CUSTOM_HEADER_THEME.PRIMARY,
+  useBack = true,
+  useMenu = true,
+}) => {
   const navigation = useNavigation();
 
   const [menuVisible, setMenuVisible] = React.useState(false); // menu visible 여부
   const [clickDisabled, setClickDisabled] = React.useState(false); // 뒤로가기 버튼 클릭 여부
-
   const openMenu = () => {
     setMenuVisible(true);
   };
@@ -36,22 +52,22 @@ const CustomHeader = ({backgroundColor, leftComponent, title, titleColor, rightC
           STYLES.HEIGHT(64),
           STYLES.FLEX_ROW_ALIGN_CENTER,
           STYLES.SPACE_BETWEEN,
-          {backgroundColor: backgroundColor ?? colors.primary},
+          {backgroundColor: theme.background},
         ]}>
         <View style={styles.sideComponentStyle}>
-          {leftComponent ?? (
+          {useBack && (
             <IconButton
               icon={'arrow-left'}
-              iconColor="white"
-              disabled={!clickDisabled}
+              iconColor={theme.content}
+              disabled={clickDisabled}
               onPress={handleGoBack}
               style={styles.iconButton}
             />
           )}
         </View>
-        <Text style={[styles.titleText, {color: titleColor ?? 'white'}]}>{title}</Text>
+        <Text style={[styles.titleText, {color: theme.content}]}>{title}</Text>
         <View style={styles.sideComponentStyle}>
-          {rightComponent ?? (
+          {!rightComponent && useMenu && (
             <IconButton
               icon={'menu'}
               iconColor="white"
@@ -59,6 +75,7 @@ const CustomHeader = ({backgroundColor, leftComponent, title, titleColor, rightC
               style={styles.iconButton}
             />
           )}
+          {Boolean(rightComponent) && rightComponent}
         </View>
       </View>
     </>

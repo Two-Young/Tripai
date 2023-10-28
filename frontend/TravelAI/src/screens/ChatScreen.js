@@ -1,30 +1,21 @@
 import {FlatList, StyleSheet, View, TextInput, TouchableOpacity, Image} from 'react-native';
 import React, {useEffect} from 'react';
 import {useNavigation} from '@react-navigation/native';
-import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
-import {useRoute} from '@react-navigation/native';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {IconButton} from 'react-native-paper';
 import MessageItem from '../component/molecules/MessageItem';
 import colors from '../theme/colors';
-import {useRecoilState} from 'recoil';
-import userAtom from '../recoil/user/user';
-import {socket, emitEvent} from '../services/socket';
+import {socket} from '../services/socket';
 import {chatGPTIcon} from '../assets/images';
 import _ from 'lodash';
 import {STYLES} from '../styles/Stylesheets';
-import {Colors} from '../theme';
 
 const ChatScreen = () => {
   const navigation = useNavigation();
-  const route = useRoute();
   const currentSession = useRecoilValue(sessionAtom);
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
-
-  const [user, setUser] = useRecoilState(userAtom);
-  const userInfo = React.useMemo(() => user?.user_info, [user]);
 
   const [useChatGPT, setUseChatGPT] = React.useState(false);
   const [messages, setMessages] = React.useState([]);
@@ -33,22 +24,18 @@ const ChatScreen = () => {
   const flatListRef = React.useRef();
 
   const sendMessage = React.useCallback(async () => {
+    if (_.isEmpty(inputContent)) {
+      return;
+    }
     if (useChatGPT) {
-      console.log('sessionChat/sendAssistantMessage ::', currentSession.session_id, inputContent);
-      socket.emit('sessionChat/sendAssistantMessage', currentSession.session_id, inputContent);
+      socket.emit('sessionChat/sendAssistantMessage', currentSessionID, inputContent);
     } else {
-      console.log('sessionChat/sendMessage ::', currentSession.session_id, inputContent);
-      socket.emit('sessionChat/sendMessage', currentSession.session_id, inputContent);
+      socket.emit('sessionChat/sendMessage', currentSessionID, inputContent);
     }
     setInputContent('');
-  }, [inputContent, useChatGPT]);
-
-  const testCallback = React.useCallback(async res => {
-    console.log('testCallback ::', res);
-  }, []);
+  }, [inputContent, useChatGPT, currentSessionID]);
 
   const getMessagesCallback = React.useCallback(async res => {
-    console.log('getMessagesCallback ::', res);
     if (res.success) {
       setMessages(res.data);
     }
@@ -56,7 +43,6 @@ const ChatScreen = () => {
 
   const messageCallback = React.useCallback(
     async res => {
-      console.log('messageCallback ::', res);
       if (res.success) {
         setMessages(prev => [...prev, res.data]);
       }
@@ -65,23 +51,24 @@ const ChatScreen = () => {
   );
 
   const assistantMessageCallback = React.useCallback(async res => {
-    console.log('assistantMessageCallback ::', res);
-    setMessages(prev => [...prev, res]);
+    if (res.success) {
+      setMessages(prev => [...prev, res]);
+    }
   }, []);
 
   const userJoinedCallback = React.useCallback(async res => {
-    console.log('userJoinedCallback ::', res);
+    if (res.succes) {
+      console.log('userJoinedCallback ::', res);
+    }
   }, []);
 
   useEffect(() => {
-    socket.on('test', testCallback);
     socket.on('sessionChat/getMessages', getMessagesCallback);
     socket.on('sessionChat/message', messageCallback);
     socket.on('sessionChat/assistantMessage', assistantMessageCallback);
     socket.on('sessionChat/userJoined', userJoinedCallback);
 
     () => {
-      socket.off('test', testCallback);
       socket.off('sessionChat/getMessages', getMessagesCallback);
       socket.off('sessionChat/message', messageCallback);
       socket.off('sessionChat/assistantMessage', assistantMessageCallback);
@@ -91,8 +78,7 @@ const ChatScreen = () => {
 
   useEffect(() => {
     navigation.addListener('focus', async () => {
-      console.log('focus ::', currentSession.session_id);
-      socket.emit('sessionChat/getMessages', currentSession.session_id);
+      socket.emit('sessionChat/getMessages', currentSessionID);
     });
     () => {
       navigation.removeListener('focus');
@@ -103,18 +89,18 @@ const ChatScreen = () => {
     if (messages.length) {
       setTimeout(() => {
         flatListRef.current.scrollToEnd();
-      }, 100);
+      }, 500);
     }
   }, [flatListRef]);
 
   return (
     <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>
-      <CustomHeader title={'AI CHAT'} />
+      <CustomHeader title={'AI CHAT'} leftComponent={<React.Fragment />} />
       <FlatList
         ref={flatListRef}
         data={messages}
         renderItem={({item, index}) => <MessageItem {...item} />}
-        contentContainerStyle={{padding: 16}}
+        contentContainerStyle={STYLES.PADDING(16)}
       />
       <View style={[styles.inputComponent, {backgroundColor: useChatGPT ? '#74AA9C' : '#E5E5EA'}]}>
         <TouchableOpacity
@@ -128,7 +114,7 @@ const ChatScreen = () => {
           iconColor={useChatGPT ? '#74AA9C' : colors.white}
           containerColor={useChatGPT ? colors.white : colors.primary}
           size={16}
-          style={{margin: 0}}
+          style={STYLES.MARGIN(0)}
           onPress={sendMessage}
         />
       </View>
@@ -152,7 +138,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: 'white',
     borderRadius: 8,
     padding: 8,
     marginRight: 10,
