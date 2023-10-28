@@ -16,6 +16,9 @@ import {STYLES} from '../styles/Stylesheets';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import {Icon} from '@rneui/themed';
+import sessionAtom from '../recoil/session/session';
+import {useRecoilValue} from 'recoil';
+import {deleteBudget, getBudget} from '../services/api';
 
 const defaultBudget = [
   {
@@ -34,7 +37,7 @@ const defaultBudget = [
   },
 ];
 
-const BudgetModal = ({isVisible, setModalVisible, item, deleteBudget}) => {
+const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) => {
   // states
   const [value, setValue] = React.useState('');
 
@@ -114,6 +117,9 @@ const SetBudgetScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
+  const currentSession = useRecoilValue(sessionAtom);
+  const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
+
   // states
   const [budgets, setBudgets] = React.useState(defaultBudget);
   const [isModalVisible, setModalVisible] = React.useState(false);
@@ -131,7 +137,15 @@ const SetBudgetScreen = () => {
   };
 
   // TODO:: 실제 서버와 연동
-  const fetchBudgets = async () => {};
+  const fetchBudgets = async () => {
+    try {
+      // const res = await getBudget(currentSessionID);
+      // setBudgets(res);
+      setBudgets(defaultBudget);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -144,7 +158,14 @@ const SetBudgetScreen = () => {
     }
   };
 
-  const deleteBudget = async () => {};
+  const requestDeletingBudget = async budget_id => {
+    try {
+      await deleteBudget(budget_id);
+      setBudgets(budgets.filter(item => item.budget_id !== budget_id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // effects
   // TODO:: 실제 데이터로 교체
@@ -184,7 +205,7 @@ const SetBudgetScreen = () => {
         isVisible={isModalVisible}
         setModalVisible={setModalVisible}
         item={currency}
-        deleteBudget={deleteBudget}
+        requestDeletingBudget={requestDeletingBudget}
       />
     </View>
   );

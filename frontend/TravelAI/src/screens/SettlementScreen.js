@@ -1,5 +1,7 @@
 import {FlatList, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
+import colors from '../theme/colors';
+import {FAB} from 'react-native-paper';
 
 const SettlementScreen = () => {
   // state
@@ -23,12 +25,25 @@ const SettlementScreen = () => {
   }, []);
 
   return (
-    <View>
+    <View style={styles.container}>
       <FlatList data={settlements} keyExtractor={item => item.id} />
+      <FAB style={styles.fab} icon="plus" color={colors.white} />
     </View>
   );
 };
 
 export default SettlementScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.primary,
+  },
+});
