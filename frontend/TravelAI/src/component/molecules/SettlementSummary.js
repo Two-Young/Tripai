@@ -19,27 +19,31 @@ const SettlementSummary = ({title, settlements}) => {
   }, [settlements]);
 
   const total = useMemo(() => {
+    console.log(data);
     if (!data) {
       return 1;
     }
     return data.reduce((acc, cur) => acc + cur.amount, 0);
   }, [settlements]);
 
-  const CategoryRow = useCallback(({item, index}) => {
-    return (
-      <View
-        style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.SPACE_BETWEEN, styles.propertyRow]}
-        key={`r_${index}`}>
-        <View style={[STYLES.FLEX_ROW_ALIGN_CENTER]}>
-          <View style={[styles.propertyDot, {backgroundColor: item.color}]} />
-          <Text style={[styles.propertyCategoryText, {color: item.color}]}>
-            {item.category} ({((item.amount / total) * 100).toFixed(2)}%)
-          </Text>
+  const CategoryRow = useCallback(
+    ({item, index}) => {
+      return (
+        <View
+          style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.SPACE_BETWEEN, styles.propertyRow]}
+          key={`r_${index}`}>
+          <View style={[STYLES.FLEX_ROW_ALIGN_CENTER]}>
+            <View style={[styles.propertyDot, {backgroundColor: item.color}]} />
+            <Text style={[styles.propertyCategoryText, {color: item.color}]}>
+              {item.category} ({((item.amount / total) * 100).toFixed(2)}%)
+            </Text>
+          </View>
+          <Text style={[styles.propertyAmountText, {color: item.color}]}>{item.amount}</Text>
         </View>
-        <Text style={[styles.propertyAmountText, {color: item.color}]}>{item.amount}</Text>
-      </View>
-    );
-  }, []);
+      );
+    },
+    [total],
+  );
 
   return (
     <View>

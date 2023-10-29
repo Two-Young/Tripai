@@ -599,6 +599,8 @@ PODS:
     - React-Core
   - RNCPicker (2.5.1):
     - React-Core
+  - RNDeviceInfo (10.11.0):
+    - React-Core
   - RNGestureHandler (2.12.0):
     - React-Core
   - RNGoogleSignin (10.0.1):
@@ -724,6 +726,7 @@ DEPENDENCIES:
   - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - "RNNaverLogin (from `../node_modules/@react-native-seoul/naver-login`)"
@@ -874,6 +877,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-masked-view/masked-view"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNGoogleSignin:
@@ -976,6 +981,7 @@ SPEC CHECKSUMS:
   RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCMaskedView: 949696f25ec596bfc697fc88e6f95cf0c79669b6
   RNCPicker: 529d564911e93598cc399b56cc0769ce3675f8c8
+  RNDeviceInfo: bf8a32acbcb875f568217285d1793b0e8588c974
   RNGestureHandler: dec4645026e7401a0899f2846d864403478ff6a5
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNNaverLogin: 01ca478665ea024e4ddaa02be38396845fcac0b6

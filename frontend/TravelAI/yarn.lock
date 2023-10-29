@@ -6253,6 +6253,11 @@
   dependencies:
     "prop-types" "^15.8.1"
 
+"react-native-device-info@^10.11.0":
+  "integrity" "sha512-qRzhuYOm5ZXQi5dhfJFjDq157oipxcEW/fo0QyMm5+TI6V6/+P/tju+Hif6z0rpLCf7MV7iDVRv2Kqha4D/yvQ=="
+  "resolved" "https://registry.npmjs.org/react-native-device-info/-/react-native-device-info-10.11.0.tgz"
+  "version" "10.11.0"
+
 "react-native-draggable-flatlist@^4.0.1":
   "integrity" "sha512-ZO1QUTNx64KZfXGXeXcBfql67l38X7kBcJ3rxUVZzPHt5r035GnGzIC0F8rqSXp6zgnwgUYMfB6zQc5PKmPL9Q=="
   "resolved" "https://registry.npmjs.org/react-native-draggable-flatlist/-/react-native-draggable-flatlist-4.0.1.tgz"
@@ -6361,6 +6366,11 @@
   "integrity" "sha512-8/C0htHrFWeUm9N8JegmadovUfgTWkGBkDPZ1N3YkXtDWb+98Ya2gThiKcu445r8c7YhcrBfnHz/mYsXIusaOQ=="
   "resolved" "https://registry.npmjs.org/react-native-size-matters/-/react-native-size-matters-0.4.0.tgz"
   "version" "0.4.0"
+
+"react-native-status-bar-height@^2.6.0":
+  "integrity" "sha512-z3SGLF0mHT+OlJDq7B7h/jXPjWcdBT3V14Le5L2PjntjjWM3+EJzq2BcXDwV+v67KFNJic5pgA26cCmseYek6w=="
+  "resolved" "https://registry.npmjs.org/react-native-status-bar-height/-/react-native-status-bar-height-2.6.0.tgz"
+  "version" "2.6.0"
 
 "react-native-svg@^13.14.0", "react-native-svg@>=7.0.0":
   "integrity" "sha512-27ZnxUkHgWICimhuj6MuqBkISN53lVvgWJB7pIypjXysAyM+nqgQBPh4vXg+7MbqLBoYvR4PiBgKfwwGAqVxHg=="

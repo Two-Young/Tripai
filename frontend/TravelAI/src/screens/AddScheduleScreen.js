@@ -64,37 +64,37 @@ const AddScheduleScreen = () => {
 
   return (
     <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
-      <DismissKeyboard>
-        <View style={STYLES.FLEX(1)}>
+      <View style={STYLES.FLEX(1)}>
+        <DismissKeyboard>
           <CustomHeader title="Add Schedule" theme={CUSTOM_HEADER_THEME.WHITE} useMenu={false} />
-          <View style={styles.container}>
-            <View style={styles.contentContainer}>
-              <CustomInput label={'Name'} value={name} setValue={setName} />
-              <CustomInput label={'Address'} value={place} setValue={setPlace} type="place" />
-              <CustomInput
-                label={'Date'}
-                value={startAt}
-                setValue={value => {
-                  setStartAt(
-                    dayjs(day)
-                      .set('hour', dayjs(value).hour())
-                      .set('minute', dayjs(value).minute())
-                      .format('YYYY-MM-DD HH:mm'),
-                  );
-                }}
-                type="time"
-              />
-              <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
-            </View>
-            <MainButton
-              icon={loading ? 'loading' : 'calendar-month'}
-              text={loading ? 'Adding...' : 'Add Schedule'}
-              onPress={handleAdd}
-              disabled={addDisabled}
+        </DismissKeyboard>
+        <View style={styles.container}>
+          <View style={styles.contentContainer}>
+            <CustomInput label={'Name'} value={name} setValue={setName} />
+            <CustomInput label={'Address'} value={place} setValue={setPlace} type="place" />
+            <CustomInput
+              label={'Date'}
+              value={startAt}
+              setValue={value => {
+                setStartAt(
+                  dayjs(day)
+                    .set('hour', dayjs(value).hour())
+                    .set('minute', dayjs(value).minute())
+                    .format('YYYY-MM-DD HH:mm'),
+                );
+              }}
+              type="time"
             />
+            <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
           </View>
+          <MainButton
+            icon={loading ? 'loading' : 'calendar-month'}
+            text={loading ? 'Adding...' : 'Add Schedule'}
+            onPress={handleAdd}
+            disabled={addDisabled}
+          />
         </View>
-      </DismissKeyboard>
+      </View>
     </SafeArea>
   );
 };
@@ -119,9 +119,6 @@ const styles = StyleSheet.create({
   },
   addScheduleButton: {
     alignItems: 'center',
-    // marginTop: 20,
-    // marginBottom: 20,
-    // marginHorizontal: 20,
     backgroundColor: colors.primary,
   },
 });
