@@ -12,6 +12,7 @@ var (
 	CountriesMap  map[string]Country
 	AppServerHost string
 	AppServerPort = os.Getenv("APP_SERVER_PORT")
+	DebugMode     = os.Getenv("DEBUG") == "true"
 )
 
 func Preload() error {

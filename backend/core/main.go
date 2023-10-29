@@ -56,6 +56,7 @@ func main() {
 		"JWT_ACCESS_EXPIRE",
 		"JWT_REFRESH_SECRET",
 		"JWT_REFRESH_EXPIRE",
+		"DEBUG",
 	}
 	missingVariables := make([]string, 0)
 	for _, key := range envCheckKeys {
@@ -68,6 +69,12 @@ func main() {
 		missingVarKeys := strings.Join(missingVariables, ", ")
 		log.Error("Missing environment variables: ", missingVarKeys)
 		os.Exit(-1)
+	}
+
+	if platform.IsDebugMode() {
+		log.Debug("Running in debug mode...")
+	} else {
+		log.Info("Running in production mode...")
 	}
 
 	// Initialize database

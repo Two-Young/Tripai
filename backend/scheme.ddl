@@ -1,3 +1,12 @@
+create table exchange_rates
+(
+    from_currency_code varchar(5) not null,
+    to_currency_code   varchar(5) not null,
+    rate               double     not null,
+    updated_at         datetime   not null,
+    primary key (from_currency_code, to_currency_code)
+);
+
 create table place_detail_caches
 (
     place_id        varchar(255) not null
@@ -57,9 +66,15 @@ create table budgets
         primary key,
     currency_code varchar(5)   not null,
     amount        double       not null,
+    uid           varchar(255) not null,
     sid           varchar(255) not null,
+    constraint budgets_pk
+        unique (currency_code, uid, sid),
     constraint budgets_sessions_sid_fk
         foreign key (sid) references sessions (sid)
+            on delete cascade,
+    constraint budgets_users_uid_fk
+        foreign key (uid) references users (uid)
             on delete cascade
 );
 
@@ -83,7 +98,7 @@ create table expenditures
     total_price   double       not null,
     currency_code varchar(3)   not null,
     category      varchar(50)  not null,
-    payed_at      datetime     null,
+    payed_at      datetime     not null,
     sid           varchar(255) null,
     constraint expenditures_sessions_sid_fk
         foreign key (sid) references sessions (sid)
@@ -206,6 +221,26 @@ create table session_join_requests
             on delete cascade,
     constraint session_join_requests_users_uid_fk
         foreign key (uid) references users (uid)
+            on delete cascade
+);
+
+create table transactions
+(
+    sender_uid    varchar(255) not null,
+    receiver_uid  varchar(255) not null,
+    currency_code varchar(5)   not null,
+    amount        double       not null,
+    sent_at       datetime     not null,
+    sid           varchar(255) not null,
+    primary key (sender_uid, receiver_uid, sid),
+    constraint transactions_sessions_sid_fk
+        foreign key (sid) references sessions (sid)
+            on delete cascade,
+    constraint transactions_users_uid_fk
+        foreign key (sender_uid) references users (uid)
+            on delete cascade,
+    constraint transactions_users_uid_fk2
+        foreign key (receiver_uid) references users (uid)
             on delete cascade
 );
 

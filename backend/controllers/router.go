@@ -34,7 +34,9 @@ func SetupRouter() *gin.Engine {
 	docs.SwaggerInfo.Host = "localhost:10375"
 
 	controller.UseAuthRouter(r)
-	controller2.UseTestRouter(r)
+	if platform.IsDebugMode() {
+		controller2.UseTestRouter(r)
+	}
 	controller3.UsePlatformRouter(r)
 	UseAssetRouter(r)
 	socket.UseSocket(r)

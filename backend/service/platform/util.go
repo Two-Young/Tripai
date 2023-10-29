@@ -3,6 +3,7 @@ package platform
 import (
 	"fmt"
 	"math/rand"
+	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -11,6 +12,10 @@ import (
 	"travel-ai/service/platform/database_io"
 	"travel-ai/third_party/fawazahmed0_currency"
 )
+
+func IsDebugMode() bool {
+	return os.Getenv("DEBUG") == "true"
+}
 
 func GenerateTenLengthCode() string {
 	const length = 10
