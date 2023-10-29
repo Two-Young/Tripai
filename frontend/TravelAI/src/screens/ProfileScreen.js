@@ -1,10 +1,9 @@
 import {StyleSheet, View, Keyboard, Pressable} from 'react-native';
 import React from 'react';
-import {Avatar, Button, IconButton, List, Switch, Text, TextInput} from 'react-native-paper';
+import {Avatar, IconButton, Switch, Text, TextInput} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import {useRecoilState} from 'recoil';
 import userAtom from '../recoil/user/user';
-import colors from '../theme/colors';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {getProfile, updateProfile} from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -139,7 +138,7 @@ const ProfileScreen = () => {
             <Switch value={nicknameSearch} onValueChange={onToggleSwitch} />
           </View>
         </View>
-        <View style={[STYLES.PADDING(10)]}>
+        <View style={[STYLES.PADDING(20)]}>
           <MainButton text="Save" onPress={onPressSave} disabled={!isEditing || !isUsernameValid} />
         </View>
       </SafeArea>

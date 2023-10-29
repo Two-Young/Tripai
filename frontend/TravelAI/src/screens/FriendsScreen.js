@@ -9,13 +9,7 @@ import {
   rejectFriends,
 } from '../services/api';
 import {FAB, IconButton} from 'react-native-paper';
-import {
-  useNavigation,
-  useRoute,
-  useNavigationState,
-  CommonActions,
-  useFocusEffect,
-} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
 import {STYLES} from '../styles/Stylesheets';

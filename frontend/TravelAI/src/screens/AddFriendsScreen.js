@@ -1,8 +1,7 @@
 import {StyleSheet, View, FlatList, Pressable, Keyboard, Alert, Text} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Avatar, IconButton, List, Searchbar} from 'react-native-paper';
 import {requestFriends, searchFriends} from '../services/api';
-import {useFocusEffect} from '@react-navigation/native';
 import {STYLES} from '../styles/Stylesheets';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
@@ -104,9 +103,19 @@ const AddFriendsScreen = () => {
     }
   };
 
-  useFocusEffect(() => {
+  // effects
+
+  useEffect(() => {
+    if (query.length >= 2) {
+      search();
+    } else {
+      setSearchResults([]);
+    }
+  }, [query]);
+
+  useEffect(() => {
     fetchFriendsWaiting();
-  });
+  }, []);
 
   return (
     <Pressable onPress={Keyboard.dismiss} style={STYLES.FLEX(1)}>
