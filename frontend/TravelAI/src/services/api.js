@@ -705,6 +705,35 @@ export const putExpenditure = async ({
   }
 };
 
+export const postExpenditure = async ({
+  expenditure_id,
+  name,
+  category,
+  total_price,
+  currency_code,
+  payers_id,
+  distribution,
+  payed_at,
+  session_id,
+}) => {
+  try {
+    const response = await api.post('/platform/expenditure', {
+      expenditure_id,
+      name,
+      category,
+      total_price,
+      currency_code,
+      payers_id,
+      distribution,
+      payed_at,
+      session_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const deleteExpenditure = async expenditure_id => {
   try {
     const response = await api.delete('/platform/expenditure', {

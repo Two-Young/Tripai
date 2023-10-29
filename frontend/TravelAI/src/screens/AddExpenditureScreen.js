@@ -7,7 +7,9 @@ import colors from '../theme/colors';
 import BottomSheet, {BottomSheetFlatList} from '@gorhom/bottom-sheet';
 import {STYLES} from '../styles/Stylesheets';
 import {
+  deleteExpenditure,
   getBudget,
+  getExpenditure,
   getExpenditureCategories,
   getSessionCurrencies,
   getSessionMembers,
@@ -17,14 +19,14 @@ import {
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useNavigation, useFocusEffect, useRoute} from '@react-navigation/native';
 import dayjs from 'dayjs';
 import {Icon} from '@rneui/themed';
 import Checkbox from '../component/atoms/Checkbox';
 import SelectDropdown from 'react-native-select-dropdown';
 import Modal from 'react-native-modal';
 import userAtom from '../recoil/user/user';
-import {Searchbar} from 'react-native-paper';
+import {ActivityIndicator, Searchbar} from 'react-native-paper';
 import {FlatList} from 'react-native';
 import {AvoidSoftInput, AvoidSoftInputView} from 'react-native-avoid-softinput';
 import InputTable from '../component/molecules/InputTable';
@@ -32,6 +34,7 @@ import Fraction from 'fraction.js';
 import reactotron from 'reactotron-react-native';
 import currenciesAtom from '../recoil/currencies/currencies';
 import _ from 'lodash';
+import {requestAlert} from '../utils/utils';
 
 const FlatListRenderItem = ({data}) => {
   const {
@@ -388,9 +391,6 @@ const ExpenditureBottomSheet = ({data}) => {
   const snapPoints = React.useMemo(() => [65, '50%'], []);
 
   // callbacks
-  const handleSheetChanges = React.useCallback(index => {
-    console.log('handleSheetChanges', index);
-  }, []);
 
   const handleEndEditing = () => {
     if (Number(total.replace(/,/g, ''))) {
@@ -405,7 +405,6 @@ const ExpenditureBottomSheet = ({data}) => {
       ref={bottomSheetRef}
       index={0}
       snapPoints={snapPoints}
-      onChange={handleSheetChanges}
       backgroundStyle={styles.bottomSheet}
       handleIndicatorStyle={styles.bottomSheetIndicator}>
       <View style={STYLES.FLEX(1)}>
@@ -657,6 +656,7 @@ const ManagePaidModal = ({data}) => {
 const AddExpenditureScreen = () => {
   // hooks
   const navigation = useNavigation();
+  const route = useRoute();
   const user = useRecoilValue(userAtom);
   const currencies = useRecoilValue(currenciesAtom);
 
@@ -681,10 +681,7 @@ const AddExpenditureScreen = () => {
   const [total, setTotal] = React.useState('');
 
   const [members, setMembers] = React.useState([]); // 현재 세션 멤버
-
   const [paid, setPaid] = React.useState([]);
-
-  const [receipt, setReceipt] = React.useState(null);
   const [items, setItems] = React.useState([]);
 
   const [distribution, setDistribution] = React.useState([]); // 분배된 금액
@@ -692,6 +689,8 @@ const AddExpenditureScreen = () => {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = React.useState(true);
   const [isDMVisible, setIsDMVisible] = React.useState(false);
   const [isPMVisible, setIsPMVisible] = React.useState(false);
+
+  const [fetching, setFetching] = React.useState(true);
 
   const currentSession = useRecoilValue(sessionAtom);
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
@@ -745,6 +744,10 @@ const AddExpenditureScreen = () => {
     await fetchSessionCurrencies();
     await fetchCategories();
     await fetchParticipants();
+    if (route.params?.expenditure_id) {
+      await fetchExpenditure();
+    }
+    setFetching(false);
   };
 
   const onPressUploadReceipt = async () => {
@@ -805,7 +808,7 @@ const AddExpenditureScreen = () => {
           },
         })),
         items: items,
-        payed_at: Date.parse(time + 'Z') / 1000,
+        payed_at: Date.parse(time + 'Z'),
         session_id: currentSessionID,
       });
       navigation.goBack();
@@ -838,13 +841,63 @@ const AddExpenditureScreen = () => {
     return false;
   }, [name, category, total, distribution, paid]);
 
-  // effects
+  // edit
+  const [expenditure, setExpenditure] = React.useState(null);
 
+  const fetchExpenditure = async () => {
+    const res = await getExpenditure(route.params?.expenditure_id);
+    setExpenditure(res);
+    setName(res.name);
+    setCategory(res.category);
+    setCurrencyCode(res.currency_code);
+    setTotal(res.total_price.toLocaleString());
+    setPaid(res.payers_id);
+    setDistribution(
+      res.distribution.map(el => ({
+        user_id: el.user_id,
+        amount: {
+          num: el.amount.num,
+          denom: el.amount.denom,
+          string: (el.amount.num / el.amount.denom).toLocaleString(),
+        },
+      })),
+    );
+    if (res?.item) {
+      setItems(
+        res.item.map(el => ({
+          ...el,
+          id: 'id' + Math.random().toString(16).slice(2),
+        })),
+      );
+    }
+    setTime(dayjs(res.payed_at).format('YYYY-MM-DD HH:mm'));
+  };
+
+  const onPressEdit = async () => {};
+
+  const requestDelete = async () => {
+    try {
+      await deleteExpenditure(route.params?.expenditure_id);
+      navigation.goBack();
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const onPressDelete = async () => {
+    requestAlert(
+      'Delete Expenditure',
+      'Are you sure you want to delete this expenditure?',
+      requestDelete,
+    );
+  };
+
+  // effects
   React.useEffect(() => {
-    if (currentSessionID) {
+    if (currentSessionID && route.params) {
       fetchData();
     }
-  }, [currentSessionID]);
+  }, [currentSessionID, route.params]);
 
   const onFocusEffect = React.useCallback(() => {
     // This should be run when screen gains focus - enable the module where it's needed
@@ -860,117 +913,147 @@ const AddExpenditureScreen = () => {
   return (
     <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
       <CustomHeader
-        title="Add Expenditure"
+        title={route.params?.expenditure_id ? 'Edit Expenditure' : 'Add Expenditure'}
         theme={CUSTOM_HEADER_THEME.WHITE}
         rightComponent={
-          <TouchableOpacity onPress={onPressAdd} disabled={addButtonDisabled}>
-            <Text
-              style={[
-                styles.headerRightText,
-                {
-                  color: addButtonDisabled ? colors.grey : colors.primary,
-                },
-              ]}>
-              Add
-            </Text>
-          </TouchableOpacity>
+          <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
+            {route.params?.expenditure_id && (
+              <TouchableOpacity
+                onPress={onPressDelete}
+                disabled={fetching}
+                style={STYLES.MARGIN_RIGHT(10)}>
+                <Icon
+                  name="delete"
+                  type="material-community"
+                  color={addButtonDisabled || fetching ? '#808080' : colors.red}
+                />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              onPress={route.params?.expenditure_id ? onPressEdit : onPressAdd}
+              disabled={addButtonDisabled || fetching}>
+              <Icon
+                name="pencil"
+                type="material-community"
+                color={addButtonDisabled || fetching ? '#808080' : colors.primary}
+              />
+            </TouchableOpacity>
+          </View>
         }
       />
-      <View style={styles.container}>
-        <Text style={[styles.label, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>Category</Text>
-        <SelectDropdown
-          data={categories}
-          onSelect={(selectedItem, index) => {
-            setCategory(selectedItem);
-          }}
-          defaultButtonText="Select Category"
-          buttonStyle={styles.dropdown1BtnStyle}
-          buttonTextStyle={styles.dropdown1BtnTxtStyle}
-          renderDropdownIcon={isOpen => {
-            return (
-              <Icon
-                name={isOpen ? 'chevron-up' : 'chevron-down'}
-                type="material-community"
-                color={colors.black}
-              />
-            );
-          }}
-          dropdownIconPosition="right"
-          dropdownStyle={styles.dropdown1DropdownStyle}
-          rowStyle={styles.dropdown1RowStyle}
-          rowTextStyle={styles.dropdown1RowTxtStyle}
-        />
-        <CustomInput
-          label={'Name'}
-          value={name}
-          setValue={setName}
-          onFocus={() => setIsBottomSheetOpen(false)}
-          onBlur={() => setIsBottomSheetOpen(true)}
-        />
-        <CustomInput
-          label={'Date'}
-          value={time}
-          setValue={value => {
-            setTime(
-              dayjs(time)
-                .set('hour', dayjs(value).hour())
-                .set('minute', dayjs(value).minute())
-                .format('YYYY-MM-DD HH:mm'),
-            );
-          }}
-          type="date"
-        />
-        <Text style={[styles.label, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>Receipt</Text>
-        {items.length === 0 ? (
-          <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
-            <Text style={styles.receiptText}>Upload Receipt</Text>
-          </TouchableOpacity>
-        ) : (
-          <AvoidSoftInputView style={STYLES.FLEX(1)}>
-            <View style={STYLES.PADDING_BOTTOM(70)}>
-              <InputTable data={items} setData={setItems} />
-            </View>
-          </AvoidSoftInputView>
-        )}
-        {isBottomSheetOpen && (
-          <ExpenditureBottomSheet
+      {fetching ? (
+        <View
+          style={[
+            STYLES.FLEX(1),
+            {
+              justifyContent: 'center',
+              alignItems: 'center',
+            },
+          ]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : (
+        <View style={styles.container}>
+          <Text style={[styles.label, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>
+            Category
+          </Text>
+          <SelectDropdown
+            data={categories}
+            onSelect={(selectedItem, index) => {
+              setCategory(selectedItem);
+            }}
+            defaultValue={category}
+            defaultButtonText="Select Category"
+            buttonStyle={styles.dropdown1BtnStyle}
+            buttonTextStyle={styles.dropdown1BtnTxtStyle}
+            renderDropdownIcon={isOpen => {
+              return (
+                <Icon
+                  name={isOpen ? 'chevron-up' : 'chevron-down'}
+                  type="material-community"
+                  color={colors.black}
+                />
+              );
+            }}
+            dropdownIconPosition="right"
+            dropdownStyle={styles.dropdown1DropdownStyle}
+            rowStyle={styles.dropdown1RowStyle}
+            rowTextStyle={styles.dropdown1RowTxtStyle}
+          />
+          <CustomInput
+            label={'Name'}
+            value={name}
+            setValue={setName}
+            onFocus={() => setIsBottomSheetOpen(false)}
+            onBlur={() => setIsBottomSheetOpen(true)}
+          />
+          <CustomInput
+            label={'Date'}
+            value={time}
+            setValue={value => {
+              setTime(
+                dayjs(time)
+                  .set('hour', dayjs(value).hour())
+                  .set('minute', dayjs(value).minute())
+                  .format('YYYY-MM-DD HH:mm'),
+              );
+            }}
+            type="date"
+          />
+          <Text style={[styles.label, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>
+            Receipt
+          </Text>
+          {items.length === 0 ? (
+            <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
+              <Text style={styles.receiptText}>Upload Receipt</Text>
+            </TouchableOpacity>
+          ) : (
+            <AvoidSoftInputView style={STYLES.FLEX(1)}>
+              <View style={STYLES.PADDING_BOTTOM(70)}>
+                <InputTable data={items} setData={setItems} />
+              </View>
+            </AvoidSoftInputView>
+          )}
+          {isBottomSheetOpen && (
+            <ExpenditureBottomSheet
+              data={{
+                total: total,
+                setTotal: setTotal,
+                members: members,
+                distribution: distribution,
+                setDistribution: setDistribution,
+                detail: items,
+                setDetail: setItems,
+                setIsModalVisible: setIsDMVisible,
+                setIsPMVisible: setIsPMVisible,
+                paid: paid,
+                setPaid: setPaid,
+                currencyCode: currencyCode,
+                setCurrencyCode: setCurrencyCode,
+                currencySelectData: currencySelectData,
+              }}
+            />
+          )}
+          <ManageDistributionModal
             data={{
-              total: total,
-              setTotal: setTotal,
-              members: members,
+              isVisible: isDMVisible,
+              setIsVisible: setIsDMVisible,
               distribution: distribution,
               setDistribution: setDistribution,
-              detail: items,
-              setDetail: setItems,
-              setIsModalVisible: setIsDMVisible,
-              setIsPMVisible: setIsPMVisible,
-              paid: paid,
-              setPaid: setPaid,
-              currencyCode: currencyCode,
-              setCurrencyCode: setCurrencyCode,
-              currencySelectData: currencySelectData,
+              members: members,
             }}
           />
-        )}
-        <ManageDistributionModal
-          data={{
-            isVisible: isDMVisible,
-            setIsVisible: setIsDMVisible,
-            distribution: distribution,
-            setDistribution: setDistribution,
-            members: members,
-          }}
-        />
-        <ManagePaidModal
-          data={{
-            isVisible: isPMVisible,
-            setIsVisible: setIsPMVisible,
-            paid: paid,
-            setPaid: setPaid,
-            members: members,
-          }}
-        />
-      </View>
+          <ManagePaidModal
+            data={{
+              isVisible: isPMVisible,
+              setIsVisible: setIsPMVisible,
+              paid: paid,
+              setPaid: setPaid,
+              members: members,
+            }}
+          />
+        </View>
+      )}
     </SafeArea>
   );
 };
