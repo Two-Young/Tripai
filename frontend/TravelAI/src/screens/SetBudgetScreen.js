@@ -13,7 +13,7 @@ import React from 'react';
 import colors from '../theme/colors';
 import BudgetWithCurrencyItem from '../component/molecules/BudgetWithCurrencyItem';
 import {STYLES} from '../styles/Stylesheets';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import {Icon} from '@rneui/themed';
 import sessionAtom from '../recoil/session/session';
@@ -171,7 +171,6 @@ const SetBudgetScreen = () => {
   };
 
   // effects
-  // TODO:: 실제 데이터로 교체
   React.useEffect(() => {
     if (currentSessionID) {
       fetchBudgets();
@@ -185,6 +184,13 @@ const SetBudgetScreen = () => {
       });
     }
   }, [route.params?.refresh]);
+
+  // 포커스 되면 새로고침
+  useFocusEffect(
+    React.useCallback(() => {
+      onRefresh();
+    }, []),
+  );
 
   return (
     <View style={styles.container}>

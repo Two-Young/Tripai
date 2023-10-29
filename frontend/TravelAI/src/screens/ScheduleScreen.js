@@ -234,7 +234,7 @@ const ScheduleScreen = () => {
                 />
               </CalendarProvider>
             </View>
-            <View style={[STYLES.WIDTH_100, STYLES.HEIGHT(160), {backgroundColor: colors.red}]}>
+            <View style={[STYLES.WIDTH_100, STYLES.HEIGHT(160)]}>
               <MapView
                 ref={mapRef}
                 style={styles.map}

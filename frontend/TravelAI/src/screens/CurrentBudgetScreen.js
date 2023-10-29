@@ -16,7 +16,7 @@ import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {SemiBold} from './../theme/fonts';
 import {FAB, List} from 'react-native-paper';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {getBudgetSummary, getExpenditures} from '../services/api';
 import {Icon} from '@rneui/themed';
 import reactotron from 'reactotron-react-native';
@@ -304,7 +304,7 @@ const CurrentBudgetScreen = () => {
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    await fetchExpenditures();
+    await fetchData();
     setRefreshing(false);
   }, [fetchExpenditures]);
 
@@ -332,6 +332,13 @@ const CurrentBudgetScreen = () => {
     }
     return 'No expenditures on this day';
   }, [selectedDay]);
+
+  // 포커스 되면 새로고침을 합니다.
+  useFocusEffect(
+    React.useCallback(() => {
+      onRefresh();
+    }, []),
+  );
 
   return (
     <View style={styles.container}>
