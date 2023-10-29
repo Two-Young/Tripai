@@ -134,18 +134,6 @@ type PlaceDetailCacheEntity struct {
 	Hit            *int     `db:"hit" json:"hit"`
 }
 
-type ChatRoomEntity struct {
-	ChatroomId string    `db:"cid" json:"chatroom_id"`
-	SessionId  string    `db:"sid" json:"session_id"`
-	CreatedAt  time.Time `db:"created_at" json:"created_at"`
-	LastUpdate time.Time `db:"last_update" json:"last_update"`
-}
-
-type ChatRoomsUserEntity struct {
-	ChatroomId string `db:"cid" json:"chatroom_id"`
-	UserId     string `db:"uid" json:"user_id"`
-}
-
 type BudgetEntity struct {
 	BudgetId     string  `db:"bid" json:"budget_id"`
 	CurrencyCode string  `db:"currency_code" json:"currency_code"`

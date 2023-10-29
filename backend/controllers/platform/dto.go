@@ -341,35 +341,6 @@ type userGetProfileResponseDto struct {
 	DefaultCurrencyCode string `json:"default_currency_code"`
 }
 
-/* ---------------- Chats ---------------- */
-
-type ChatGetRoomsRequestDto struct {
-	SessionId string `form:"session_id" binding:"required"`
-}
-
-type ChatGetRoomsParticipant struct {
-	UserId       string  `json:"user_id"`
-	Username     *string `json:"username"`
-	ProfileImage *string `json:"profile_image"`
-}
-
-type ChatGetRoomsResponseItem struct {
-	ChatRoomId   string                    `json:"chat_room_id"`
-	CreatedAt    int64                     `json:"created_at"`
-	LastUpdate   int64                     `json:"last_update"`
-	Participants []ChatGetRoomsParticipant `json:"participants"`
-}
-
-type ChatCreateRoomRequestDto struct {
-	SessionId    string   `json:"session_id" binding:"required"`
-	Participants []string `json:"participants" binding:"required"`
-}
-
-type ChatInviteRequestDto struct {
-	ChatRoomId    string `json:"chat_room_id" binding:"required"`
-	InvitedUserId string `json:"invited_user_id" binding:"required"`
-}
-
 /* ---------------- Budgets ---------------- */
 
 type BudgetGetRequestDto struct {

@@ -452,11 +452,11 @@ func UploadReceipt(c *gin.Context) {
 		}
 
 		// delete temp file
-		if err := os.Remove(dest); err != nil {
-			log.Error(err)
-			return
-		}
-		log.Debug("temp file deleted: " + dest)
+		//if err := os.Remove(dest); err != nil {
+		//	log.Error(err)
+		//	return
+		//}
+		//log.Debug("temp file deleted: " + dest)
 	}(f)
 
 	taggunResp, err := taggun_receipt_ocr.ParseReceipt(f)

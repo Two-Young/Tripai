@@ -107,24 +107,6 @@ func IsInvitedToSession(uid string, sessionId string) (bool, error) {
 	return exists, nil
 }
 
-func DoesChatRoomExist(roomId string) (bool, error) {
-	var count int
-	if err := database.DB.Get(&count,
-		"SELECT COUNT(*) FROM chatrooms WHERE cid = ?;", roomId); err != nil {
-		return false, err
-	}
-	return count > 0, nil
-}
-
-func IsParticipantOfChatRoom(chatroomId string, userId string) (bool, error) {
-	var count int
-	if err := database.DB.Get(&count,
-		"SELECT COUNT(*) FROM chatroom_users WHERE cid = ? AND uid = ?;", chatroomId, userId); err != nil {
-		return false, err
-	}
-	return count > 0, nil
-}
-
 func GetSupportedCurrencies() (map[string]Currency, error) {
 	currencies := make(map[string]Currency)
 	for _, country := range CountriesMap {

@@ -13,7 +13,6 @@ func UsePlatformRouter(r *gin.Engine) {
 	UseLocationRouter(g)
 	UseScheduleRouter(g)
 	UseSessionRouter(g)
-	UseChatRouter(g)
 	UseBudgetRouter(g)
 	UseExpenditureRouter(g)
 	UseCurrencyRouter(g)
