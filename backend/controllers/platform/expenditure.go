@@ -518,8 +518,14 @@ func UploadReceipt(c *gin.Context) {
 
 	//log.Debugf("total amount: %v", totalAmount)
 	//log.Debugf("total amount unit: %v", totalAmountUnit)
-	log.Debugf("Found %d items", len(items))
+	if len(items) == 0 {
+		log.Debug(taggunResp)
+		log.Error("no item found")
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "no item found")
+		return
+	}
 
+	log.Debugf("Found %d items", len(items))
 	subItems := make([]ExpenditureReceiptUploadResponseItem, 0)
 	for _, item := range items {
 		subItems = append(subItems, ExpenditureReceiptUploadResponseItem{

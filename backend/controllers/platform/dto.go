@@ -369,7 +369,14 @@ type BudgetSummaryGetRequestDto struct {
 	SessionId string `form:"session_id" binding:"required"`
 }
 
-type BudgetSummaryGetResponseItem struct {
+type SpentByDay struct {
+}
+
+type BudgetSummaryGetResponseDto struct {
+	TotalBudget  float64            `json:"total_budget"`
+	TotalSpent   float64            `json:"total_spent"`
+	CurrencyCode string             `json:"currency_code"`
+	SpentByDay   map[string]float64 `json:"spent_by_day"`
 }
 
 /* ---------------- Expenditure ---------------- */

@@ -3,6 +3,7 @@ package platform
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"math/big"
 	"net/http"
 	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
@@ -14,15 +15,15 @@ import (
 func Budgets(c *gin.Context) {
 	uid := c.GetString("uid")
 
-	var body BudgetGetRequestDto
-	if err := c.ShouldBindQuery(&body); err != nil {
+	var query BudgetGetRequestDto
+	if err := c.ShouldBindQuery(&query); err != nil {
 		log.Error(err)
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query: "+err.Error())
 		return
 	}
 
 	// check if session exists
-	_, err := database_io.GetSession(body.SessionId)
+	_, err := database_io.GetSession(query.SessionId)
 	if err != nil {
 		log.Error(err)
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "session does not exist")
@@ -30,7 +31,7 @@ func Budgets(c *gin.Context) {
 	}
 
 	// check if user is in session
-	yes, err := platform.IsSessionMember(uid, body.SessionId)
+	yes, err := platform.IsSessionMember(uid, query.SessionId)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -41,7 +42,7 @@ func Budgets(c *gin.Context) {
 		return
 	}
 
-	budgetEntities, err := database_io.GetBudgetsBySessionId(body.SessionId)
+	budgetEntities, err := database_io.GetBudgetsBySessionId(query.SessionId)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -209,7 +210,97 @@ func DeleteBudget(c *gin.Context) {
 }
 
 func BudgetSummary(c *gin.Context) {
-	// TODO :: implement
+	uid := c.GetString("uid")
+
+	var query BudgetSummaryGetRequestDto
+	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query: "+err.Error())
+		return
+	}
+
+	// get currency code
+	userEntity, err := database_io.GetUser(uid)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	currencyCode := userEntity.DefaultCurrencyCode
+	ok, err := platform.IsSupportedCurrency(currencyCode)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	if !ok {
+		util2.AbortWithStrJsonF(c, http.StatusBadRequest, "invalid currency code: %s", currencyCode)
+		return
+	}
+
+	// get budgets
+	budgetEntities, err := database_io.GetBudgetsBySessionId(query.SessionId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	totalBudget := 0.0
+	for _, budgetEntity := range budgetEntities {
+		amount := budgetEntity.Amount
+		exchanged, err := platform.Exchange(budgetEntity.CurrencyCode, currencyCode, amount)
+		if err != nil {
+			log.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		totalBudget += exchanged
+	}
+
+	// get expenditure distributions
+	dists, err := database_io.GetExpenditureDistributionsBySessionIdAndUserId(query.SessionId, uid)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// get total spent
+	totalSpent := 0.0
+	spentByDay := make(map[string]float64)
+	for _, dist := range dists {
+		amount, ok := big.NewRat(dist.Numerator, dist.Denominator).Float64()
+		if !ok {
+			log.Errorf("failed to convert big.Rat to float64: %s", dist)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		exchanged, err := platform.Exchange(dist.CurrencyCode, currencyCode, amount)
+		if err != nil {
+			log.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		totalSpent += exchanged
+
+		// add to spend by day
+		dayString := platform.ToDayString(dist.PayedAt) // 2020-01-01
+		if _, ok := spentByDay[dayString]; !ok {
+			spentByDay[dayString] = 0
+		}
+		spentByDay[dayString] += exchanged
+	}
+
+	resp := BudgetSummaryGetResponseDto{
+		TotalBudget:  totalBudget,
+		TotalSpent:   totalSpent,
+		CurrencyCode: currencyCode,
+		SpentByDay:   spentByDay,
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 func UseBudgetRouter(g *gin.RouterGroup) {

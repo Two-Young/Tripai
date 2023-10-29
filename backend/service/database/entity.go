@@ -140,3 +140,10 @@ type BudgetEntity struct {
 	Amount       float64 `db:"amount" json:"amount"`
 	SessionId    string  `db:"sid" json:"session_id"`
 }
+
+type ExchangeRateEntity struct {
+	FromCurrencyCode string    `db:"from_currency_code" json:"from_currency_code"`
+	ToCurrencyCode   string    `db:"to_currency_code" json:"to_currency_code"`
+	Rate             float64   `db:"rate" json:"rate"`
+	UpdatedAt        time.Time `db:"updated_at" json:"updated_at"`
+}

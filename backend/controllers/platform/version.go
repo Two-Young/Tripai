@@ -2,7 +2,7 @@ package platform
 
 import "github.com/gin-gonic/gin"
 
-const VERSION = "0.3.2.207"
+const VERSION = "0.3.3.209"
 
 func Version(c *gin.Context) {
 	c.JSON(200, VERSION)
