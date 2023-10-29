@@ -235,10 +235,12 @@ func GetUpdatedExchangeRate(from string, to string) (float64, error) {
 }
 
 func Exchange(from string, to string, amount float64) (float64, error) {
+	if from == to {
+		return amount, nil
+	}
 	rate, err := GetUpdatedExchangeRate(from, to)
 	if err != nil {
 		return 0, err
 	}
-
 	return rate * amount, nil
 }

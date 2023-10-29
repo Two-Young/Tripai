@@ -369,15 +369,29 @@ type BudgetSummaryGetRequestDto struct {
 	SessionId string `form:"session_id" binding:"required"`
 }
 
-type SpentByDay struct {
+type BudgetSummaryGetResponseBudgetItem struct {
+	Total float64 `json:"total"`
+	Spent float64 `json:"spent"`
 }
 
 type BudgetSummaryGetResponseDto struct {
-	TotalBudget  float64            `json:"total_budget"`
-	TotalSpent   float64            `json:"total_spent"`
-	CurrencyCode string             `json:"currency_code"`
-	SpentByDay   map[string]float64 `json:"spent_by_day"`
+	CurrencyCode  string                             `json:"currency_code"`
+	MyBudget      BudgetSummaryGetResponseBudgetItem `json:"my_budget"`
+	SessionBudget BudgetSummaryGetResponseBudgetItem `json:"session_budget"`
+	SpentByDay    map[string]float64                 `json:"spent_by_day"`
 }
+
+type BudgetCurrentGetRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type BudgetCurrentGetResponseItem struct {
+	CurrencyCode string  `json:"currency_code"`
+	Spent        float64 `json:"spent"`
+	Total        float64 `json:"total"`
+}
+
+type BudgetCurrentGetResponseDto []BudgetCurrentGetResponseItem
 
 /* ---------------- Expenditure ---------------- */
 
@@ -386,13 +400,13 @@ type ExpendituresGetRequestDto struct {
 }
 
 type ExpendituresGetResponseItem struct {
-	ExpenditureId string     `json:"expenditure_id"`
-	Category      string     `json:"category"`
-	Name          string     `json:"name"`
-	TotalPrice    float64    `json:"total_price"`
-	CurrencyCode  string     `json:"currency_code"`
-	PayedAt       *time.Time `json:"payed_at"`
-	HasReceipt    bool       `json:"has_receipt"`
+	ExpenditureId string    `json:"expenditure_id"`
+	Category      string    `json:"category"`
+	Name          string    `json:"name"`
+	TotalPrice    float64   `json:"total_price"`
+	CurrencyCode  string    `json:"currency_code"`
+	PayedAt       time.Time `json:"payed_at"`
+	HasReceipt    bool      `json:"has_receipt"`
 }
 
 type ExpendituresGetResponseDto []ExpendituresGetResponseItem
@@ -413,7 +427,7 @@ type ExpenditureGetResponseDto struct {
 	Category     string                                   `json:"category"`
 	PayersId     []string                                 `json:"payers_id"`
 	Distribution []ExpenditureGetResponseDistributionItem `json:"distribution"`
-	PayedAt      *time.Time                               `json:"payed_at"`
+	PayedAt      time.Time                                `json:"payed_at"`
 }
 
 type ExpenditureCreateRequestDto struct {
@@ -425,14 +439,14 @@ type ExpenditureCreateRequestDto struct {
 	Distribution []struct {
 		UserId string   `json:"user_id" binding:"required"`
 		Amount Fraction `json:"amount" binding:"required"`
-	} `json:"distribution" binding:"required"`
+	} `json:"distribution"`
 	Items []struct {
 		Label       string   `json:"label" binding:"required"`
 		Price       *float64 `json:"price" binding:"required"`
 		Allocations []string `json:"allocations" binding:"required"`
-	} `json:"items" binding:"required"`
-	PayedAt   *time.Time `json:"payed_at"`
-	SessionId string     `json:"session_id" binding:"required"`
+	} `json:"items"`
+	PayedAt   int64  `json:"payed_at" binding:"required"`
+	SessionId string `json:"session_id" binding:"required"`
 }
 
 type ExpenditureDeleteRequestDto struct {
@@ -440,19 +454,6 @@ type ExpenditureDeleteRequestDto struct {
 }
 
 // receipts
-
-type ExpenditureReceiptGetRequestDto struct {
-	ExpenditureId string `form:"expenditure_id" binding:"required"`
-}
-
-type ExpenditureReceiptGetResponseItem struct {
-	Label string  `json:"label"`
-	Price float64 `json:"price"`
-}
-
-type ExpenditureReceiptUploadRequestDto struct {
-	ExpenditureId string `form:"expenditure_id" binding:"required"`
-}
 
 type ExpenditureReceiptUploadResponseItem struct {
 	Label string  `json:"label"`
@@ -462,4 +463,34 @@ type ExpenditureReceiptUploadResponseItem struct {
 type ExpenditureReceiptUploadResponseDto struct {
 	CurrencyCode *string                                `json:"currency_code"`
 	Items        []ExpenditureReceiptUploadResponseItem `json:"items"`
+}
+
+/* ---------------- Settlements ---------------- */
+
+type SettlementInfoGetRequestDto struct {
+	SessionId string `form:"session_id" binding:"required"`
+}
+
+type SettlementInfoUsage struct {
+	Meal        float64 `json:"meal"`
+	Lodgment    float64 `json:"lodgment"`
+	Transport   float64 `json:"transport"`
+	Shopping    float64 `json:"shopping"`
+	Activity    float64 `json:"activity"`
+	Etc         float64 `json:"etc"`
+	Unknown     float64 `json:"unknown"`
+	TotalBudget float64 `json:"total_budget"`
+}
+
+type SettlementInfoSettlement struct {
+	Owed         bool    `json:"owed"`
+	TargetUserId string  `json:"target_user_id"`
+	Amount       float64 `json:"amount"`
+	CurrencyCode string  `json:"currency_code"`
+}
+
+type SettlementInfoGetResponseDto struct {
+	SessionUsage SettlementInfoUsage        `json:"session_usage"`
+	MyUsage      SettlementInfoUsage        `json:"my_usage"`
+	Settlements  []SettlementInfoSettlement `json:"settlements"`
 }

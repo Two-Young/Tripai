@@ -30,9 +30,10 @@ func DoesUserExist(uid string) (bool, error) {
 func UpdateUserTx(tx *sql.Tx, userEntity database.UserEntity) error {
 	_, err := tx.Exec(`
 		UPDATE users
-		SET username = ?, profile_image = ?, allow_nickname_search = ?
+		SET username = ?, profile_image = ?, allow_nickname_search = ?, default_currency_code = ?
 		WHERE uid = ?;`,
-		userEntity.Username, userEntity.ProfileImage, userEntity.AllowNicknameSearch,
+		userEntity.Username, userEntity.ProfileImage,
+		userEntity.AllowNicknameSearch, userEntity.DefaultCurrencyCode,
 		userEntity.UserId,
 	)
 	return err

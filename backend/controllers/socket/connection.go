@@ -93,7 +93,7 @@ func userHandlers(io *socketio.Server) {
 
 		for _, session := range sessions {
 			s.Join(RoomKey(session.SessionId))
-			log.Debugf("Socket joined room %s [%s]", RoomKey(session.SessionId), session.Name)
+			log.Debugf("Socket joined room %s [%s]", RoomKey(session.SessionId), *session.Name)
 		}
 		return nil
 	})

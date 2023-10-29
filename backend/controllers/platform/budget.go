@@ -42,7 +42,7 @@ func Budgets(c *gin.Context) {
 		return
 	}
 
-	budgetEntities, err := database_io.GetBudgetsBySessionId(query.SessionId)
+	budgetEntities, err := database_io.GetBudgetsBySessionIdAndUserId(query.SessionId, uid)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -126,6 +126,7 @@ func CreateBudget(c *gin.Context) {
 		BudgetId:     budgetId,
 		CurrencyCode: body.CurrencyCode,
 		Amount:       *body.Amount,
+		UserId:       uid,
 		SessionId:    body.SessionId,
 	}); err != nil {
 		_ = tx.Rollback()
@@ -185,6 +186,12 @@ func DeleteBudget(c *gin.Context) {
 		return
 	}
 
+	// is budget owner
+	if budgetEntity.UserId != uid {
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "user is not budget owner")
+		return
+	}
+
 	// delete
 	tx, err := database.DB.BeginTx(c, nil)
 	if err != nil {
@@ -240,6 +247,8 @@ func BudgetSummary(c *gin.Context) {
 	}
 
 	// get budgets
+	myTotalBudget, myTotalSpent := 0.0, 0.0
+	totalBudget, totalSpent := 0.0, 0.0
 	budgetEntities, err := database_io.GetBudgetsBySessionId(query.SessionId)
 	if err != nil {
 		log.Error(err)
@@ -247,7 +256,6 @@ func BudgetSummary(c *gin.Context) {
 		return
 	}
 
-	totalBudget := 0.0
 	for _, budgetEntity := range budgetEntities {
 		amount := budgetEntity.Amount
 		exchanged, err := platform.Exchange(budgetEntity.CurrencyCode, currencyCode, amount)
@@ -257,6 +265,9 @@ func BudgetSummary(c *gin.Context) {
 			return
 		}
 		totalBudget += exchanged
+		if budgetEntity.UserId == uid {
+			myTotalBudget += exchanged
+		}
 	}
 
 	// get expenditure distributions
@@ -268,23 +279,20 @@ func BudgetSummary(c *gin.Context) {
 	}
 
 	// get total spent
-	totalSpent := 0.0
 	spentByDay := make(map[string]float64)
 	for _, dist := range dists {
-		amount, ok := big.NewRat(dist.Numerator, dist.Denominator).Float64()
-		if !ok {
-			log.Errorf("failed to convert big.Rat to float64: %s", dist)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-
+		amount, _ := big.NewRat(dist.Numerator, dist.Denominator).Float64()
 		exchanged, err := platform.Exchange(dist.CurrencyCode, currencyCode, amount)
 		if err != nil {
 			log.Error(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+
 		totalSpent += exchanged
+		if dist.UserId == uid {
+			myTotalSpent += exchanged
+		}
 
 		// add to spend by day
 		dayString := platform.ToDayString(dist.PayedAt) // 2020-01-01
@@ -295,11 +303,66 @@ func BudgetSummary(c *gin.Context) {
 	}
 
 	resp := BudgetSummaryGetResponseDto{
-		TotalBudget:  totalBudget,
-		TotalSpent:   totalSpent,
 		CurrencyCode: currencyCode,
-		SpentByDay:   spentByDay,
+		MyBudget: BudgetSummaryGetResponseBudgetItem{
+			Total: myTotalBudget,
+			Spent: myTotalSpent,
+		},
+		SessionBudget: BudgetSummaryGetResponseBudgetItem{
+			Total: totalBudget,
+			Spent: totalSpent,
+		},
+		SpentByDay: spentByDay,
 	}
+	c.JSON(http.StatusOK, resp)
+}
+
+func CurrentBudget(c *gin.Context) {
+	uid := c.GetString("uid")
+
+	var query BudgetCurrentGetRequestDto
+	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query: "+err.Error())
+		return
+	}
+
+	// get budgets
+	budgetEntities, err := database_io.GetBudgetsBySessionIdAndUserId(query.SessionId, uid)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// get expenditure distributions
+	dists, err := database_io.GetExpenditureDistributionsBySessionIdAndUserId(query.SessionId, uid)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// accumulate spent budget by currency
+	accumulatedSpentBudget := make(map[string]float64)
+	for _, dist := range dists {
+		amount, _ := big.NewRat(dist.Numerator, dist.Denominator).Float64()
+		if _, ok := accumulatedSpentBudget[dist.CurrencyCode]; !ok {
+			accumulatedSpentBudget[dist.CurrencyCode] = 0
+		}
+		accumulatedSpentBudget[dist.CurrencyCode] += amount
+	}
+
+	resp := make(BudgetCurrentGetResponseDto, 0)
+	for _, budgetEntity := range budgetEntities {
+		spent := accumulatedSpentBudget[budgetEntity.CurrencyCode]
+		resp = append(resp, BudgetCurrentGetResponseItem{
+			CurrencyCode: budgetEntity.CurrencyCode,
+			Spent:        spent,
+			Total:        budgetEntity.Amount,
+		})
+	}
+
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -310,4 +373,5 @@ func UseBudgetRouter(g *gin.RouterGroup) {
 	rg.POST("", EditBudget)
 	rg.DELETE("", DeleteBudget)
 	rg.GET("/summary", BudgetSummary)
+	rg.GET("/current", CurrentBudget)
 }

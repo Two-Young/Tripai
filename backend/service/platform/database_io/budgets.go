@@ -14,6 +14,17 @@ func GetBudgetsBySessionId(sessionId string) ([]database.BudgetEntity, error) {
 	return budgets, nil
 }
 
+func GetBudgetsBySessionIdAndUserId(sessionId string, userId string) ([]database.BudgetEntity, error) {
+	var budgets []database.BudgetEntity
+	if err := database.DB.Select(&budgets,
+		`SELECT budgets.* FROM budgets
+		INNER JOIN user_sessions ON budgets.sid = user_sessions.sid
+		WHERE budgets.sid = ? AND user_sessions.uid = ?;`, sessionId, userId); err != nil {
+		return nil, err
+	}
+	return budgets, nil
+}
+
 func GetBudget(budgetId string) (*database.BudgetEntity, error) {
 	var budget database.BudgetEntity
 	if err := database.DB.Get(&budget,
@@ -23,11 +34,12 @@ func GetBudget(budgetId string) (*database.BudgetEntity, error) {
 	return &budget, nil
 }
 
-func InsertBudgetTx(tx *sql.Tx, session database.BudgetEntity) error {
+func InsertBudgetTx(tx *sql.Tx, budget database.BudgetEntity) error {
 	if _, err := tx.Exec(`
-		INSERT INTO budgets(bid, currency_code, amount, sid) 
-		VALUES (?, ?, ?, ?);`,
-		session.BudgetId, session.CurrencyCode, session.Amount, session.SessionId,
+		INSERT INTO budgets(bid, currency_code, amount, uid, sid) 
+		VALUES (?, ?, ?, ?, ?);`,
+		budget.BudgetId, budget.CurrencyCode, budget.Amount,
+		budget.UserId, budget.SessionId,
 	); err != nil {
 		return err
 	}

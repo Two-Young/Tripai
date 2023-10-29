@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"net/http"
 	"os"
+	"time"
 	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
@@ -15,6 +16,8 @@ import (
 	"travel-ai/third_party/taggun_receipt_ocr"
 	"travel-ai/util"
 )
+
+// TODO :: implement LOCK for single expenditure
 
 func Expenditures(c *gin.Context) {
 	uid := c.GetString("uid")
@@ -146,7 +149,7 @@ func CreateExpenditure(c *gin.Context) {
 	uid := c.GetString("uid")
 
 	var body ExpenditureCreateRequestDto
-	if err := c.ShouldBindQuery(&body); err != nil {
+	if err := c.ShouldBindJSON(&body); err != nil {
 		log.Error(err)
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body: "+err.Error())
 		return
@@ -183,6 +186,11 @@ func CreateExpenditure(c *gin.Context) {
 	calculatedTotalPrice := big.NewRat(0, 1)
 	ratDistributions := make(map[string]*big.Rat)
 	for _, dist := range body.Distribution {
+		if dist.Amount.Denominator == 0 {
+			log.Error("denominator is zero")
+			util2.AbortWithStrJson(c, http.StatusBadRequest, "denominator is zero")
+			return
+		}
 		distribution := big.NewRat(dist.Amount.Numerator, dist.Amount.Denominator)
 		calculatedTotalPrice.Add(calculatedTotalPrice, distribution)
 		// ignore zero
@@ -221,13 +229,13 @@ func CreateExpenditure(c *gin.Context) {
 	}
 
 	// validate currency code
-	valid, err := platform.IsSupportedCurrencyInSession(body.CurrencyCode, body.SessionId)
+	yes, err = platform.IsSupportedCurrency(body.CurrencyCode)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-	if !valid {
+	if !yes {
 		log.Errorf("invalid currency code: %s", body.CurrencyCode)
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid currency code")
 		return
@@ -291,7 +299,7 @@ func CreateExpenditure(c *gin.Context) {
 		CurrencyCode:  body.CurrencyCode,
 		Category:      body.Category,
 		SessionId:     body.SessionId,
-		PayedAt:       body.PayedAt,
+		PayedAt:       time.UnixMilli(body.PayedAt),
 	}); err != nil {
 		_ = tx.Rollback()
 		log.Error(err)

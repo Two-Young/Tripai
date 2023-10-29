@@ -84,13 +84,13 @@ type ScheduleEntity struct {
 }
 
 type ExpenditureEntity struct {
-	ExpenditureId string     `db:"eid" json:"expenditure_id"`
-	Name          string     `db:"name" json:"name"`
-	TotalPrice    float64    `db:"total_price" json:"price"`
-	CurrencyCode  string     `db:"currency_code" json:"currency_code"`
-	Category      string     `db:"category" json:"category"`
-	PayedAt       *time.Time `db:"payed_at" json:"payed_at"`
-	SessionId     string     `db:"sid" json:"session_id"`
+	ExpenditureId string    `db:"eid" json:"expenditure_id"`
+	Name          string    `db:"name" json:"name"`
+	TotalPrice    float64   `db:"total_price" json:"price"`
+	CurrencyCode  string    `db:"currency_code" json:"currency_code"`
+	Category      string    `db:"category" json:"category"`
+	PayedAt       time.Time `db:"payed_at" json:"payed_at"`
+	SessionId     string    `db:"sid" json:"session_id"`
 }
 
 type ExpenditurePayerEntity struct {
@@ -138,6 +138,7 @@ type BudgetEntity struct {
 	BudgetId     string  `db:"bid" json:"budget_id"`
 	CurrencyCode string  `db:"currency_code" json:"currency_code"`
 	Amount       float64 `db:"amount" json:"amount"`
+	UserId       string  `db:"uid" json:"user_id"`
 	SessionId    string  `db:"sid" json:"session_id"`
 }
 
@@ -146,4 +147,13 @@ type ExchangeRateEntity struct {
 	ToCurrencyCode   string    `db:"to_currency_code" json:"to_currency_code"`
 	Rate             float64   `db:"rate" json:"rate"`
 	UpdatedAt        time.Time `db:"updated_at" json:"updated_at"`
+}
+
+type TransactionEntity struct {
+	SenderUid    string    `db:"sender_uid" json:"sender_uid"`
+	ReceiverUid  string    `db:"receiver_uid" json:"receiver_uid"`
+	CurrencyCode string    `db:"currency_code" json:"currency_code"`
+	Amount       float64   `db:"amount" json:"amount"`
+	SentAt       time.Time `db:"sent_at" json:"sent_at"`
+	SessionId    string    `db:"sid" json:"session_id"`
 }

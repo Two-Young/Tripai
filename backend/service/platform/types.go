@@ -1,14 +1,24 @@
 package platform
 
+const (
+	CategoryMeal      = "meal"
+	CategoryLodgment  = "lodgment"
+	CategoryTransport = "transport"
+	CategoryShopping  = "shopping"
+	CategoryActivity  = "activity"
+	CategoryEtc       = "etc"
+	CategoryUnknown   = "unknown"
+)
+
 var (
 	ExpenditureCategories = map[string]string{
-		"CategoryMeal":      "meal",
-		"CategoryLodgment":  "lodgment",
-		"CategoryTransport": "transport",
-		"CategoryShopping":  "shopping",
-		"CategoryActivity":  "activity",
-		"CategoryEtc":       "etc",
-		"CategoryUnknown":   "unknown",
+		CategoryMeal:      "meal",
+		CategoryLodgment:  "lodgment",
+		CategoryTransport: "transport",
+		CategoryShopping:  "shopping",
+		CategoryActivity:  "activity",
+		CategoryEtc:       "etc",
+		CategoryUnknown:   "unknown",
 	}
 )
 

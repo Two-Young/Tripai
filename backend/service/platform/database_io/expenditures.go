@@ -35,10 +35,10 @@ func GetExpenditure(expenditureId string) (*database.ExpenditureEntity, error) {
 
 func InsertExpenditureTx(tx *sql.Tx, expenditure database.ExpenditureEntity) error {
 	if _, err := tx.Exec(`
-		INSERT INTO expenditures(eid, name, total_price, currency_code, category, sid) 
-		VALUES (?, ?, ?, ?, ?, ?);`,
+		INSERT INTO expenditures(eid, name, total_price, currency_code, category, sid, payed_at) 
+		VALUES (?, ?, ?, ?, ?, ?, ?);`,
 		expenditure.ExpenditureId, expenditure.Name, expenditure.TotalPrice, expenditure.CurrencyCode,
-		expenditure.Category, expenditure.SessionId,
+		expenditure.Category, expenditure.SessionId, expenditure.PayedAt,
 	); err != nil {
 		return err
 	}
@@ -109,6 +109,25 @@ func GetExpenditureDistributionsBySessionIdAndUserId(sessionId string, userId st
 		FROM expenditure_distribution ed
 		INNER JOIN expenditures ON ed.eid = expenditures.eid
 		WHERE expenditures.sid = ? AND ed.uid = ?;`, sessionId, userId); err != nil {
+		return nil, err
+	}
+	return distributions, nil
+}
+
+type ExpenditureDistributionWithPayerEntity struct {
+	database.ExpenditureEntity
+	Distributions []database.ExpenditureDistributionEntity
+	Payers        []database.UserEntity
+}
+
+func GetExpenditureDistributionWithPayersBySessionId(sessionId string) ([]*ExpenditureDistributionWithPayerEntity, error) {
+	var distributions []*ExpenditureDistributionWithPayerEntity
+	if err := database.DB.Select(&distributions,
+		`SELECT expenditures.*, expenditure_distribution.*, users.* 
+		FROM expenditures
+		INNER JOIN expenditure_distribution ON expenditures.eid = expenditure_distribution.eid
+		INNER JOIN users ON expenditure_distribution.uid = users.uid
+		WHERE expenditures.sid = ?;`, sessionId); err != nil {
 		return nil, err
 	}
 	return distributions, nil
