@@ -1,10 +1,9 @@
 import {StyleSheet, View, Keyboard, Pressable, Image} from 'react-native';
 import React from 'react';
-import {Avatar, IconButton, Switch, Text, TextInput} from 'react-native-paper';
+import {Avatar, Button, IconButton, List, Switch, Text, TextInput} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import {useRecoilState, useRecoilValue} from 'recoil';
 import userAtom from '../recoil/user/user';
-import colors from '../theme/colors';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {getProfile, updateProfile} from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,6 +19,7 @@ import countriesAtom from '../recoil/countries/countries';
 import {Icon} from '@rneui/themed';
 import reactotron from 'reactotron-react-native';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
+import colors from '../theme/colors';
 
 const ProfileScreen = () => {
   // hooks
@@ -235,7 +235,7 @@ const ProfileScreen = () => {
             </View>
           </View>
         )}
-        <View style={[STYLES.PADDING(10)]}>
+        <View style={[STYLES.PADDING_VERTICAL(10), STYLES.PADDING_HORIZONTAL(20)]}>
           <MainButton text="Save" onPress={onPressSave} disabled={!isEditing || !isUsernameValid} />
         </View>
       </SafeArea>

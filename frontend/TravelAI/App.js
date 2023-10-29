@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors from './src/theme/colors';
 import {SocketManager} from './src/services/socket';
 import Toast from 'react-native-toast-message';
+import {toastConfig} from './src/utils/utils';
 
 const theme = {
   ...DefaultTheme,
@@ -42,7 +43,7 @@ const App = () => {
           </NavigationContainer>
         </PaperProvider>
       </RecoilRoot>
-      <Toast />
+      <Toast config={toastConfig} visibilityTime={2500} />
     </>
   );
 };

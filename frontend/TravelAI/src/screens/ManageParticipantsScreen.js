@@ -1,9 +1,8 @@
 import React from 'react';
-import {StyleSheet, View, FlatList, SectionList, Text} from 'react-native';
-import {Searchbar, Avatar, IconButton, List} from 'react-native-paper';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {StyleSheet, View, SectionList, Text} from 'react-native';
+import {Searchbar, IconButton} from 'react-native-paper';
+import {useNavigation} from '@react-navigation/native';
 import {useRecoilValue} from 'recoil';
-import userAtom from '../recoil/user/user';
 import {
   getSessionMembers,
   getSessionInvitationWaitings,
@@ -32,6 +31,8 @@ const ManageParticipantsScreen = () => {
   const friends = useRecoilValue(getFriendsSelector);
 
   // states
+  const [refreshing, setRefreshing] = React.useState(true);
+
   const [searchQuery, setSearchQuery] = React.useState('');
 
   const [joined, setJoined] = React.useState([]);
@@ -116,6 +117,14 @@ const ManageParticipantsScreen = () => {
   );
 
   // effects
+  React.useEffect(() => {
+    if (refreshing) {
+      Promise.all([fetchJoined(), fetchInviting(), fetchRequeted()]).finally(() => {
+        setRefreshing(false);
+      });
+    }
+  }, [refreshing]);
+
   React.useEffect(() => {
     if (sessionID) {
       fetchJoined();
@@ -232,6 +241,8 @@ const ManageParticipantsScreen = () => {
       <SectionList
         sections={sections}
         contentContainerStyle={[STYLES.PADDING(20)]}
+        refreshing={refreshing}
+        onRefresh={() => setRefreshing(true)}
         ListHeaderComponent={() => (
           <Searchbar
             value={searchQuery}

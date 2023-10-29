@@ -124,23 +124,23 @@ const styles = StyleSheet.create({
     paddingVertical: Platform.OS === 'ios' ? 30 : 0,
   },
   homeIcon: {
-    width: 26,
-    height: 27,
+    width: 26 * 0.9,
+    height: 27 * 0.9,
     resizeMode: 'contain',
   },
   scheduleIcon: {
-    width: 29,
-    height: 26,
+    width: 29 * 0.9,
+    height: 26 * 0.9,
     resizeMode: 'contain',
   },
   chatIcon: {
-    width: 29,
-    height: 29,
+    width: 29 * 0.9,
+    height: 29 * 0.9,
     resizeMode: 'contain',
   },
   budgetIcon: {
-    width: 27,
-    height: 27,
+    width: 27 * 0.9,
+    height: 27 * 0.9,
     resizeMode: 'contain',
   },
 });
