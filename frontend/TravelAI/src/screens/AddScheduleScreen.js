@@ -17,7 +17,6 @@ const AddScheduleScreen = () => {
   // states
   const [name, setName] = React.useState('');
   const [place, setPlace] = React.useState({});
-  const [startAt, setStartAt] = React.useState(dayjs().format('YYYY-MM-DD HH:mm'));
   const [note, setNote] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
@@ -28,6 +27,8 @@ const AddScheduleScreen = () => {
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
   const day = navigationState.routes.slice(-1)[0]?.params?.day;
+
+  const [startAt, setStartAt] = React.useState(dayjs(day).format('YYYY-MM-DD HH:mm'));
 
   const tab = navigationState.routes[navigationState.routes.length - 2];
   const target = tab?.state?.routes[1];
@@ -56,8 +57,6 @@ const AddScheduleScreen = () => {
     }
   };
 
-  console.log(place);
-
   // memo
   const addDisabled = React.useMemo(() => {
     return name.length === 0 || !place?.address;
@@ -83,7 +82,7 @@ const AddScheduleScreen = () => {
                       .format('YYYY-MM-DD HH:mm'),
                   );
                 }}
-                type="date"
+                type="time"
               />
               <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
             </View>

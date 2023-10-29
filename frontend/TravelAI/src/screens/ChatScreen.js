@@ -95,7 +95,7 @@ const ChatScreen = () => {
 
   return (
     <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>
-      <CustomHeader title={'AI CHAT'} leftComponent={<React.Fragment />} />
+      <CustomHeader title={'AI CHAT'} useBack={false} />
       <FlatList
         ref={flatListRef}
         data={messages}

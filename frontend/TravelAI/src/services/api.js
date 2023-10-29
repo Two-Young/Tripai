@@ -276,7 +276,6 @@ export const createSession = async (country_codes, start_at, end_at) => {
 
 export const deleteSession = async session_id => {
   try {
-    console.log('session_id : ', session_id);
     const response = await api.delete('/platform/session', {
       data: {
         session_id,
