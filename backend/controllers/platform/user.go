@@ -106,6 +106,7 @@ func EditUserProfile(c *gin.Context) {
 	// update user entity
 	userEntity.Username = formUsername
 	userEntity.AllowNicknameSearch = allowNicknameSearch
+	userEntity.DefaultCurrencyCode = formDefaultCurrencyCode
 	if profileImageUrl != "" {
 		userEntity.ProfileImage = &profileImageUrl
 	}
