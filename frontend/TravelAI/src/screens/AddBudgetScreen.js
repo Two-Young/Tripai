@@ -13,7 +13,7 @@ import colors from '../theme/colors';
 import MainButton from '../component/atoms/MainButton';
 import {useNavigation, CommonActions, useNavigationState} from '@react-navigation/native';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
-import {getSessionCurrencies, putBudget} from '../services/api';
+import {getBudget, getSessionCurrencies, putBudget} from '../services/api';
 import sessionAtom from '../recoil/session/session';
 import reactotron from 'reactotron-react-native';
 
@@ -36,13 +36,19 @@ const AddBudgetScreen = () => {
   const navigationState = useNavigationState(state => state);
 
   // states
+  const [fetching, setFetching] = React.useState(true);
   const [defaultCurrency, setDefaultCurrency] = React.useState(defaultCurrencyObject);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [sessionCurrencies, setSessionCurrencies] = React.useState([]); // [currency_code, ...
-
-  // TODO:: 추가했을 때 실제 서버와 동작
+  const [budgets, setBudgets] = React.useState([]);
 
   // functions
+  const fetchDatas = async () => {
+    await fetchSessionCurrencies();
+    await fetchBudgets();
+    setFetching(false);
+  };
+
   const fetchSessionCurrencies = async () => {
     try {
       const res = await getSessionCurrencies(currentSessionID);
@@ -54,6 +60,15 @@ const AddBudgetScreen = () => {
       );
     } catch (err) {
       console.log(err);
+    }
+  };
+
+  const fetchBudgets = async () => {
+    try {
+      const res = await getBudget(currentSessionID);
+      setBudgets(res);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -77,16 +92,20 @@ const AddBudgetScreen = () => {
 
   // effects
   React.useEffect(() => {
-    fetchSessionCurrencies();
-  }, []);
+    if (currentSessionID) {
+      fetchDatas();
+    }
+  }, [currentSessionID]);
 
   const filteredCurrencies = React.useMemo(() => {
-    return _.uniqBy([...sessionCurrencies, ...currencies], 'currency_code').filter(
-      item =>
-        item.currency_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.currency_name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [sessionCurrencies, searchQuery, currencies]);
+    return _.uniqBy([...sessionCurrencies, ...currencies], 'currency_code')
+      .filter(item => !budgets.find(budget => budget.currency_code === item.currency_code))
+      .filter(
+        item =>
+          item.currency_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.currency_name.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+  }, [sessionCurrencies, searchQuery, currencies, budgets]);
 
   return (
     <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
@@ -108,7 +127,7 @@ const AddBudgetScreen = () => {
           </View>
         </DismissKeyboard>
         <FlatList
-          data={filteredCurrencies}
+          data={fetching ? [] : filteredCurrencies}
           renderItem={item => (
             <CurrencyListItem
               item={{

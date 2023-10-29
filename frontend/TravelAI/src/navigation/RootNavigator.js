@@ -16,7 +16,6 @@ import EditScheduleScreen from '../screens/EditScheduleScreen';
 import {createNavigationContainerRef} from '@react-navigation/native';
 import ReceiptScreen from '../screens/ReceiptScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import DefaultCurrencyScreen from '../screens/DefaultCurrencyScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import AddFriendsScreen from '../screens/AddFriendsScreen';
 import SessionRequestsScreen from '../screens/SessionRequestsScreen.js';
@@ -82,7 +81,6 @@ const RootNavigator = () => {
         <Stack.Screen name="Main" component={MainScreen} />
         <Stack.Screen name="Tab" component={TabNavigator} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="DefaultCurrency" component={DefaultCurrencyScreen} />
         <Stack.Screen name="MyFriends" component={FriendsScreen} />
         <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
         <Stack.Screen name="SessionRequests" component={SessionRequestsScreen} />

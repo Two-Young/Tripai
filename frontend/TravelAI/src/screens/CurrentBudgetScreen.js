@@ -16,9 +16,12 @@ import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {SemiBold} from './../theme/fonts';
 import {FAB, List} from 'react-native-paper';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {getBudgetSummary, getExpenditures} from '../services/api';
+import {Icon} from '@rneui/themed';
+import reactotron from 'reactotron-react-native';
 
-const Card = ({children, style}) => {
+const Card = ({myBudget, sessionBudget, currencyCode}) => {
   const flipAnimation = React.useRef(new Animated.Value(0)).current;
 
   let flipRotation = 0;
@@ -59,6 +62,20 @@ const Card = ({children, style}) => {
     }).start();
   };
 
+  const spentRatio = React.useMemo(() => {
+    if (!myBudget || myBudget?.total === 0) {
+      return 0;
+    }
+    return (sessionBudget?.total / myBudget?.total) * 100;
+  }, [myBudget]);
+
+  const sessionSpentRatio = React.useMemo(() => {
+    if (!sessionBudget || sessionBudget?.total === 0) {
+      return 0;
+    }
+    return (sessionBudget?.spent / sessionBudget?.total) * 100;
+  }, [sessionBudget]);
+
   return (
     <Pressable onPress={() => (flipRotation ? flipToBack() : flipToFront())}>
       <Animated.View style={[styles.card, styles.front, flipToFrontStyle]}>
@@ -68,14 +85,18 @@ const Card = ({children, style}) => {
             rotation={265}
             arcSweepAngle={190}
             width={15}
-            fill={70}
-            tintColor="orange"
+            fill={spentRatio}
+            tintColor="#458CF6"
             backgroundColor="black"
           />
           <View style={styles.boxWrapper}>
-            <Text style={styles.boxText}>You spent 70.14%</Text>
-            <Text style={styles.boxBold}>₩1,390,989</Text>
-            <Text style={styles.boxText}>of ₩1,905,740</Text>
+            <Text style={styles.boxText}>You spent {spentRatio}%</Text>
+            <Text style={styles.boxBold}>
+              {myBudget?.spent?.toLocaleString()} {currencyCode}
+            </Text>
+            <Text style={styles.boxText}>
+              of {myBudget?.total?.toLocaleString()} {currencyCode}
+            </Text>
           </View>
         </View>
       </Animated.View>
@@ -87,14 +108,18 @@ const Card = ({children, style}) => {
             rotation={265}
             arcSweepAngle={190}
             width={15}
-            fill={30}
-            tintColor="lightgreen"
+            fill={sessionSpentRatio}
+            tintColor="#9345F6"
             backgroundColor="black"
           />
           <View style={styles.boxWrapper}>
-            <Text style={styles.boxText}>You have 29.86%</Text>
-            <Text style={styles.boxBold}>₩690,989</Text>
-            <Text style={styles.boxText}>of ₩1,905,740</Text>
+            <Text style={styles.boxText}>Members spent {sessionSpentRatio}%</Text>
+            <Text style={styles.boxBold}>
+              {sessionBudget?.spent?.toLocaleString()} {currencyCode}
+            </Text>
+            <Text style={styles.boxText}>
+              of {sessionBudget?.total?.toLocaleString()} {currencyCode}
+            </Text>
           </View>
         </View>
       </Animated.View>
@@ -121,10 +146,89 @@ const DayItem = ({item, selectedDay, onPress}) => {
   );
 };
 
+const ExpenditureItem = ({item}) => {
+  const {name, total_price, currency_code, payed_at, category, has_receipt} = item;
+
+  const renderIcon = React.useCallback(() => {
+    switch (category) {
+      case 'lodgment':
+        return <Icon name="bed" type="material-community" />;
+      case 'transport':
+        return <Icon name="car" type="material-community" />;
+      case 'activity':
+        return <Icon name="account-group" type="material-community" />;
+      case 'shopping':
+        return <Icon name="shopping" type="material-community" />;
+      case 'meal':
+        return <Icon name="food" type="material-community" />;
+      case 'etc':
+        return <Icon name="shopping" type="material-community" />;
+      default:
+        return <Icon name="progress-question" type="material-community" />;
+    }
+  }, [category]);
+
+  const categoryColor = React.useMemo(() => {
+    switch (category) {
+      case 'lodgment':
+        return '#7FF954';
+      case 'transport':
+        return '#79D7FF';
+      case 'activity':
+        return '#FF8181';
+      case 'shopping':
+        return '#CB89FF';
+      case 'meal':
+        return '#FFAB48';
+      case 'etc':
+        return '#B5B5B5';
+      default:
+        return '#000000';
+    }
+  }, [category]);
+
+  return (
+    <View style={styles.expenditureItem}>
+      <View
+        style={[
+          styles.expenditureCategory,
+          {
+            backgroundColor: categoryColor,
+          },
+        ]}>
+        {renderIcon()}
+      </View>
+      <View style={STYLES.FLEX(1)}>
+        <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
+          <Text style={[styles.expenditurePrice, STYLES.FLEX(1)]}>
+            {total_price.toLocaleString()} {currency_code}
+          </Text>
+          <Text style={[styles.expenditureTime, STYLES.MARGIN_LEFT(10)]}>
+            {dayjs(payed_at).format('HH:mm')}
+          </Text>
+        </View>
+        <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
+          <Text style={[styles.expenditureName, STYLES.FLEX(1)]}>{name}</Text>
+          {has_receipt && (
+            <Icon
+              name="receipt"
+              type="material-community"
+              size={14}
+              style={STYLES.MARGIN_LEFT(10)}
+            />
+          )}
+        </View>
+      </View>
+    </View>
+  );
+};
+
 const CurrentBudgetScreen = () => {
   // hooks
   const currentSession = useRecoilValue(sessionAtom);
   const navigation = useNavigation();
+
+  const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
   const {start_at, end_at} = currentSession;
 
@@ -137,7 +241,6 @@ const CurrentBudgetScreen = () => {
 
     while (currentDate.isBefore(endAt) || currentDate.isSame(endAt)) {
       dates.push({
-        dayName: currentDate.format('ddd'),
         date: currentDate.format('YYYY-MM-DD'),
         isToday: currentDate.isSame(dayjs(), 'day'),
       });
@@ -147,25 +250,27 @@ const CurrentBudgetScreen = () => {
   }, [startAt, endAt]);
 
   // states
-  const [budget, setBudget] = React.useState(0);
-  const [spent, setSpent] = React.useState(0);
-  const [selectedDay, setSelectedDay] = React.useState();
-  const [expenditures, setExpenditures] = React.useState([
-    {
-      id: 1,
-      name: 'test',
-      amount: 10000,
-    },
-  ]);
+  const [defaultCurrency, setDefaultCurrency] = React.useState('');
+  const [myBudget, setMyBudget] = React.useState(0);
+  const [sessionBudget, setSessionBudget] = React.useState(null);
+  const [spentByDay, setSpentByDay] = React.useState(null);
 
-  const [open, setOpen] = React.useState(false);
+  const [selectedDay, setSelectedDay] = React.useState(null);
+  const [expenditures, setExpenditures] = React.useState([]);
 
-  const spentPercent = React.useMemo(() => (spent / budget) * 100, [spent, budget]);
-  const remaining = React.useMemo(() => budget - spent, [budget, spent]);
-  const remainingPercent = React.useMemo(() => (remaining / budget) * 100, [remaining, budget]);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const filteredExpenditures = React.useMemo(() => {
+    if (selectedDay === 'A') {
+      return expenditures;
+    }
+    if (selectedDay === 'P') {
+      return expenditures.filter(item => dayjs(item.payed_at).isBefore(dayjs(tripDays[0].date)));
+    }
+    return expenditures.filter(item => dayjs(item.payed_at).isSame(dayjs(selectedDay.date), 'day'));
+  }, [selectedDay, expenditures, tripDays]);
 
   // functions
-  const onStateChange = ({open}) => setOpen(open);
 
   const onPressAddExpenditure = () => {
     navigation.navigate('AddExpenditure', {
@@ -173,11 +278,80 @@ const CurrentBudgetScreen = () => {
     });
   };
 
+  const fetchExpenditures = React.useCallback(async () => {
+    try {
+      const res = await getExpenditures(currentSessionID);
+      setExpenditures(res);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [currentSessionID]);
+
+  const fetchBudgetSummary = React.useCallback(async () => {
+    try {
+      const res = await getBudgetSummary(currentSessionID);
+      setMyBudget(res.my_budget);
+      setSessionBudget(res.session_budget);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [currentSessionID]);
+
+  const fetchData = React.useCallback(async () => {
+    // await fetchBudgetSummary();
+    await fetchExpenditures();
+  }, [fetchBudgetSummary, fetchExpenditures]);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  }, [fetchExpenditures]);
+
+  // effects
+  React.useEffect(() => {
+    if (currentSessionID) {
+      fetchData();
+    }
+  }, [currentSessionID]);
+
+  React.useEffect(() => {
+    if (tripDays.some(item => item.isToday)) {
+      setSelectedDay(tripDays.find(item => item.isToday));
+    } else {
+      setSelectedDay('A');
+    }
+  }, [tripDays]);
+
+  const emptyExpenditureText = React.useMemo(() => {
+    if (selectedDay === 'A') {
+      return 'No expenditures';
+    }
+    if (selectedDay === 'P') {
+      return 'No previous expenditures';
+    }
+    return 'No expenditures on this day';
+  }, [selectedDay]);
+
+  // 포커스 되면 새로고침을 합니다.
+  useFocusEffect(
+    React.useCallback(() => {
+      onRefresh();
+    }, []),
+  );
+
   return (
     <View style={styles.container}>
-      <Card />
+      <Card myBudget={myBudget} sessionBudget={sessionBudget} currencyCode={defaultCurrency} />
       <View style={[STYLES.FLEX_ROW, STYLES.FLEX(1), STYLES.MARGIN_TOP(10)]}>
-        <View style={[STYLES.WIDTH(60)]}>
+        <View
+          style={[
+            STYLES.WIDTH(60),
+            {
+              borderRightWidth: 1,
+              borderRightColor: '#7D848D',
+            },
+          ]}>
           <TouchableOpacity
             style={[
               styles.dayItem,
@@ -212,17 +386,22 @@ const CurrentBudgetScreen = () => {
         </View>
         <FlatList
           style={[STYLES.FLEX(1)]}
-          data={expenditures}
+          data={filteredExpenditures}
+          keyExtractor={item => item.expenditure_id}
           renderItem={({item}) => (
-            <List.Item
-              title={item?.name}
-              description={item?.amount}
-              left={props => <List.Icon {...props} icon="folder" />}
-              backgroundColor="#f2f2f2"
-            />
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('AddExpenditure', {
+                  expenditure_id: item.expenditure_id,
+                });
+              }}>
+              <ExpenditureItem item={item} />
+            </TouchableOpacity>
           )}
           ItemSeparatorComponent={<View style={STYLES.PADDING_VERTICAL(5)} />}
-          ListEmptyComponent={<Text>Empty</Text>}
+          ListEmptyComponent={<Text style={styles.infoTxt}>{emptyExpenditureText}</Text>}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
         />
         <FAB style={styles.fab} icon="plus" color={colors.white} onPress={onPressAddExpenditure} />
       </View>
@@ -315,5 +494,37 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'stretch',
     backgroundColor: colors.primary,
+  },
+  expenditureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingLeft: 20,
+  },
+  expenditurePrice: {
+    fontSize: 18,
+    color: colors.black,
+    fontWeight: 'bold',
+  },
+  expenditureName: {
+    fontSize: 14,
+    color: '#7D848D',
+  },
+  expenditureTime: {
+    fontSize: 12,
+    color: '#7D848D',
+  },
+  expenditureCategory: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 4,
+    marginRight: 22,
+  },
+  infoTxt: {
+    fontSize: 14,
+    color: '#7D848D',
+    textAlign: 'center',
   },
 });

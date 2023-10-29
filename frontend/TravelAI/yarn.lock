@@ -4013,6 +4013,11 @@
     "combined-stream" "^1.0.8"
     "mime-types" "^2.1.12"
 
+"fraction.js@^4.3.7":
+  "integrity" "sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew=="
+  "resolved" "https://registry.npmjs.org/fraction.js/-/fraction.js-4.3.7.tgz"
+  "version" "4.3.7"
+
 "fresh@0.5.2":
   "integrity" "sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q=="
   "resolved" "https://registry.npmjs.org/fresh/-/fresh-0.5.2.tgz"

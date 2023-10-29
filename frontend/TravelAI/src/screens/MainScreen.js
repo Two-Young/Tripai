@@ -1,6 +1,6 @@
 import {FlatList, StyleSheet, Text, View, Alert} from 'react-native';
 import React from 'react';
-import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
+import {CommonActions, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {IconButton, Portal, Snackbar} from 'react-native-paper';
 import {getCurrencies, getSessions, locateCountries} from '../services/api';
 import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
@@ -107,6 +107,13 @@ const MainScreen = () => {
       });
     }
   }, [route.params?.refresh]);
+
+  // 포커스 되면 새로고침을 합니다.
+  useFocusEffect(
+    React.useCallback(() => {
+      onRefresh();
+    }, []),
+  );
 
   return (
     <SafeArea bottom={{inactive: true}}>

@@ -6,27 +6,15 @@ import {Icon} from '@rneui/themed';
 import colors from '../../theme/colors';
 
 const defaultRow = {
-  name: '',
+  label: '',
   price: '',
+  allocations: [],
 };
 
 const DeleteButtonCell = ({onDelete}) => {
-  const onPressDelete = () => {
-    Alert.alert('Delete', 'Are you sure to delete this row?', [
-      {
-        text: 'Cancel',
-        onPress: () => {},
-      },
-      {
-        text: 'Delete',
-        onPress: onDelete,
-      },
-    ]);
-  };
-
   return (
     <View style={[styles.tableCell, STYLES.WIDTH(30)]}>
-      <TouchableOpacity onPress={onPressDelete}>
+      <TouchableOpacity onPress={onDelete}>
         <Icon name="remove-circle-outline" type="ionicon" color={colors.black} size={15} />
       </TouchableOpacity>
     </View>
@@ -43,11 +31,11 @@ const NameCell = ({item, setData}) => {
         style={[styles.input, styles.name]}
         placeholder="Item Name"
         placeholderTextColor={colors.gray}
-        value={item ? item.item.name : ''}
+        value={item ? item.item.label : ''}
         onChangeText={text => {
           setData(prev => {
             const newData = [...prev];
-            newData[item.index].name = text;
+            newData[item.index].label = text;
             return newData;
           });
         }}
