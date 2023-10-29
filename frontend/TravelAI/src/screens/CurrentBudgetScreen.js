@@ -17,6 +17,7 @@ import sessionAtom from '../recoil/session/session';
 import {SemiBold} from './../theme/fonts';
 import {FAB, List} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
+import {getExpenditures} from '../services/api';
 
 const Card = ({children, style}) => {
   const flipAnimation = React.useRef(new Animated.Value(0)).current;
@@ -126,6 +127,8 @@ const CurrentBudgetScreen = () => {
   const currentSession = useRecoilValue(sessionAtom);
   const navigation = useNavigation();
 
+  const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
+
   const {start_at, end_at} = currentSession;
 
   const startAt = React.useMemo(() => dayjs(start_at).format('YYYY-MM-DD'), [start_at]);
@@ -172,6 +175,22 @@ const CurrentBudgetScreen = () => {
       date: selectedDay?.date,
     });
   };
+
+  const fetchExpenditures = React.useCallback(async () => {
+    try {
+      const res = await getExpenditures(currentSessionID);
+      setExpenditures(res);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [currentSessionID]);
+
+  // effects
+  React.useEffect(() => {
+    if (currentSessionID) {
+      fetchExpenditures();
+    }
+  }, [currentSessionID]);
 
   return (
     <View style={styles.container}>

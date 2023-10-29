@@ -20,35 +20,21 @@ import sessionAtom from '../recoil/session/session';
 import {useRecoilValue} from 'recoil';
 import {deleteBudget, getBudget} from '../services/api';
 
-const defaultBudget = [
-  {
-    id: 1,
-    currency: 'KRW',
-    locale: 'ko-KR',
-    budget: 1000000,
-    spent: 500000,
-  },
-  {
-    id: 2,
-    currency: 'JPY',
-    locale: 'ja-JP',
-    budget: 1000000,
-    spent: 900000,
-  },
-];
-
 const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) => {
   // states
   const [value, setValue] = React.useState('');
 
   // functions
-  // TODO:: 동작 만들어야 함
   const onPressCancel = () => {
     setModalVisible(false);
   };
 
-  const onPressSave = () => {
-    setModalVisible(false);
+  const onPressSave = async () => {
+    try {
+      setModalVisible(false);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const onPressDelete = () => {
@@ -60,7 +46,8 @@ const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) 
       {
         text: 'Delete',
         onPress: async () => {
-          await deleteBudget();
+          setModalVisible(false);
+          await requestDeletingBudget(item.budget_id);
         },
       },
     ]);
@@ -68,7 +55,7 @@ const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) 
 
   // effects
   React.useEffect(() => {
-    setValue(item?.budget.toString());
+    setValue(item?.amount.toString());
   }, [item]);
 
   return (
@@ -76,7 +63,7 @@ const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) 
       <Pressable onPress={Keyboard.dismiss} style={styles.editModal}>
         <View style={STYLES.FLEX(1)}>
           <Text>
-            Set your budget for <Text style={{fontWeight: 'bold'}}>{item?.currency}</Text>
+            Set your budget for <Text style={{fontWeight: 'bold'}}>{item?.currency_code}</Text>
           </Text>
           <TextInput
             style={
@@ -88,7 +75,15 @@ const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) 
               })
             }
             value={value}
-            onChangeText={text => setValue(text)}
+            onChangeText={setValue}
+            onEndEditing={() => {
+              if (Number(value.replace(/[^0-9]/g, '')) < 0) {
+                setValue('');
+              } else {
+                setValue(Number(value.replace(/[^0-9]/g, '')).toLocaleString());
+              }
+            }}
+            placeholder="0"
             keyboardType="numeric"
           />
         </View>
@@ -121,7 +116,7 @@ const SetBudgetScreen = () => {
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
   // states
-  const [budgets, setBudgets] = React.useState(defaultBudget);
+  const [budgets, setBudgets] = React.useState([]);
   const [isModalVisible, setModalVisible] = React.useState(false);
   const [currency, setCurreny] = React.useState(null);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -139,9 +134,8 @@ const SetBudgetScreen = () => {
   // TODO:: 실제 서버와 연동
   const fetchBudgets = async () => {
     try {
-      // const res = await getBudget(currentSessionID);
-      // setBudgets(res);
-      setBudgets(defaultBudget);
+      const res = await getBudget({session_id: currentSessionID});
+      setBudgets(res);
     } catch (err) {
       console.error(err);
     }
@@ -170,8 +164,10 @@ const SetBudgetScreen = () => {
   // effects
   // TODO:: 실제 데이터로 교체
   React.useEffect(() => {
-    fetchBudgets();
-  }, []);
+    if (currentSessionID) {
+      fetchBudgets();
+    }
+  }, [currentSessionID]);
 
   React.useEffect(() => {
     if (route.params?.refresh) {
@@ -186,7 +182,7 @@ const SetBudgetScreen = () => {
       <FlatList
         style={STYLES.MARGIN_TOP(20)}
         data={budgets}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => item.budget_id.toString()}
         refreshing={refreshing}
         onRefresh={onRefresh}
         renderItem={({item}) => (
