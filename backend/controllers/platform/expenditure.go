@@ -382,6 +382,7 @@ func DeleteExpenditure(c *gin.Context) {
 	}
 
 	if err := database_io.DeleteExpenditureTx(tx, body.ExpenditureId); err != nil {
+		_ = tx.Rollback()
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return

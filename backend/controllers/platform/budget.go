@@ -15,9 +15,9 @@ func Budgets(c *gin.Context) {
 	uid := c.GetString("uid")
 
 	var body BudgetGetRequestDto
-	if err := c.ShouldBindJSON(&body); err != nil {
+	if err := c.ShouldBindQuery(&body); err != nil {
 		log.Error(err)
-		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body: "+err.Error())
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query: "+err.Error())
 		return
 	}
 
@@ -125,7 +125,9 @@ func CreateBudget(c *gin.Context) {
 		BudgetId:     budgetId,
 		CurrencyCode: body.CurrencyCode,
 		Amount:       *body.Amount,
+		SessionId:    body.SessionId,
 	}); err != nil {
+		_ = tx.Rollback()
 		log.Error(err)
 		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
 		return
@@ -191,6 +193,7 @@ func DeleteBudget(c *gin.Context) {
 	}
 
 	if err := database_io.DeleteBudgetTx(tx, body.BudgetId); err != nil {
+		_ = tx.Rollback()
 		log.Error(err)
 		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
 		return
@@ -206,6 +209,7 @@ func DeleteBudget(c *gin.Context) {
 }
 
 func BudgetSummary(c *gin.Context) {
+	// TODO :: implement
 }
 
 func UseBudgetRouter(g *gin.RouterGroup) {

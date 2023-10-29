@@ -20,14 +20,15 @@ create table session_thumbnail_caches
 
 create table users
 (
-    uid                   varchar(255)         not null
+    uid                   varchar(255)             not null
         primary key,
-    id                    varchar(255)         not null,
-    user_code             varchar(255)         not null comment 'use as identifier of friend recognition',
-    username              varchar(150)         not null,
-    profile_image         varchar(255)         null,
-    platform              varchar(100)         not null,
-    allow_nickname_search tinyint(1) default 1 not null,
+    id                    varchar(255)             not null,
+    user_code             varchar(255)             not null comment 'use as identifier of friend recognition',
+    username              varchar(150)             not null,
+    profile_image         varchar(255)             null,
+    platform              varchar(100)             not null,
+    allow_nickname_search tinyint(1) default 1     not null,
+    default_currency_code varchar(5) default 'USD' not null,
     constraint users_pk
         unique (user_code)
 );
