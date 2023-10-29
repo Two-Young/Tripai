@@ -518,6 +518,7 @@ func UploadReceipt(c *gin.Context) {
 
 	//log.Debugf("total amount: %v", totalAmount)
 	//log.Debugf("total amount unit: %v", totalAmountUnit)
+	log.Debugf("Found %d items", len(items))
 
 	subItems := make([]ExpenditureReceiptUploadResponseItem, 0)
 	for _, item := range items {
