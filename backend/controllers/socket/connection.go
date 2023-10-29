@@ -93,7 +93,7 @@ func userHandlers(io *socketio.Server) {
 
 		for _, session := range sessions {
 			s.Join(RoomKey(session.SessionId))
-			log.Debugf("Socket joined room %s", RoomKey(session.SessionId))
+			log.Debugf("Socket joined room %s [%s]", RoomKey(session.SessionId), session.Name)
 		}
 		return nil
 	})
@@ -196,6 +196,8 @@ func userHandlers(io *socketio.Server) {
 			s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
 			return
 		}
+		// TODO :: send to GPT
+
 		io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/sendAssistantMessage", NewSuccess(chatMessage))
 	})
 }

@@ -78,7 +78,8 @@ func CropReceiptSubImage(img image.Image) (image.Image, error) {
 	contours := gocv.FindContours(*masked, gocv.RetrievalExternal, gocv.ChainApproxSimple)
 	if contours.Size() == 0 {
 		// no receipt found, just return original image
-		return newImg.ToImage()
+		log.Debugf("Crop: no receipt found")
+		return img, nil
 	}
 
 	// find largest contour
@@ -153,7 +154,7 @@ func CropReceiptSubImage(img image.Image) (image.Image, error) {
 
 	if len(sums) < 4 {
 		log.Debugf("convex hull points not found")
-		return newImg.ToImage()
+		return img, nil
 	}
 
 	// 극단점 찾기
@@ -208,21 +209,9 @@ func CropReceiptSubImage(img image.Image) (image.Image, error) {
 	log.Debugf("confidence: %v", confidence*100)
 	log.Debugf("confidence2: %v", confidence2*100)
 
-	//log.Debugf("src points: (%v, %v), (%v, %v), (%v, %v), (%v, %v)",
-	//	leftTopMost.X, leftTopMost.Y,
-	//	leftBottomMost.X, leftBottomMost.Y,
-	//	rightBottomMost.X, rightBottomMost.Y,
-	//	rightTopMost.X, rightTopMost.Y)
-	//
-	//log.Debugf("dst points: (%v, %v), (%v, %v), (%v, %v), (%v, %v)",
-	//	lu.x, lu.y,
-	//	ld.x, ld.y,
-	//	rd.x, rd.y,
-	//	ru.x, ru.y)
-
 	if confidence < 0.1 || confidence2 < 0.15 {
 		log.Debugf("give up as low confidence: %v, %v", confidence, confidence2)
-		return newImg.ToImage()
+		return img, nil
 	}
 
 	// perspective transform

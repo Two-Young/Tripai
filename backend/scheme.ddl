@@ -20,14 +20,15 @@ create table session_thumbnail_caches
 
 create table users
 (
-    uid                   varchar(255)         not null
+    uid                   varchar(255)             not null
         primary key,
-    id                    varchar(255)         not null,
-    user_code             varchar(255)         not null comment 'use as identifier of friend recognition',
-    username              varchar(150)         not null,
-    profile_image         varchar(255)         null,
-    platform              varchar(100)         not null,
-    allow_nickname_search tinyint(1) default 1 not null,
+    id                    varchar(255)             not null,
+    user_code             varchar(255)             not null comment 'use as identifier of friend recognition',
+    username              varchar(150)             not null,
+    profile_image         varchar(255)             null,
+    platform              varchar(100)             not null,
+    allow_nickname_search tinyint(1) default 1     not null,
+    default_currency_code varchar(5) default 'USD' not null,
     constraint users_pk
         unique (user_code)
 );
@@ -59,31 +60,6 @@ create table budgets
     sid           varchar(255) not null,
     constraint budgets_sessions_sid_fk
         foreign key (sid) references sessions (sid)
-            on delete cascade
-);
-
-create table chatrooms
-(
-    cid         varchar(255) not null
-        primary key,
-    sid         varchar(255) null comment 'session id',
-    created_at  datetime     null,
-    last_update datetime     not null,
-    constraint chatrooms_sessions_sid_fk
-        foreign key (sid) references sessions (sid)
-            on delete cascade
-);
-
-create table chatroom_users
-(
-    cid varchar(255) not null,
-    uid varchar(255) not null,
-    primary key (uid, cid),
-    constraint chatroom_users_chatrooms_cid_fk
-        foreign key (cid) references chatrooms (cid)
-            on delete cascade,
-    constraint chatroom_users_users_uid_fk
-        foreign key (uid) references users (uid)
             on delete cascade
 );
 

@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   fab: {
-    alignItems: 'center',
+    alignItems: 'stretch',
     backgroundColor: colors.primary,
     borderRadius: 10,
     margin: 10,

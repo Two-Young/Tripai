@@ -9,6 +9,7 @@ import (
 	"travel-ai/log"
 	"travel-ai/service/database"
 	"travel-ai/service/platform/database_io"
+	"travel-ai/third_party/fawazahmed0_currency"
 )
 
 func GenerateTenLengthCode() string {
@@ -44,6 +45,10 @@ func ConvertDateString(dateString string) (time.Time, error) {
 		return time.Now(), err
 	}
 	return date, nil
+}
+
+func ToDayString(date time.Time) string {
+	return date.Format("2006-01-02")
 }
 
 func ConvertDateInt64(dateInt64 int64) (time.Time, error) {
@@ -105,24 +110,6 @@ func IsInvitedToSession(uid string, sessionId string) (bool, error) {
 		return false, err
 	}
 	return exists, nil
-}
-
-func DoesChatRoomExist(roomId string) (bool, error) {
-	var count int
-	if err := database.DB.Get(&count,
-		"SELECT COUNT(*) FROM chatrooms WHERE cid = ?;", roomId); err != nil {
-		return false, err
-	}
-	return count > 0, nil
-}
-
-func IsParticipantOfChatRoom(chatroomId string, userId string) (bool, error) {
-	var count int
-	if err := database.DB.Get(&count,
-		"SELECT COUNT(*) FROM chatroom_users WHERE cid = ? AND uid = ?;", chatroomId, userId); err != nil {
-		return false, err
-	}
-	return count > 0, nil
 }
 
 func GetSupportedCurrencies() (map[string]Currency, error) {
@@ -223,4 +210,35 @@ func GetSupportedSessionCurrenciesByCountry(sessionId string) (map[string][]Curr
 func IsValidExpenditureCategory(category string) bool {
 	_, ok := ExpenditureCategories[category]
 	return ok
+}
+
+func GetUpdatedExchangeRate(from string, to string) (float64, error) {
+	ex, err := database_io.GetExchangeRate(from, to)
+	needUpdate := err != nil || ex.UpdatedAt.Unix() < time.Now().Unix()-86400
+	if err != nil {
+		log.Error(err)
+	}
+
+	// if rate update is needed (1 day has passed)
+	if needUpdate {
+		rate, err := fawazahmed0_currency.GetExchangeRate(from, to)
+		if err != nil {
+			return 0, err
+		}
+		if err := database_io.UpsertExchangeRate(from, to, rate); err != nil {
+			log.Error(err)
+		}
+		return rate, nil
+	}
+
+	return ex.Rate, nil
+}
+
+func Exchange(from string, to string, amount float64) (float64, error) {
+	rate, err := GetUpdatedExchangeRate(from, to)
+	if err != nil {
+		return 0, err
+	}
+
+	return rate * amount, nil
 }

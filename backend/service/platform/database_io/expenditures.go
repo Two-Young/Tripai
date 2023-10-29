@@ -2,6 +2,7 @@ package database_io
 
 import (
 	"database/sql"
+	"time"
 	"travel-ai/service/database"
 )
 
@@ -77,7 +78,7 @@ func InsertExpenditurePayerTx(tx *sql.Tx, expenditurePayer database.ExpenditureP
 func InsertExpenditureDistributionTx(tx *sql.Tx, expenditureDistribution database.ExpenditureDistributionEntity) error {
 	if _, err := tx.Exec(`
 		INSERT INTO expenditure_distribution(eid, uid, num, denom) 
-		VALUES (?, ?, ?);`,
+		VALUES (?, ?, ?, ?);`,
 		expenditureDistribution.ExpenditureId, expenditureDistribution.UserId,
 		expenditureDistribution.Numerator, expenditureDistribution.Denominator,
 	); err != nil {
@@ -90,6 +91,24 @@ func GetExpenditureDistributions(expenditureId string) ([]database.ExpenditureDi
 	var distributions []database.ExpenditureDistributionEntity
 	if err := database.DB.Select(&distributions,
 		"SELECT * FROM expenditure_distribution WHERE eid = ?;", expenditureId); err != nil {
+		return nil, err
+	}
+	return distributions, nil
+}
+
+type UserExpenditureDistributionEntity struct {
+	database.ExpenditureDistributionEntity
+	CurrencyCode string    `db:"currency_code" json:"currency_code"`
+	PayedAt      time.Time `db:"payed_at" json:"payed_at"`
+}
+
+func GetExpenditureDistributionsBySessionIdAndUserId(sessionId string, userId string) ([]UserExpenditureDistributionEntity, error) {
+	var distributions []UserExpenditureDistributionEntity
+	if err := database.DB.Select(&distributions,
+		`SELECT ed.*, expenditures.currency_code, expenditures.payed_at
+		FROM expenditure_distribution ed
+		INNER JOIN expenditures ON ed.eid = expenditures.eid
+		WHERE expenditures.sid = ? AND ed.uid = ?;`, sessionId, userId); err != nil {
 		return nil, err
 	}
 	return distributions, nil

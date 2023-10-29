@@ -382,6 +382,7 @@ func DeleteExpenditure(c *gin.Context) {
 	}
 
 	if err := database_io.DeleteExpenditureTx(tx, body.ExpenditureId); err != nil {
+		_ = tx.Rollback()
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -451,11 +452,11 @@ func UploadReceipt(c *gin.Context) {
 		}
 
 		// delete temp file
-		if err := os.Remove(dest); err != nil {
-			log.Error(err)
-			return
-		}
-		log.Debug("temp file deleted: " + dest)
+		//if err := os.Remove(dest); err != nil {
+		//	log.Error(err)
+		//	return
+		//}
+		//log.Debug("temp file deleted: " + dest)
 	}(f)
 
 	taggunResp, err := taggun_receipt_ocr.ParseReceipt(f)
@@ -517,7 +518,14 @@ func UploadReceipt(c *gin.Context) {
 
 	//log.Debugf("total amount: %v", totalAmount)
 	//log.Debugf("total amount unit: %v", totalAmountUnit)
+	if len(items) == 0 {
+		log.Debug(taggunResp)
+		log.Error("no item found")
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "no item found")
+		return
+	}
 
+	log.Debugf("Found %d items", len(items))
 	subItems := make([]ExpenditureReceiptUploadResponseItem, 0)
 	for _, item := range items {
 		subItems = append(subItems, ExpenditureReceiptUploadResponseItem{
