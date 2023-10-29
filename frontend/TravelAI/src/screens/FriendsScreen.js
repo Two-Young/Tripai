@@ -1,5 +1,5 @@
 import {FlatList, StyleSheet, View} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   acceptFriends,
   cancelFriends,
@@ -81,9 +81,9 @@ const Friends = () => {
     }
   }, [refreshing]);
 
-  useFocusEffect(() => {
+  useEffect(() => {
     fetchFriends();
-  });
+  }, []);
 
   return (
     <FlatList
@@ -161,9 +161,9 @@ const Received = () => {
     }
   }, [refreshing]);
 
-  useFocusEffect(() => {
+  useEffect(() => {
     fetchFriendsWaiting();
-  });
+  }, []);
 
   return (
     <FlatList

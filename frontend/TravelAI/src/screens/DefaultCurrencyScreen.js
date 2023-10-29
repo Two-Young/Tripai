@@ -40,6 +40,7 @@ const DefaultCurrencyScreen = () => {
             />
           </View>
           <FlatList
+            style={{flex: 1}}
             data={currencies.filter(
               item =>
                 item.currency_name.toLowerCase().includes(searchQuery.toLowerCase()) ||

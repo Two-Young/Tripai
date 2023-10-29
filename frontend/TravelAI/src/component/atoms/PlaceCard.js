@@ -28,8 +28,6 @@ const PlaceCard = ({item, onPress, isFirst, isLast, isNext}) => {
     }
   }, [item]);
 
-  // console.log(item);
-
   return (
     <View style={[styles.item, STYLES.PADDING_HORIZONTAL(20)]}>
       <View

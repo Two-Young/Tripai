@@ -74,8 +74,6 @@ const MyRequest = () => {
     }
   }, [refreshing]);
 
-  console.log(request);
-
   return (
     <FlatList
       style={styles.container}

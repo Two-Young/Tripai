@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   addCustomPlaceButton: {
-    alignItems: 'center',
+    alignItems: 'stretch',
     marginTop: 20,
     marginBottom: 20,
     marginHorizontal: 20,
