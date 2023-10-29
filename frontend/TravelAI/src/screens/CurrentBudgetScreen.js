@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    alignItems: 'center',
+    alignItems: 'stretch',
     backgroundColor: colors.primary,
   },
 });

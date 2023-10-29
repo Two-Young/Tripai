@@ -229,6 +229,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   addCustomPlaceButton: {
+    alignItems: 'stretch',
     marginHorizontal: 20,
     backgroundColor: colors.primary,
   },

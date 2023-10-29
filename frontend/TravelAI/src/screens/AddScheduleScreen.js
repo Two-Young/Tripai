@@ -1,6 +1,5 @@
 import {Keyboard, StyleSheet, View, TouchableWithoutFeedback} from 'react-native';
 import React, {useEffect} from 'react';
-import {FAB, IconButton} from 'react-native-paper';
 import {CommonActions, useNavigation, useNavigationState} from '@react-navigation/native';
 import colors from '../theme/colors';
 import {createSchedule} from '../services/api';
@@ -16,7 +15,6 @@ const AddScheduleScreen = () => {
   // states
   const [name, setName] = React.useState('');
   const [place, setPlace] = React.useState({});
-  const [startAt, setStartAt] = React.useState(dayjs().format('YYYY-MM-DD HH:mm'));
   const [note, setNote] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
@@ -27,6 +25,18 @@ const AddScheduleScreen = () => {
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
   const day = navigationState.routes.slice(-1)[0]?.params?.day;
+
+  const [startAt, setStartAt] = React.useState(dayjs(day).format('YYYY-MM-DD HH:mm'));
+
+  console.log(startAt);
+
+  // console.log(day);
+  // console.log(
+  //   dayjs(day)
+  //     .set('hour', dayjs(value).hour())
+  //     .set('minute', dayjs(value).minute())
+  //     .format('YYYY-MM-DD HH:mm'),
+  // );
 
   const tab = navigationState.routes[navigationState.routes.length - 2];
   const target = tab?.state?.routes[1];
@@ -59,7 +69,7 @@ const AddScheduleScreen = () => {
 
   // memo
   const addDisabled = React.useMemo(() => {
-    return name.length === 0 || !Boolean(place?.address);
+    return name.length === 0 || !place?.address;
   }, [name, place]);
 
   return (
@@ -87,7 +97,7 @@ const AddScheduleScreen = () => {
                       .format('YYYY-MM-DD HH:mm'),
                   );
                 }}
-                type="date"
+                type="time"
               />
               <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
             </View>

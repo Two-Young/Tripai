@@ -24,7 +24,9 @@ const ChatScreen = () => {
   const flatListRef = React.useRef();
 
   const sendMessage = React.useCallback(async () => {
-    if (_.isEmpty(inputContent)) return;
+    if (_.isEmpty(inputContent)) {
+      return;
+    }
     if (useChatGPT) {
       socket.emit('sessionChat/sendAssistantMessage', currentSessionID, inputContent);
     } else {
@@ -93,7 +95,7 @@ const ChatScreen = () => {
 
   return (
     <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>
-      <CustomHeader title={'AI CHAT'} leftComponent={<React.Fragment />} />
+      <CustomHeader title={'AI CHAT'} useBack={false} />
       <FlatList
         ref={flatListRef}
         data={messages}

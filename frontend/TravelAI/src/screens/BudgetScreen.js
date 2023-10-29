@@ -35,8 +35,4 @@ const BudgetScreen = () => {
 
 export default BudgetScreen;
 
-const styles = StyleSheet.create({
-  fab: {
-    backgroundColor: colors.primary,
-  },
-});
+const styles = StyleSheet.create({});

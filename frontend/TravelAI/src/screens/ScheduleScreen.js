@@ -197,7 +197,7 @@ const ScheduleScreen = () => {
 
   return (
     <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>
-      <CustomHeader title={'SCHEDULE'} leftComponent={<React.Fragment />} />
+      <CustomHeader title={'SCHEDULE'} useBack={false} />
       <FlatList
         ListHeaderComponent={
           <>
@@ -228,8 +228,12 @@ const ScheduleScreen = () => {
                       'day',
                     );
                     console.log(newIndex);
-                    if (newIndex < 0) return;
-                    if (newIndex >= days.length) return;
+                    if (newIndex < 0) {
+                      return;
+                    }
+                    if (newIndex >= days.length) {
+                      return;
+                    }
                     setCurrentIndex(newIndex + 1);
                   }}
                   markingType="period"
@@ -281,7 +285,7 @@ const ScheduleScreen = () => {
           <PlaceCard
             item={item}
             onPress={onPressScheduleCard}
-            isFirst={0 === index}
+            isFirst={index === 0}
             isLast={schedules.length - 1 === index}
             isNext={nextScheduleIndex === index}
           />

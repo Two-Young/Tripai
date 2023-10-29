@@ -7,7 +7,7 @@ import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import {getLocations, leaveSession} from '../services/api';
 import {useRecoilValue, useRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import {FAB, IconButton} from 'react-native-paper';
+import {Button, FAB, IconButton} from 'react-native-paper';
 import _ from 'lodash';
 import CustomHeader from '../component/molecules/CustomHeader';
 import userAtom from '../recoil/user/user';
@@ -139,7 +139,7 @@ const HomeScreen = () => {
     <View style={defaultStyle.container}>
       <CustomHeader title={'HOME'} />
       <FlatList
-        ListHeaderComponent={() => (
+        ListHeaderComponent={
           <FlatList
             style={{padding: 20}}
             ListHeaderComponent={
@@ -174,7 +174,7 @@ const HomeScreen = () => {
                 left={props => <Avatar.Image size={48} source={{uri: item.profile_image}} />}
               />
             )}
-            ListFooterComponent={() => (
+            ListFooterComponent={
               <>
                 {isOwner && (
                   <FAB
@@ -189,15 +189,15 @@ const HomeScreen = () => {
                 <View style={styles.line} />
                 <Text style={styles.label}>Places</Text>
               </>
-            )}
+            }
           />
-        )}
+        }
         data={places}
         renderItem={item => <PlaceListItem item={item.item} setArr={setPlaces} />}
         keyExtractor={item => item.location_id}
         refreshing={refreshing}
         onRefresh={onRefresh}
-        ListFooterComponent={() => (
+        ListFooterComponent={
           <View style={[STYLES.PADDING_HORIZONTAL(20)]}>
             <FAB
               style={[styles.fab, STYLES.MARGIN_VERTICAL(20)]}
@@ -223,11 +223,11 @@ const HomeScreen = () => {
                 icon="door-open"
                 color="#fff"
                 onPress={onPressDeleteSession}
-                label="Exit"
+                label="Delete"
               />
             )}
           </View>
-        )}
+        }
       />
     </View>
   );
@@ -249,16 +249,15 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   fab: {
-    alignItems: 'center',
-    // margin: 20,
+    alignItems: 'stretch',
     backgroundColor: colors.primary,
   },
   exitButton: {
-    alignItems: 'center',
+    alignItems: 'stretch',
     backgroundColor: colors.gray,
   },
   deleteButton: {
-    alignItems: 'center',
+    alignItems: 'stretch',
     backgroundColor: colors.red,
   },
 });

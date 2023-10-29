@@ -1,17 +1,11 @@
 import React from 'react';
-import {StyleSheet, TouchableOpacity, Text} from 'react-native';
+import {StyleSheet} from 'react-native';
 import {SemiBold} from '../../theme/fonts';
 import colors from '../../theme/colors';
 import {FAB} from 'react-native-paper';
 
 const MainButton = ({icon, onPress, disabled = false, text}) => {
   return (
-    // <TouchableOpacity
-    //   style={[styles.mainButton, {opacity: disabled ? 0.5 : 1}]}
-    //   onPress={onPress}
-    //   disabled={disabled}>
-    //   <Text style={styles.mainButtonText}>{text}</Text>
-    // </TouchableOpacity>
     <FAB
       style={[
         styles.addScheduleButton,
@@ -29,7 +23,7 @@ const MainButton = ({icon, onPress, disabled = false, text}) => {
 
 const styles = StyleSheet.create({
   mainButton: {
-    alignItems: 'center',
+    alignItems: 'stretch',
     marginTop: 20,
     marginBottom: 20,
     marginHorizontal: 20,
