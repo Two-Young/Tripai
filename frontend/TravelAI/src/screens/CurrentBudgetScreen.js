@@ -17,7 +17,7 @@ import sessionAtom from '../recoil/session/session';
 import {SemiBold} from './../theme/fonts';
 import {FAB, List} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
-import {getExpenditures} from '../services/api';
+import {getBudgetSummary, getExpenditures} from '../services/api';
 
 const Card = ({children, style}) => {
   const flipAnimation = React.useRef(new Animated.Value(0)).current;
@@ -150,22 +150,19 @@ const CurrentBudgetScreen = () => {
   }, [startAt, endAt]);
 
   // states
-  const [budget, setBudget] = React.useState(0);
+  const [defaultCurrency, setDefaultCurrency] = React.useState('');
+  const [myBudget, setMyBudget] = React.useState(0);
+  const [sessionBudget, setSessionBudget] = React.useState(0);
   const [spent, setSpent] = React.useState(0);
   const [selectedDay, setSelectedDay] = React.useState();
-  const [expenditures, setExpenditures] = React.useState([
-    {
-      id: 1,
-      name: 'test',
-      amount: 10000,
-    },
-  ]);
+  const [expenditures, setExpenditures] = React.useState([]);
 
   const [open, setOpen] = React.useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
 
-  const spentPercent = React.useMemo(() => (spent / budget) * 100, [spent, budget]);
-  const remaining = React.useMemo(() => budget - spent, [budget, spent]);
-  const remainingPercent = React.useMemo(() => (remaining / budget) * 100, [remaining, budget]);
+  const spentPercent = React.useMemo(() => (spent / myBudget) * 100, [spent, myBudget]);
+  const remaining = React.useMemo(() => myBudget - spent, [myBudget, spent]);
+  const remainingPercent = React.useMemo(() => (remaining / myBudget) * 100, [remaining, myBudget]);
 
   // functions
   const onStateChange = ({open}) => setOpen(open);
@@ -184,6 +181,22 @@ const CurrentBudgetScreen = () => {
       console.error(err);
     }
   }, [currentSessionID]);
+
+  const fetchBudgetSummary = React.useCallback(async () => {
+    try {
+      const res = await getBudgetSummary(currentSessionID);
+      setMyBudget(res.my_budget);
+      setSessionBudget(res.session_budget);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [currentSessionID]);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await fetchExpenditures();
+    setRefreshing(false);
+  }, [fetchExpenditures]);
 
   // effects
   React.useEffect(() => {
@@ -232,6 +245,7 @@ const CurrentBudgetScreen = () => {
         <FlatList
           style={[STYLES.FLEX(1)]}
           data={expenditures}
+          keyExtractor={item => item.expenditure_id}
           renderItem={({item}) => (
             <List.Item
               title={item?.name}
@@ -242,6 +256,8 @@ const CurrentBudgetScreen = () => {
           )}
           ItemSeparatorComponent={<View style={STYLES.PADDING_VERTICAL(5)} />}
           ListEmptyComponent={<Text>Empty</Text>}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
         />
         <FAB style={styles.fab} icon="plus" color={colors.white} onPress={onPressAddExpenditure} />
       </View>

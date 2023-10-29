@@ -65,7 +65,7 @@ const AddBudgetScreen = () => {
 
   const fetchBudgets = async () => {
     try {
-      const res = await getBudget({session_id: currentSessionID});
+      const res = await getBudget(currentSessionID);
       setBudgets(res);
     } catch (err) {
       console.error(err);

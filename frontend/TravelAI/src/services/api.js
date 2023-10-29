@@ -586,7 +586,7 @@ export const getBudgetSummary = async session_id => {
   }
 };
 
-export const getBudget = async ({session_id}) => {
+export const getBudget = async session_id => {
   try {
     const response = await api.get('/platform/budget', {
       params: {
@@ -612,11 +612,37 @@ export const putBudget = async ({currency_code, amount, session_id}) => {
   }
 };
 
+export const postBudget = async ({currency_code, amount, session_id}) => {
+  try {
+    const response = await api.post('/platform/budget', {
+      currency_code,
+      amount,
+      session_id,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const deleteBudget = async budget_id => {
   try {
     const response = await api.delete('/platform/budget', {
       data: {
         budget_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getBudgetCurrent = async session_id => {
+  try {
+    const response = await api.get('/platform/budget/current', {
+      params: {
+        session_id,
       },
     });
     return response.data;
@@ -692,48 +718,11 @@ export const deleteExpenditure = async expenditure_id => {
   }
 };
 
-export const getExpenditureReceipt = async expenditure_id => {
+export const postExpenditureReceipt = async formData => {
   try {
-    const response = await api.get('/platform/expenditure/receipt', {
-      params: {
-        expenditure_id,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const putExpenditureReceipt = async ({expenditure_id, receipt}) => {
-  try {
-    const response = await api.put('/platform/expenditure/receipt', {
-      expenditure_id,
-      receipt,
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const postExpenditureReceipt = async ({expenditure_id, receipt}) => {
-  try {
-    const response = await api.post('/platform/expenditure/receipt', {
-      expenditure_id,
-      receipt,
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const deleteExpenditureReceipt = async expenditure_id => {
-  try {
-    const response = await api.delete('/platform/expenditure/receipt', {
-      data: {
-        expenditure_id,
+    const response = await api.post('/platform/expenditure/receipt', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
       },
     });
     return response.data;

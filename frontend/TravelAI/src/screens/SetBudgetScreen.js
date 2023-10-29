@@ -18,7 +18,7 @@ import Modal from 'react-native-modal';
 import {Icon} from '@rneui/themed';
 import sessionAtom from '../recoil/session/session';
 import {useRecoilValue} from 'recoil';
-import {deleteBudget, getBudget} from '../services/api';
+import {deleteBudget, getBudget, getBudgetCurrent} from '../services/api';
 
 const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) => {
   // states
@@ -134,8 +134,17 @@ const SetBudgetScreen = () => {
   // TODO:: 실제 서버와 연동
   const fetchBudgets = async () => {
     try {
-      const res = await getBudget({session_id: currentSessionID});
-      setBudgets(res);
+      const res = await getBudget(currentSessionID);
+      const res2 = await getBudgetCurrent(currentSessionID);
+      setBudgets(
+        res.map(item => {
+          const current = res2.find(item2 => item2.currency_code === item.currency_code);
+          return {
+            ...item,
+            ...current,
+          };
+        }),
+      );
     } catch (err) {
       console.error(err);
     }
@@ -182,7 +191,7 @@ const SetBudgetScreen = () => {
       <FlatList
         style={STYLES.MARGIN_TOP(20)}
         data={budgets}
-        keyExtractor={item => item.budget_id.toString()}
+        keyExtractor={item => item.budget_id}
         refreshing={refreshing}
         onRefresh={onRefresh}
         renderItem={({item}) => (
