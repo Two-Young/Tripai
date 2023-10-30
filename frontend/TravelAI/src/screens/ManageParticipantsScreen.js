@@ -140,7 +140,9 @@ const ManageParticipantsScreen = () => {
       const requestedFriend = requested.find(
         requestedFriend => requestedFriend.user_id === friendID,
       );
-      if (joinedFriend) {
+      if (session.creator_user_id === friendID) {
+        return 'owner';
+      } else if (joinedFriend) {
         return 'joined';
       } else if (invitingFriend) {
         return 'inviting';
@@ -154,9 +156,15 @@ const ManageParticipantsScreen = () => {
   );
 
   const sections = React.useMemo(() => {
+    const ownerSection = {
+      title: 'Owner',
+      data: joined.find(user => user.user_id === session.creator_user_id)
+        ? [joined.find(user => user.user_id === session.creator_user_id)]
+        : [],
+    };
     const joinedSection = {
       title: 'Participants',
-      data: joined,
+      data: joined.filter(user => user.user_id !== session.creator_user_id),
     };
     const invitingSection = {
       title: 'Inviting',
@@ -170,18 +178,21 @@ const ManageParticipantsScreen = () => {
       title: 'Not Invited',
       data: friends.filter(friend => getJoinStatus(friend?.user_id) === 'none'),
     };
-    return [joinedSection, invitingSection, requestedSection, notInvitedSection];
+    return [ownerSection, joinedSection, invitingSection, requestedSection, notInvitedSection];
   }, [joined, inviting, requested]);
 
   const userRightComponent = React.useCallback(
     user => {
       const joinStatus = getJoinStatus(user?.user_id);
       switch (joinStatus) {
+        case 'owner':
+          return <></>;
         case 'joined':
           return (
             <IconButton
               icon="account-minus"
               iconColor={colors.red}
+              disabled={user?.user_id === session?.creator_user_id}
               onPress={() => onPressExpelMember(user?.user_id)}
               borderless={false}
             />

@@ -1,22 +1,24 @@
-import {ImageBackground, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import {Card, IconButton} from 'react-native-paper';
 import {STYLES} from '../../styles/Stylesheets';
 import colors from '../../theme/colors';
 import {Regular} from '../../theme/fonts';
 import LinearGradient from 'react-native-linear-gradient';
+import dayjs from 'dayjs';
 
 const RightContent = props => <IconButton icon="chevron-right" iconColor="#000" />;
 
 const PlaceCard = ({item, onPress, isFirst, isLast, isNext}) => {
   const {start_at} = item;
 
-  const time = React.useMemo(() => {
-    const date = new Date(start_at);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    return `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}`;
-  }, [start_at]);
+  const time = React.useMemo(
+    () =>
+      dayjs(start_at)
+        .add(-dayjs().utcOffset() / 60, 'hour')
+        .format('HH:mm'),
+    [start_at],
+  );
 
   const subTitle = React.useMemo(() => {
     const {address, memo} = item || {};

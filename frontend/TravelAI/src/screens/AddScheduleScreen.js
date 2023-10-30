@@ -41,7 +41,7 @@ const AddScheduleScreen = () => {
         session_id: currentSessionID,
         name,
         place_id: place?.place_id,
-        start_at: new Date(startAt).getTime(),
+        start_at: new Date(startAt).getTime() + dayjs().utcOffset() * 60 * 1000,
         memo: note,
       });
       navigation.dispatch({
