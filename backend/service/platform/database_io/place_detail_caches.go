@@ -6,6 +6,8 @@ import (
 	"travel-ai/service/database"
 )
 
+// TODO :: validate transactions (cause of "Too many connections" error?)
+
 func ReadPlaceDetailCachesByPlaceId(context context.Context, placeId string) (*database.PlaceDetailCacheEntity, error) {
 	ctx, err := database.DB.BeginTxx(context, nil)
 	if err != nil {
