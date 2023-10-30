@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"time"
 	"travel-ai/log"
 	"travel-ai/util"
 )
@@ -16,15 +17,39 @@ var (
 )
 
 func Preload() error {
+	log.Debugf("Preload started...")
 	// load countries & currency data
-	resp, err := http.Get("https://restcountries.com/v3.1/all?fields=name,flags,cca2,cca3,region,currencies")
+	var countriesData []map[string]interface{}
+	client := &http.Client{
+		Timeout: 3 * time.Second,
+		Transport: &http.Transport{
+			TLSHandshakeTimeout: 3 * time.Second,
+		},
+	}
+	req, err := http.NewRequest("GET", "https://restcountries.com/v3.1/all?fields=name,flags,cca2,cca3,region,currencies", nil)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
-	var countriesData []map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&countriesData); err != nil {
-		return err
+	resp, err := client.Do(req)
+	if err == nil {
+		defer resp.Body.Close()
+		if err := json.NewDecoder(resp.Body).Decode(&countriesData); err != nil {
+			return err
+		}
+	} else {
+		// try to load from local file
+		log.Error(err)
+		log.Warnf("failed to load countries data from restcountries api, so loading from local cache...")
+		path := util.GetRootDirectory() + "/files/resources/country_currencies.json"
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		if err := json.NewDecoder(file).Decode(&countriesData); err != nil {
+			return err
+		}
 	}
 
 	CountriesMap = make(map[string]Country)

@@ -99,7 +99,7 @@ func main() {
 	// Preload
 	if err := platform.Preload(); err != nil {
 		log.Error(err)
-		os.Exit(-3)
+		//os.Exit(-3)
 	}
 
 	// randomize seed
