@@ -1,4 +1,14 @@
-import {FlatList, StyleSheet, View, TextInput, TouchableOpacity, Image} from 'react-native';
+import {
+  Platform,
+  FlatList,
+  StyleSheet,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+} from 'react-native';
 import React, {useEffect} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import CustomHeader from '../component/molecules/CustomHeader';
@@ -11,6 +21,8 @@ import {socket} from '../services/socket';
 import {chatGPTIcon} from '../assets/images';
 import _ from 'lodash';
 import {STYLES} from '../styles/Stylesheets';
+import useBottomSpace from '../utils/useBottomSpace';
+import {Regular} from '../theme/fonts';
 
 const ChatScreen = () => {
   const navigation = useNavigation();
@@ -22,6 +34,8 @@ const ChatScreen = () => {
   const [inputContent, setInputContent] = React.useState('');
 
   const flatListRef = React.useRef();
+
+  const bottomSpace = useBottomSpace();
 
   const sendMessage = React.useCallback(async () => {
     if (_.isEmpty(inputContent)) {
@@ -94,31 +108,37 @@ const ChatScreen = () => {
   }, [flatListRef]);
 
   return (
-    <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>
-      <CustomHeader title={'AI CHAT'} useBack={false} />
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={({item, index}) => <MessageItem {...item} />}
-        contentContainerStyle={STYLES.PADDING(16)}
-      />
-      <View style={[styles.inputComponent, {backgroundColor: useChatGPT ? '#74AA9C' : '#E5E5EA'}]}>
-        <TouchableOpacity
-          style={[STYLES.MARGIN_RIGHT(10)]}
-          onPress={() => setUseChatGPT(prev => !prev)}>
-          <Image source={chatGPTIcon} style={[styles.gptIcon]} />
-        </TouchableOpacity>
-        <TextInput style={styles.input} value={inputContent} onChangeText={setInputContent} />
-        <IconButton
-          icon="send"
-          iconColor={useChatGPT ? '#74AA9C' : colors.white}
-          containerColor={useChatGPT ? colors.white : colors.primary}
-          size={16}
-          style={STYLES.MARGIN(0)}
-          onPress={sendMessage}
+    <KeyboardAvoidingView
+      style={STYLES.FLEX(1)}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={bottomSpace}>
+      <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>
+        <CustomHeader title={'AI CHAT'} useBack={false} />
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={({item, index}) => <MessageItem {...item} />}
+          contentContainerStyle={STYLES.PADDING(16)}
         />
+        <View
+          style={[styles.inputComponent, {backgroundColor: useChatGPT ? '#74AA9C' : '#E5E5EA'}]}>
+          <TouchableOpacity
+            style={[STYLES.MARGIN_RIGHT(12)]}
+            onPress={() => setUseChatGPT(prev => !prev)}>
+            <Image source={chatGPTIcon} style={[styles.gptIcon]} />
+          </TouchableOpacity>
+          <TextInput style={styles.input} value={inputContent} onChangeText={setInputContent} />
+          <IconButton
+            icon="send"
+            iconColor={useChatGPT ? '#74AA9C' : colors.white}
+            containerColor={useChatGPT ? colors.white : colors.primary}
+            size={20}
+            style={STYLES.MARGIN(0)}
+            onPress={sendMessage}
+          />
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -129,19 +149,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 10,
-    paddingHorizontal: 10,
+    padding: 12,
+    // paddingHorizontal: 12,
   },
   gptIcon: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
   },
   input: {
     flex: 1,
     borderRadius: 8,
     padding: 8,
-    marginRight: 10,
+    marginRight: 12,
     backgroundColor: colors.white,
     color: colors.black,
+    ...Regular(16),
   },
 });

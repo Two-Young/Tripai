@@ -89,12 +89,20 @@ const MainScreen = () => {
     }
   };
 
+  const fetchData = async () => {
+    try {
+      await fetchSessions();
+      await fetchCountries();
+      await fetchCurrencies();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   /* effects */
 
   React.useEffect(() => {
-    fetchSessions();
-    fetchCountries();
-    fetchCurrencies();
+    fetchData();
   }, []);
 
   // route.params.refresh가 true일 경우 새로고침을 합니다.
@@ -111,7 +119,7 @@ const MainScreen = () => {
   // 포커스 되면 새로고침을 합니다.
   useFocusEffect(
     React.useCallback(() => {
-      onRefresh();
+      fetchData();
     }, []),
   );
 

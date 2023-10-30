@@ -1,5 +1,7 @@
-import {Alert} from 'react-native';
+import {Alert, StyleSheet, View, Text} from 'react-native';
 import Toast from 'react-native-toast-message';
+import {Regular} from '../theme/fonts';
+import colors from '../theme/colors';
 
 var base64js = require('base64-js');
 
@@ -39,3 +41,50 @@ export const showSuccessToast = message => {
     text2: message,
   });
 };
+
+export const toastConfig = {
+  success: ({text1, text2, props}) => (
+    <View style={[styles.toastLayout, styles.successBackground]}>
+      <Text style={styles.toastMainText}>{text1}</Text>
+      <Text style={styles.toastSubtext}>{text2}</Text>
+    </View>
+  ),
+  error: ({text1, text2, props}) => (
+    <View style={[styles.toastLayout, styles.errorBackground]}>
+      <Text style={styles.toastMainText}>{text1}</Text>
+      <Text style={styles.toastSubtext}>{text2}</Text>
+    </View>
+  ),
+};
+
+const styles = StyleSheet.create({
+  toastLayout: {
+    width: '80%',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 6,
+    shadowColor: colors.black,
+    shadowOffset: {
+      width: 5,
+      height: 5,
+    },
+    shadowOpacity: 0.04,
+    shadowRadius: 3.84,
+    elevation: 2.5,
+  },
+  successBackground: {
+    backgroundColor: '#d0ffff',
+  },
+  errorBackground: {
+    backgroundColor: '#ffd0d0',
+  },
+  toastMainText: {
+    ...Regular(12),
+    color: colors.black,
+  },
+  toastSubtext: {
+    // marginTop: 2,
+    ...Regular(10),
+    color: colors.black,
+  },
+});

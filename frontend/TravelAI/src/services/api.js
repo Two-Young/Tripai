@@ -685,6 +685,7 @@ export const putExpenditure = async ({
   currency_code,
   payers_id,
   distribution,
+  items,
   payed_at,
   session_id,
 }) => {
@@ -694,6 +695,7 @@ export const putExpenditure = async ({
       category,
       total_price,
       currency_code,
+      items,
       payers_id,
       distribution,
       payed_at,
@@ -712,6 +714,7 @@ export const postExpenditure = async ({
   total_price,
   currency_code,
   payers_id,
+  items,
   distribution,
   payed_at,
   session_id,
@@ -724,6 +727,7 @@ export const postExpenditure = async ({
       total_price,
       currency_code,
       payers_id,
+      items,
       distribution,
       payed_at,
       session_id,
@@ -922,6 +926,77 @@ export const inviteChatRoom = async (session_id, invited_user_id) => {
       params: {
         session_id,
         invited_user_id,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSettlement = async session_id => {
+  return {
+    session_usage: {
+      meal: 93.23,
+      lodgment: 328.1,
+      transport: 79.4,
+      shopping: 150,
+      activity: 44,
+      etc: 33,
+      unknown: 0, // 확인되지 않은 카테고리 (있으면 안되긴 하는데 0 이상일 경우 그냥 etc에 포함시켜야 할 듯)
+      total_budget: 500, // 총 예산, UI의 total이랑 다른 개념 (UI의 total은 위 필드를 다 합친 것, 비율은 UI total/total_budget)
+    },
+    my_usage: {
+      meal: 23,
+      lodgment: 35,
+      transport: 93,
+      shopping: 12,
+      activity: 45,
+      etc: 10,
+      unknown: 0, // 확인되지 않은 카테고리 (있으면 안되긴 하는데 0 이상일 경우 그냥 etc에 포함시켜야 할 듯)
+      total_budget: 0, // 총 예산, UI의 total이랑 다른 개념 (UI의 total은 위 필드를 다 합친 것, 비율은 UI total/total_budget)
+    },
+    settlements: [
+      {
+        owed: false, // true일 경우 상대에게 빚진 것 (갚아야함), false일 경우 받을 돈
+        target_user_id: '1',
+        amount: 100, //double
+        currency_code: 'USD',
+      },
+      {
+        owed: true, // true일 경우 상대에게 빚진 것 (갚아야함), false일 경우 받을 돈
+        target_user_id: '2',
+        amount: 2000, //double
+        currency_code: 'USD',
+      },
+      {
+        owed: false, // true일 경우 상대에게 빚진 것 (갚아야함), false일 경우 받을 돈
+        target_user_id: '3',
+        amount: 130, //double
+        currency_code: 'USD',
+      },
+    ],
+  };
+  // try {
+
+  //   const response = await api.get('/platform/settlement', {
+  //     params: {
+  //       session_id,
+  //       user_id,
+  //     },
+  //   });
+  //   return response.data;
+  // } catch (error) {
+  //   throw error;
+  // }
+};
+
+export const completeSettlement = async (session_id, target_user_id) => {
+  try {
+    const response = await api.post('/platform/settlement/complete', {
+      params: {
+        session_id,
+        target_user_id,
       },
     });
     return response.data;

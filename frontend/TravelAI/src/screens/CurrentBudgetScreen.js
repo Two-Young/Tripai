@@ -336,7 +336,7 @@ const CurrentBudgetScreen = () => {
   // 포커스 되면 새로고침을 합니다.
   useFocusEffect(
     React.useCallback(() => {
-      onRefresh();
+      fetchData();
     }, []),
   );
 

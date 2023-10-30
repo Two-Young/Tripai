@@ -34,7 +34,8 @@ import Fraction from 'fraction.js';
 import reactotron from 'reactotron-react-native';
 import currenciesAtom from '../recoil/currencies/currencies';
 import _ from 'lodash';
-import {requestAlert} from '../utils/utils';
+import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
+import LoadingModal from '../component/atoms/LoadingModal';
 
 const FlatListRenderItem = ({data}) => {
   const {
@@ -138,7 +139,8 @@ const FirstSection = ({data}) => {
     const totalAmount = Number(total.replace(/,/g, ''));
     const totalParticipants = distribution.length;
 
-    const f1 = new Fraction(totalAmount, totalParticipants);
+    var f1 = new Fraction(totalAmount);
+    f1 = f1.div(totalParticipants);
     setDistribution(prev => {
       return prev.map(el => ({
         ...el,
@@ -388,7 +390,7 @@ const ExpenditureBottomSheet = ({data}) => {
   const totalInputRef = React.useRef(null);
 
   // variables
-  const snapPoints = React.useMemo(() => [65, '50%'], []);
+  const snapPoints = React.useMemo(() => [63, '50%'], []);
 
   // callbacks
 
@@ -768,27 +770,36 @@ const AddExpenditureScreen = () => {
         name: result.assets[0].fileName,
         type: result.assets[0].type,
       });
-
-      // const res = await postExpenditureReceipt(formData);
-      // setCurrencyCode(res.currency_code);
-      // setItems(res.items.map(el => ({...el, id: 'id' + Math.random().toString(16).slice(2)})));
-
-      setItems([
-        {
+      setLoading(true);
+      const res = await postExpenditureReceipt(formData);
+      setCurrencyCode(res.currency_code);
+      setItems(
+        res.items.map(el => ({
+          label: el.label,
+          price: el.price.toLocaleString(),
           id: 'id' + Math.random().toString(16).slice(2),
-          label: 'Cola 2.0L',
-          price: '6,350',
-          allocations: [],
-        },
-        {
-          id: 'id' + Math.random().toString(16).slice(2),
-          label: 'Organic Salad',
-          price: '23,000',
-          allocations: [],
-        },
-      ]);
+        })),
+      );
+      setTotal(res.items.reduce((acc, cur) => acc + cur.price, 0).toLocaleString());
+
+      // setItems([
+      //   {
+      //     id: 'id' + Math.random().toString(16).slice(2),
+      //     label: 'Cola 2.0L',
+      //     price: '6,350',
+      //     allocations: [],
+      //   },
+      //   {
+      //     id: 'id' + Math.random().toString(16).slice(2),
+      //     label: 'Organic Salad',
+      //     price: '23,000',
+      //     allocations: [],
+      //   },
+      // ]);
     } catch (error) {
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -812,8 +823,9 @@ const AddExpenditureScreen = () => {
         session_id: currentSessionID,
       });
       navigation.goBack();
+      showSuccessToast('Expenditure added successfully');
     } catch (error) {
-      throw error;
+      showErrorToast(error);
     }
   };
 
@@ -910,8 +922,29 @@ const AddExpenditureScreen = () => {
 
   useFocusEffect(onFocusEffect); // register callback to focus events
 
+  React.useEffect(() => {
+    if (items.length >= 0) {
+      setTotal(
+        items
+          .reduce((acc, cur) => {
+            return acc + Number(cur.price.replace(/,/g, ''));
+          }, 0)
+          .toLocaleString(),
+      );
+    }
+  }, [items]);
+
+  const [loading, setLoading] = React.useState(false);
+
   return (
-    <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
+    <SafeArea
+      top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
+      bottom={{
+        style: {
+          backgroundColor: fetching ? colors.white : colors.primary,
+        },
+      }}>
+      <LoadingModal isVisible={loading} />
       <CustomHeader
         title={route.params?.expenditure_id ? 'Edit Expenditure' : 'Add Expenditure'}
         theme={CUSTOM_HEADER_THEME.WHITE}
