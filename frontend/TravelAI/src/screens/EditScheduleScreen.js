@@ -62,7 +62,7 @@ const EditScheduleScreen = () => {
         name,
         address: place.address,
         place_id: place.place_id,
-        start_at: new Date(startAt).getTime(),
+        start_at: new Date(startAt).getTime() + dayjs().utcOffset() * 60 * 1000,
         memo: note,
       });
       navigation.dispatch({
@@ -82,17 +82,6 @@ const EditScheduleScreen = () => {
     return name.length === 0 || place?.address?.length === 0 || loading;
   }, [name, place]);
 
-  const isUpdated = React.useMemo(() => {
-    return !_.isEqual(route.params?.schedule, {
-      schedule_id: scheduleID,
-      name,
-      address: place.address,
-      place_id: place?.place_id,
-      start_at: new Date(startAt).getTime(),
-      memo: note,
-    });
-  }, [route.params?.schedule, scheduleID, name, place, note]);
-
   React.useEffect(() => {
     if (route.params?.schedule) {
       const {
@@ -109,7 +98,11 @@ const EditScheduleScreen = () => {
         address,
         place_id,
       });
-      setStartAt(dayjs(start_at).format('YYYY-MM-DD HH:mm'));
+      setStartAt(
+        dayjs(start_at)
+          .add(-dayjs().utcOffset() / 60, 'hour')
+          .format('YYYY-MM-DD HH:mm'),
+      );
       setNote(memo ?? '');
     }
   }, [route.params?.schedule]);

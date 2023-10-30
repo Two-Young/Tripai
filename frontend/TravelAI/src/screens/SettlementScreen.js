@@ -25,8 +25,9 @@ const SettlementScreen = () => {
 
   // TODO: fetch settlements from API
   const fetchSettlements = async () => {
+    console.log(currentSession);
     try {
-      const data = await getSettlement(currentSession.session_id, user?.user_info?.user_id);
+      const data = await getSettlement(currentSession.session_id);
       setSettlement(data);
     } catch (err) {
       showErrorToast(err);
