@@ -19,6 +19,7 @@ import {Icon} from '@rneui/themed';
 import sessionAtom from '../recoil/session/session';
 import {useRecoilValue} from 'recoil';
 import {deleteBudget, getBudget, getBudgetCurrent} from '../services/api';
+import reactotron from 'reactotron-react-native';
 
 const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) => {
   // states
@@ -136,6 +137,8 @@ const SetBudgetScreen = () => {
     try {
       const res = await getBudget(currentSessionID);
       const res2 = await getBudgetCurrent(currentSessionID);
+      reactotron.log(res);
+      reactotron.log(res2);
       setBudgets(
         res.map(item => {
           const current = res2.find(item2 => item2.currency_code === item.currency_code);
@@ -188,7 +191,7 @@ const SetBudgetScreen = () => {
   // 포커스 되면 새로고침
   useFocusEffect(
     React.useCallback(() => {
-      onRefresh();
+      fetchBudgets();
     }, []),
   );
 
@@ -197,7 +200,7 @@ const SetBudgetScreen = () => {
       <FlatList
         style={STYLES.MARGIN_TOP(20)}
         data={budgets}
-        keyExtractor={item => item.budget_id}
+        keyExtractor={item => item?.budget_id}
         refreshing={refreshing}
         onRefresh={onRefresh}
         renderItem={({item}) => (
