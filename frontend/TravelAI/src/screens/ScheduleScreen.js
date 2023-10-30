@@ -180,6 +180,9 @@ const ScheduleScreen = () => {
   }, [schedules, currentIndex]);
 
   const nextScheduleIndex = React.useMemo(() => {
+    if (dayjs().date() !== dayjs(days[currentIndex - 1]).date()) {
+      return -1;
+    }
     let result = 0;
     for (let i = 0; i < schedules.length; i++) {
       if (dayjs(schedules[i].start_at).isAfter(dayjs())) {
