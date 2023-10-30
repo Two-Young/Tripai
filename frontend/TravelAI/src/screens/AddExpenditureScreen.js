@@ -388,7 +388,7 @@ const ExpenditureBottomSheet = ({data}) => {
   const totalInputRef = React.useRef(null);
 
   // variables
-  const snapPoints = React.useMemo(() => [65, '50%'], []);
+  const snapPoints = React.useMemo(() => [63, '50%'], []);
 
   // callbacks
 
@@ -911,7 +911,13 @@ const AddExpenditureScreen = () => {
   useFocusEffect(onFocusEffect); // register callback to focus events
 
   return (
-    <SafeArea top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}>
+    <SafeArea
+      top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
+      bottom={{
+        style: {
+          backgroundColor: colors.primary,
+        },
+      }}>
       <CustomHeader
         title={route.params?.expenditure_id ? 'Edit Expenditure' : 'Add Expenditure'}
         theme={CUSTOM_HEADER_THEME.WHITE}
