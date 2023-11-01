@@ -76,6 +76,8 @@ const ChatScreen = () => {
     }
   }, []);
 
+  // TODO:: Chat GPT의 경우, Box 하나에 메시지가 추가되는 형태로 구현 (byte 단위로 와서 그럼)
+
   useEffect(() => {
     socket.on('sessionChat/getMessages', getMessagesCallback);
     socket.on('sessionChat/message', messageCallback);

@@ -15,13 +15,22 @@ import dayjs from 'dayjs';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {SemiBold} from './../theme/fonts';
-import {FAB, List} from 'react-native-paper';
+import {FAB} from 'react-native-paper';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {getBudgetSummary, getExpenditures} from '../services/api';
 import {Icon} from '@rneui/themed';
+import currenciesAtom from '../recoil/currencies/currencies';
 import reactotron from 'reactotron-react-native';
+import {showErrorToast} from '../utils/utils';
 
 const Card = ({myBudget, sessionBudget, currencyCode}) => {
+  const currencies = useRecoilValue(currenciesAtom);
+
+  const symbol = React.useMemo(() => {
+    const currency = currencies.find(item => item.currency_code === currencyCode);
+    return currency?.currency_symbol;
+  }, [currencies, currencyCode]);
+
   const flipAnimation = React.useRef(new Animated.Value(0)).current;
 
   let flipRotation = 0;
@@ -64,14 +73,22 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
 
   const spentRatio = React.useMemo(() => {
     if (!myBudget || myBudget?.total === 0) {
-      return 0;
+      if (myBudget?.spent >= 0) {
+        return 100;
+      } else {
+        return 0;
+      }
     }
-    return (sessionBudget?.total / myBudget?.total) * 100;
+    return (myBudget?.spent / myBudget?.total) * 100;
   }, [myBudget]);
 
   const sessionSpentRatio = React.useMemo(() => {
     if (!sessionBudget || sessionBudget?.total === 0) {
-      return 0;
+      if (sessionBudget?.spent >= 0) {
+        return 100;
+      } else {
+        return 0;
+      }
     }
     return (sessionBudget?.spent / sessionBudget?.total) * 100;
   }, [sessionBudget]);
@@ -90,12 +107,14 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
             backgroundColor="black"
           />
           <View style={styles.boxWrapper}>
-            <Text style={styles.boxText}>You spent {spentRatio}%</Text>
+            <Text style={styles.boxText}>
+              You spent {spentRatio.toFixed(3).replace(/\.00$/, '').replace(/\.0$/, '')}%
+            </Text>
             <Text style={styles.boxBold}>
-              {myBudget?.spent?.toLocaleString()} {currencyCode}
+              {symbol} {myBudget?.spent?.toLocaleString()}
             </Text>
             <Text style={styles.boxText}>
-              of {myBudget?.total?.toLocaleString()} {currencyCode}
+              of {symbol} {myBudget?.total?.toLocaleString()}
             </Text>
           </View>
         </View>
@@ -113,12 +132,14 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
             backgroundColor="black"
           />
           <View style={styles.boxWrapper}>
-            <Text style={styles.boxText}>Members spent {sessionSpentRatio}%</Text>
+            <Text style={styles.boxText}>
+              Members spent {sessionSpentRatio.toFixed(3).replace(/\.00$/, '').replace(/\.0$/, '')}%
+            </Text>
             <Text style={styles.boxBold}>
-              {sessionBudget?.spent?.toLocaleString()} {currencyCode}
+              {symbol} {sessionBudget?.spent?.toLocaleString()}
             </Text>
             <Text style={styles.boxText}>
-              of {sessionBudget?.total?.toLocaleString()} {currencyCode}
+              of {symbol} {sessionBudget?.total?.toLocaleString()}
             </Text>
           </View>
         </View>
@@ -128,10 +149,9 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
 };
 
 const DayItem = ({item, selectedDay, onPress}) => {
-  const {dayName, date, isToday} = item;
+  const {date, spent} = item;
 
   const day = React.useMemo(() => dayjs(date).format('DD'), [date]);
-  const month = React.useMemo(() => dayjs(date).format('MMM'), [date]);
 
   const isSelected = React.useMemo(() => selectedDay?.date === date, [selectedDay, date]);
 
@@ -141,6 +161,7 @@ const DayItem = ({item, selectedDay, onPress}) => {
       onPress={onPress}>
       <View style={STYLES.ALIGN_CENTER}>
         <Text style={[styles.day, isSelected && styles.selectedText]}>{day}</Text>
+        <Text style={[styles.spent, isSelected && styles.selectedText]}>{spent}%</Text>
       </View>
     </TouchableOpacity>
   );
@@ -235,20 +256,6 @@ const CurrentBudgetScreen = () => {
   const startAt = React.useMemo(() => dayjs(start_at).format('YYYY-MM-DD'), [start_at]);
   const endAt = React.useMemo(() => dayjs(end_at).format('YYYY-MM-DD'), [end_at]);
 
-  const tripDays = React.useMemo(() => {
-    const dates = [];
-    let currentDate = dayjs(startAt);
-
-    while (currentDate.isBefore(endAt) || currentDate.isSame(endAt)) {
-      dates.push({
-        date: currentDate.format('YYYY-MM-DD'),
-        isToday: currentDate.isSame(dayjs(), 'day'),
-      });
-      currentDate = currentDate.add(1, 'day');
-    }
-    return dates;
-  }, [startAt, endAt]);
-
   // states
   const [defaultCurrency, setDefaultCurrency] = React.useState('');
   const [myBudget, setMyBudget] = React.useState(0);
@@ -259,6 +266,51 @@ const CurrentBudgetScreen = () => {
   const [expenditures, setExpenditures] = React.useState([]);
 
   const [refreshing, setRefreshing] = React.useState(false);
+
+  const tripDays = React.useMemo(() => {
+    const dates = [];
+    let currentDate = dayjs(startAt);
+
+    const totalSpent = Object.values(spentByDay || {}).reduce((acc, cur) => acc + cur, 0);
+
+    while (currentDate.isBefore(endAt) || currentDate.isSame(endAt)) {
+      let spent = 0;
+      spent = spentByDay?.[currentDate.format('YYYY-MM-DD')] || 0;
+      let spentRatio = 0;
+      if (totalSpent > 0) {
+        spentRatio = ((spent / totalSpent) * 100).toFixed(2).replace(/\.00$/, '');
+      } else if (spent > 0) {
+        spentRatio = 100;
+      }
+
+      dates.push({
+        date: currentDate.format('YYYY-MM-DD'),
+        isToday: currentDate.isSame(dayjs(), 'day'),
+        spent: spentRatio,
+      });
+      currentDate = currentDate.add(1, 'day');
+    }
+    return dates;
+  }, [startAt, endAt, spentByDay]);
+
+  const previousSpentRatio = React.useMemo(() => {
+    const totalSpent = Object.values(spentByDay || {}).reduce((acc, cur) => acc + cur, 0);
+    const keys = Object.keys(spentByDay || {});
+    let previousSpent = 0;
+
+    for (let i = keys.length - 1; i >= 0; i--) {
+      if (dayjs(keys[i]).isBefore(dayjs(tripDays[0].date))) {
+        previousSpent += spentByDay?.[keys[i]] || 0;
+      }
+    }
+
+    if (totalSpent > 0) {
+      return ((previousSpent / totalSpent) * 100).toFixed(2).replace(/\.00$/, '');
+    } else if (previousSpent > 0) {
+      return 100;
+    }
+    return 0;
+  }, [spentByDay, tripDays]);
 
   const filteredExpenditures = React.useMemo(() => {
     if (selectedDay === 'A') {
@@ -271,7 +323,6 @@ const CurrentBudgetScreen = () => {
   }, [selectedDay, expenditures, tripDays]);
 
   // functions
-
   const onPressAddExpenditure = () => {
     navigation.navigate('AddExpenditure', {
       date: selectedDay?.date,
@@ -292,14 +343,20 @@ const CurrentBudgetScreen = () => {
       const res = await getBudgetSummary(currentSessionID);
       setMyBudget(res.my_budget);
       setSessionBudget(res.session_budget);
+      setDefaultCurrency(res.currency_code);
+      setSpentByDay(res.spent_by_day);
     } catch (err) {
       console.error(err);
     }
   }, [currentSessionID]);
 
   const fetchData = React.useCallback(async () => {
-    await fetchBudgetSummary();
-    await fetchExpenditures();
+    try {
+      await fetchBudgetSummary();
+      await fetchExpenditures();
+    } catch (err) {
+      showErrorToast(err);
+    }
   }, [fetchBudgetSummary, fetchExpenditures]);
 
   const onRefresh = React.useCallback(async () => {
@@ -359,7 +416,7 @@ const CurrentBudgetScreen = () => {
               selectedDay === 'A' && styles.selectedDayItem,
             ]}
             onPress={() => setSelectedDay('A')}>
-            <Text style={[styles.day, selectedDay === 'A' && styles.selectedText]}>A</Text>
+            <Text style={[styles.day, selectedDay === 'A' && styles.selectedText]}>All</Text>
           </TouchableOpacity>
           <View style={STYLES.PADDING_VERTICAL(5)} />
           <TouchableOpacity
@@ -369,7 +426,10 @@ const CurrentBudgetScreen = () => {
               selectedDay === 'P' && styles.selectedDayItem,
             ]}
             onPress={() => setSelectedDay('P')}>
-            <Text style={[styles.day, selectedDay === 'P' && styles.selectedText]}>P</Text>
+            <Text style={[styles.day, selectedDay === 'P' && styles.selectedText]}>Pre</Text>
+            <Text style={[styles.spent, selectedDay === 'P' && styles.selectedText]}>
+              {previousSpentRatio}%
+            </Text>
           </TouchableOpacity>
           <View style={STYLES.PADDING_VERTICAL(5)} />
           <View style={styles.divider} />
@@ -476,8 +536,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.black,
   },
-  month: {
-    fontSize: 12,
+  spent: {
+    fontSize: 8,
     color: '#7D848D',
   },
   selectedText: {
