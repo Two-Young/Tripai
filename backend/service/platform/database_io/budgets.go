@@ -34,6 +34,17 @@ func GetBudget(budgetId string) (*database.BudgetEntity, error) {
 	return &budget, nil
 }
 
+func UpdateBudgetTx(tx *sql.Tx, budgetId string, amount float64) error {
+	if _, err := tx.Exec(`
+		UPDATE budgets SET amount = ?
+		WHERE bid = ?;`,
+		amount, budgetId,
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
 func InsertBudgetTx(tx *sql.Tx, budget database.BudgetEntity) error {
 	if _, err := tx.Exec(`
 		INSERT INTO budgets(bid, currency_code, amount, uid, sid) 

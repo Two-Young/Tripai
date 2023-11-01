@@ -123,7 +123,7 @@ type SessionThumbnailCacheEntity struct {
 }
 
 type PlaceDetailCacheEntity struct {
-	PlaceId        *string  `db:"place_id" json:"place_id"`
+	PlaceId        string   `db:"place_id" json:"place_id"`
 	Name           *string  `db:"name" json:"name"`
 	Address        *string  `db:"address" json:"address"`
 	PhotoReference *string  `db:"photo_reference" json:"photo_reference"`

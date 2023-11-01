@@ -114,21 +114,68 @@ func GetExpenditureDistributionsBySessionIdAndUserId(sessionId string, userId st
 	return distributions, nil
 }
 
-type ExpenditureDistributionWithPayerEntity struct {
+type ExpenditureDistributionsEntity struct {
 	database.ExpenditureEntity
-	Distributions []database.ExpenditureDistributionEntity
-	Payers        []database.UserEntity
+	UserId      string `db:"uid" json:"user_id"`
+	Numerator   int64  `db:"num" json:"numerator"`
+	Denominator int64  `db:"denom" json:"denominator"`
 }
 
-func GetExpenditureDistributionWithPayersBySessionId(sessionId string) ([]*ExpenditureDistributionWithPayerEntity, error) {
-	var distributions []*ExpenditureDistributionWithPayerEntity
-	if err := database.DB.Select(&distributions,
-		`SELECT expenditures.*, expenditure_distribution.*, users.* 
-		FROM expenditures
-		INNER JOIN expenditure_distribution ON expenditures.eid = expenditure_distribution.eid
-		INNER JOIN users ON expenditure_distribution.uid = users.uid
+type ExpenditureWithPayerEntity struct {
+	database.ExpenditureEntity
+	UserId string `db:"uid" json:"user_id"`
+}
+
+type ExpenditureDistributionWithPayerMapEntity struct {
+	database.ExpenditureEntity
+	Distributions []database.ExpenditureDistributionEntity
+	Payers        []string
+}
+
+func GetExpenditureDistributionWithPayersBySessionId(sessionId string) ([]*ExpenditureDistributionWithPayerMapEntity, error) {
+	var result []*ExpenditureDistributionWithPayerMapEntity
+	var dists []ExpenditureDistributionsEntity
+	var payers []ExpenditureWithPayerEntity
+
+	if err := database.DB.Select(&dists,
+		`SELECT expenditures.*, ed.uid, ed.num, ed.denom
+		FROM expenditure_distribution ed
+		INNER JOIN expenditures ON ed.eid = expenditures.eid
 		WHERE expenditures.sid = ?;`, sessionId); err != nil {
 		return nil, err
 	}
-	return distributions, nil
+
+	if err := database.DB.Select(&payers,
+		`SELECT expenditures.*, users.uid
+		FROM expenditure_payers ep
+		INNER JOIN expenditures ON ep.eid = expenditures.eid
+		INNER JOIN users ON ep.uid = users.uid
+		WHERE expenditures.sid = ?;`, sessionId); err != nil {
+		return nil, err
+	}
+
+	// group by expenditure id
+	distsMap := make(map[string]*ExpenditureDistributionWithPayerMapEntity)
+	for _, dist := range dists {
+		if _, ok := distsMap[dist.ExpenditureId]; !ok {
+			distsMap[dist.ExpenditureId] = &ExpenditureDistributionWithPayerMapEntity{
+				ExpenditureEntity: dist.ExpenditureEntity,
+				Distributions:     make([]database.ExpenditureDistributionEntity, 0),
+				Payers:            make([]string, 0),
+			}
+		}
+		distsMap[dist.ExpenditureId].Distributions = append(distsMap[dist.ExpenditureId].Distributions, database.ExpenditureDistributionEntity{
+			ExpenditureId: dist.ExpenditureId,
+			UserId:        dist.UserId,
+			Numerator:     dist.Numerator,
+			Denominator:   dist.Denominator,
+		})
+	}
+
+	// to list
+	for _, dist := range distsMap {
+		result = append(result, dist)
+	}
+
+	return result, nil
 }

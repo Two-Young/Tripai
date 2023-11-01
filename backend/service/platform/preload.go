@@ -14,6 +14,8 @@ var (
 	AppServerHost string
 	AppServerPort = os.Getenv("APP_SERVER_PORT")
 	DebugMode     = os.Getenv("DEBUG") == "true"
+
+	GptBrainWashPrompt = ""
 )
 
 func Preload() error {
@@ -77,6 +79,14 @@ func Preload() error {
 			Currencies: currencies,
 		}
 	}
+
+	// load gpt brainwash prompt
+	path := util.GetRootDirectory() + "/files/resources/gpt_brainwash_prompt.txt"
+	content, err := os.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	GptBrainWashPrompt = string(content)
 
 	// load public ip
 	ipv4, err := util.GetPublicIp()

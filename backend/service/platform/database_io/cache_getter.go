@@ -15,7 +15,7 @@ var (
 
 func GetPlaceDetailCache(ctx context.Context, placeId string) (*database.PlaceDetailCacheEntity, error) {
 	// check for cache
-	cache, err := ReadPlaceDetailCachesByPlaceId(ctx, placeId)
+	cache, err := ReadPlaceDetailCachesByPlaceId(placeId)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Warn(err)
 		return nil, err
@@ -40,7 +40,7 @@ func GetPlaceDetailCache(ctx context.Context, placeId string) (*database.PlaceDe
 		latLng := result.Geometry.Location.String()
 		hit := 0
 		placeDetailCache := &database.PlaceDetailCacheEntity{
-			PlaceId:        &result.PlaceID,
+			PlaceId:        result.PlaceID,
 			Name:           &result.Name,
 			Address:        &result.FormattedAddress,
 			PhotoReference: nil,

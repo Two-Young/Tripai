@@ -131,3 +131,22 @@ func (cm ChatMessage) String() (string, error) {
 	}
 	return string(bytes), nil
 }
+
+type GptResponseStartEvent struct {
+	GptResponseId string `json:"gpt_response_id"`
+}
+
+type GptResponseStreamEvent struct {
+	GptResponseId string `json:"gpt_response_id"`
+	Content       string `json:"content"`
+}
+
+type GptResponseEndEvent struct {
+	GptResponseId   string `json:"gpt_response_id"`
+	CompleteContent string `json:"complete_content"`
+}
+
+type GptResponseErrorEvent struct {
+	GptResponseId string `json:"gpt_response_id"`
+	ErrorMessage  string `json:"error_message"`
+}

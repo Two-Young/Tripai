@@ -6,6 +6,7 @@ import (
 	"net/http"
 	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
+	"travel-ai/service/database"
 	"travel-ai/service/platform"
 	"travel-ai/service/platform/database_io"
 )
@@ -136,13 +137,13 @@ func SettlementInfo(c *gin.Context) {
 		// add paid amount to userPayments
 		paidDivision := stdTotalPrice / float64(len(exp.Payers))
 		for _, payer := range exp.Payers {
-			prev, ok := userPayments[payer.UserId]
+			prev, ok := userPayments[payer]
 			if !ok {
-				log.Debugf("user not found: %s", payer.UserId)
+				log.Debugf("user not found: %s", payer)
 				continue
 			}
 			prev.Paid += paidDivision
-			userPayments[payer.UserId] = prev
+			userPayments[payer] = prev
 		}
 
 		// add used amount to userPayments
@@ -392,8 +393,29 @@ func CompleteSettlement(c *gin.Context) {
 		return
 	}
 
-	// add transaction
+	tx, err := database.DB.BeginTx(c, nil)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
 
+	// add transaction
+	if err := database_io.InsertTransactionTx(tx, body.SessionId, &database.TransactionEntity{}); err != nil {
+		log.Error(err)
+		_ = tx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// commit
+	if err := tx.Commit(); err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
 }
 
 func UseSettlementRouter(g *gin.RouterGroup) {
