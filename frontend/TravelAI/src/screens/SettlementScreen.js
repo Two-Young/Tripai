@@ -25,7 +25,6 @@ const SettlementScreen = () => {
 
   // TODO: fetch settlements from API
   const fetchSettlements = async () => {
-    console.log(currentSession);
     try {
       const data = await getSettlement(currentSession.session_id);
       setSettlement(data);
@@ -93,8 +92,10 @@ const SettlementScreen = () => {
   }, [refreshing]);
 
   React.useEffect(() => {
-    fetchSettlements();
-  }, []);
+    if (currentSession?.session_id) {
+      fetchSettlements();
+    }
+  }, [currentSession]);
 
   console.log(settlement);
 
