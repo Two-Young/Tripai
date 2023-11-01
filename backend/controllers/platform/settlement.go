@@ -363,7 +363,37 @@ func SettlementInfo(c *gin.Context) {
 }
 
 func CompleteSettlement(c *gin.Context) {
-	// TODO :: implement
+	uid := c.GetString("uid")
+
+	var body SettlementCompleteRequestDto
+	if err := c.ShouldBindQuery(&body); err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body: "+err.Error())
+		return
+	}
+
+	// check if session exists
+	_, err := database_io.GetSession(body.SessionId)
+	if err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "session does not exist")
+		return
+	}
+
+	// check if user is in session
+	yes, err := platform.IsSessionMember(uid, body.SessionId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	if !yes {
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "user is not in session")
+		return
+	}
+
+	// add transaction
+
 }
 
 func UseSettlementRouter(g *gin.RouterGroup) {

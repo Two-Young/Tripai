@@ -494,3 +494,10 @@ type SettlementInfoGetResponseDto struct {
 	MyUsage      SettlementInfoUsage        `json:"my_usage"`
 	Settlements  []SettlementInfoSettlement `json:"settlements"`
 }
+
+type SettlementCompleteRequestDto struct {
+	TargetUserId string  `json:"target_user_id" binding:"required"`
+	Amount       float64 `json:"amount" binding:"required"`
+	CurrencyCode string  `json:"currency_code" binding:"required"`
+	SessionId    string  `json:"session_id" binding:"required"`
+}
