@@ -9,7 +9,7 @@ import {
   rejectFriends,
 } from '../services/api';
 import {FAB, IconButton} from 'react-native-paper';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader from '../component/molecules/CustomHeader';
 import {STYLES} from '../styles/Stylesheets';
@@ -75,9 +75,15 @@ const Friends = () => {
     }
   }, [refreshing]);
 
-  useEffect(() => {
-    fetchFriends();
-  }, []);
+  // useEffect(() => {
+  //   fetchFriends();
+  // }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchFriends();
+    }, []),
+  );
 
   return (
     <FlatList
@@ -122,7 +128,7 @@ const Received = () => {
       const data = await getFriendsWaiting();
       setReceivedFriends(data.received);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -155,9 +161,15 @@ const Received = () => {
     }
   }, [refreshing]);
 
-  useEffect(() => {
-    fetchFriendsWaiting();
-  }, []);
+  // useEffect(() => {
+  //   fetchFriendsWaiting();
+  // }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchFriendsWaiting();
+    }, []),
+  );
 
   return (
     <FlatList
@@ -214,7 +226,7 @@ const Sent = () => {
       const data = await getFriendsWaiting();
       setSentFriends(data.sent);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -236,6 +248,12 @@ const Sent = () => {
       });
     }
   }, [refreshing]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchFriendsWaiting();
+    }, []),
+  );
 
   return (
     <FlatList

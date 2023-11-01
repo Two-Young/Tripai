@@ -566,7 +566,11 @@ const ManageDistributionModal = ({data}) => {
                   } else {
                     newData.push({
                       user_id: item.user_id,
-                      amount: '',
+                      amount: {
+                        num: 0,
+                        denom: 0,
+                        string: '',
+                      },
                     });
                     setDistribution(newData);
                   }
@@ -818,7 +822,10 @@ const AddExpenditureScreen = () => {
             denom: el.amount.denom,
           },
         })),
-        items: items,
+        items: items.map(el => ({
+          label: el.label,
+          price: Number(el.price.replace(/,/g, '')),
+        })),
         payed_at: Date.parse(time + 'Z'),
         session_id: currentSessionID,
       });

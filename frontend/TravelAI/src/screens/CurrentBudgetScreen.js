@@ -298,7 +298,7 @@ const CurrentBudgetScreen = () => {
   }, [currentSessionID]);
 
   const fetchData = React.useCallback(async () => {
-    // await fetchBudgetSummary();
+    await fetchBudgetSummary();
     await fetchExpenditures();
   }, [fetchBudgetSummary, fetchExpenditures]);
 

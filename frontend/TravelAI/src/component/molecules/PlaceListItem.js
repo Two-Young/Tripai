@@ -5,6 +5,7 @@ import {API_URL_PROD, deleteLocation, locatePlacePhoto} from '../../services/api
 import {arrayBufferToBase64} from '../../utils/utils';
 import {STYLES} from '../../styles/Stylesheets';
 import colors from '../../theme/colors';
+import defaultPlace from '../../assets/images/default-place.png';
 
 const PlaceListItem = props => {
   const {item, onPress, setArr} = props;
@@ -15,7 +16,7 @@ const PlaceListItem = props => {
   const getPhoto = async () => {
     try {
       const res = await locatePlacePhoto(photo_reference, 400);
-      setImageData(arrayBufferToBase64(res));
+      setImageData(`data:image/jpeg;base64,${arrayBufferToBase64(res)}`);
     } catch (err) {
       console.error(err);
     }
@@ -45,8 +46,18 @@ const PlaceListItem = props => {
   };
 
   React.useEffect(() => {
-    getPhoto();
-  }, []);
+    if (photo_reference) {
+      getPhoto();
+    }
+  }, [photo_reference]);
+
+  const image = React.useMemo(() => {
+    if (imageData) {
+      return {uri: imageData};
+    } else {
+      return defaultPlace;
+    }
+  }, [imageData]);
 
   return (
     <ListItem.Swipeable
@@ -70,14 +81,7 @@ const PlaceListItem = props => {
           buttonStyle={{minHeight: '100%', backgroundColor: colors.red}}
         />
       )}>
-      {imageData && (
-        <Image
-          source={{
-            uri: `data:image/jpeg;base64,${imageData}`,
-          }}
-          style={[styles.photo, STYLES.MARGIN_LEFT(10)]}
-        />
-      )}
+      <Image source={image} style={[styles.photo, STYLES.MARGIN_LEFT(10)]} />
       <ListItem.Content>
         <ListItem.Title>{item?.name}</ListItem.Title>
         <ListItem.Subtitle>{item?.address}</ListItem.Subtitle>
