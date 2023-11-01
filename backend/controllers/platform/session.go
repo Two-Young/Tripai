@@ -207,7 +207,7 @@ func DeleteSession(c *gin.Context) {
 		return
 	}
 
-	ctx, err := database.DB.BeginTx(c, nil)
+	tx, err := database.DB.BeginTx(c, nil)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -218,24 +218,26 @@ func DeleteSession(c *gin.Context) {
 	yes, err := platform.IsSessionCreator(uid, body.SessionId)
 	if err != nil {
 		log.Error(err)
+		_ = tx.Rollback()
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 	if !yes {
+		_ = tx.Rollback()
 		c.AbortWithStatus(http.StatusForbidden)
 		return
 	}
 
 	// delete session
-	if err = database_io.DeleteSessionTx(ctx, body.SessionId); err != nil {
+	if err = database_io.DeleteSessionTx(tx, body.SessionId); err != nil {
 		log.Error(err)
-		ctx.Rollback()
+		_ = tx.Rollback()
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
 	// commit
-	if err = ctx.Commit(); err != nil {
+	if err = tx.Commit(); err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -483,6 +485,7 @@ func CancelSessionInvite(c *gin.Context) {
 		UserId:    body.TargetUserId,
 	}); err != nil {
 		log.Error(err)
+		_ = tx.Rollback()
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}

@@ -18,6 +18,7 @@ func GetPlaceDetailCache(ctx context.Context, placeId string) (*database.PlaceDe
 	cache, err := ReadPlaceDetailCachesByPlaceId(ctx, placeId)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Warn(err)
+		return nil, err
 	}
 	if cache == nil {
 		// check for api
