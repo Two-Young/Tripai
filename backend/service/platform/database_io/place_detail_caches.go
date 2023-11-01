@@ -9,25 +9,16 @@ import (
 // TODO :: validate transactions (cause of "Too many connections" error?)
 
 func ReadPlaceDetailCachesByPlaceId(context context.Context, placeId string) (*database.PlaceDetailCacheEntity, error) {
-	ctx, err := database.DB.BeginTxx(context, nil)
-	if err != nil {
-		return nil, err
-	}
-
 	// read
 	var placeDetailCache database.PlaceDetailCacheEntity
-	result := ctx.QueryRowx("SELECT * FROM place_detail_caches WHERE place_id = ?;", placeId)
-	if err != nil {
-		return nil, err
-	}
-	if err := result.StructScan(&placeDetailCache); err != nil {
+	if err := database.DB.Select(&placeDetailCache, "SELECT * FROM place_detail_caches WHERE place_id = ?;", placeId); err != nil {
 		return nil, err
 	}
 	return &placeDetailCache, nil
 }
 
 func WritePlaceDetailCaches(context context.Context, placeId string, entity *database.PlaceDetailCacheEntity) error {
-	ctx, err := database.DB.BeginTxx(context, nil)
+	tx, err := database.DB.BeginTxx(context, nil)
 	if err != nil {
 		return err
 	}
@@ -42,14 +33,14 @@ func WritePlaceDetailCaches(context context.Context, placeId string, entity *dat
 	hit := 0
 	if original != nil {
 		hit = *original.Hit + 1
-		if _, err := ctx.Exec(
+		if _, err := tx.Exec(
 			"UPDATE place_detail_caches SET hit = ? WHERE place_id = ?;",
 			hit, placeId); err != nil {
-			ctx.Rollback()
+			_ = tx.Rollback()
 			return err
 		}
 	} else {
-		if _, err := ctx.Exec(
+		if _, err := tx.Exec(
 			"INSERT INTO place_detail_caches (place_id, name, address, photo_reference, latitude, longitude, lat_lng, country_code, hit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
 			placeId,
 			*entity.Name,
@@ -60,12 +51,12 @@ func WritePlaceDetailCaches(context context.Context, placeId string, entity *dat
 			*entity.LatLng,
 			*entity.CountryCode,
 			0); err != nil {
-			ctx.Rollback()
+			_ = tx.Rollback()
 			return err
 		}
 	}
 
-	if err := ctx.Commit(); err != nil {
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
