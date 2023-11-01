@@ -3,6 +3,7 @@ import React from 'react';
 import {PropTypes} from 'prop-types';
 import {locatePlacePhoto} from '../../services/api';
 import {arrayBufferToBase64} from '../../utils/utils';
+import defaultPlace from '../../assets/images/default-place.png';
 
 const PlaceImageCard = ({name, photo_reference}) => {
   const [imageData, setImageData] = React.useState(null);
@@ -10,21 +11,29 @@ const PlaceImageCard = ({name, photo_reference}) => {
   const getPhoto = async () => {
     try {
       const res = await locatePlacePhoto(photo_reference, 400);
-      setImageData(arrayBufferToBase64(res));
+      setImageData(`data:image/jpeg;base64,${arrayBufferToBase64(res)}`);
     } catch (err) {
       console.error(err);
     }
   };
 
   React.useEffect(() => {
-    getPhoto();
-  }, []);
+    if (photo_reference) {
+      getPhoto();
+    }
+  }, [photo_reference]);
+
+  const image = React.useMemo(() => {
+    if (imageData) {
+      return {uri: imageData};
+    } else {
+      return defaultPlace;
+    }
+  }, [imageData]);
 
   return (
     <ImageBackground
-      source={{
-        uri: `data:image/jpeg;base64,${imageData}`,
-      }}
+      source={image}
       style={{
         width: 156,
         height: 135,

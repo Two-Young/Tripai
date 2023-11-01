@@ -115,7 +115,7 @@ const EditScheduleScreen = () => {
             title="Edit Schedule"
             theme={CUSTOM_HEADER_THEME.WHITE}
             rightComponent={
-              <IconButton icon="delete" iconColor={colors.white} onPress={onPressDeleteSchedule} />
+              <IconButton icon="delete" iconColor={'red'} onPress={onPressDeleteSchedule} />
             }
           />
           <View style={styles.container}>
