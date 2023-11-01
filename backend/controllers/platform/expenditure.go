@@ -199,10 +199,10 @@ func CreateExpenditure(c *gin.Context) {
 		}
 		ratDistributions[dist.UserId] = distribution
 	}
-	totalPriceRat := new(big.Rat)
-	totalPriceRat.SetFloat64(*body.TotalPrice)
+	totalPriceRat := platform.Float64ToRat(*body.TotalPrice)
 	if calculatedTotalPrice.Cmp(totalPriceRat) != 0 {
-		log.Errorf("total price does not match distribution: (sum) %s != (total) %f", calculatedTotalPrice, body.TotalPrice)
+		log.Errorf("total price does not match distribution: (sum) %s != (total) %s from requested (%f)",
+			calculatedTotalPrice, totalPriceRat, *body.TotalPrice)
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "total price does not match distribution")
 		return
 	}
@@ -252,8 +252,7 @@ func CreateExpenditure(c *gin.Context) {
 		// validate distribution
 		calculatedAllocatedPrice := make(map[string]*big.Rat)
 		for _, item := range body.Items {
-			price := new(big.Rat)
-			price.SetFloat64(*item.Price)
+			price := platform.Float64ToRat(*item.Price)
 			allocatedUserCnt := big.NewRat(int64(len(item.Allocations)), 1)
 			dividedPrice := new(big.Rat)
 			dividedPrice.Quo(price, allocatedUserCnt)
@@ -283,7 +282,7 @@ func CreateExpenditure(c *gin.Context) {
 		}
 	}
 
-	tx, err := database.DB.Begin()
+	tx, err := database.DB.BeginTx(c, nil)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -348,9 +347,9 @@ func DeleteExpenditure(c *gin.Context) {
 	uid := c.GetString("uid")
 
 	var body ExpenditureDeleteRequestDto
-	if err := c.ShouldBindQuery(&body); err != nil {
+	if err := c.ShouldBindJSON(&body); err != nil {
 		log.Error(err)
-		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body: "+err.Error())
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request query: "+err.Error())
 		return
 	}
 
@@ -382,7 +381,7 @@ func DeleteExpenditure(c *gin.Context) {
 		return
 	}
 
-	tx, err := database.DB.Begin()
+	tx, err := database.DB.BeginTx(c, nil)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)

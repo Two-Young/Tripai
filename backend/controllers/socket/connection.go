@@ -1,18 +1,23 @@
 package socket
 
 import (
+	"bufio"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
 	"github.com/googollee/go-socket.io/engineio/transport"
 	"github.com/googollee/go-socket.io/engineio/transport/websocket"
+	io2 "io"
 	"os"
 	"sort"
 	"time"
 	"travel-ai/controllers/middlewares"
 	"travel-ai/log"
 	"travel-ai/service/database"
+	"travel-ai/service/platform"
 	"travel-ai/service/platform/database_io"
+	"travel-ai/third_party/open_ai/text_completion"
 )
 
 var (
@@ -190,14 +195,121 @@ func userHandlers(io *socketio.Server) {
 			s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
 			return
 		}
-		if err := database.InMemoryDB.LPushExp(RoomKey(sessionId), chatMessageRaw, time.Hour*24*7); err != nil {
+		if err := database.InMemoryDB.LPushExp(RoomKey(sessionId), chatMessageRaw, time.Hour*24*31); err != nil {
 			log.Errorf("Cannot push GPT message to session %s", sessionId)
 			log.Error(err)
 			s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
 			return
 		}
-		// TODO :: send to GPT
+		if err := database.InMemoryDB.LPush(RoomGptKey(sessionId), chatMessageRaw); err != nil {
+			log.Errorf("Cannot push GPT message to session %s", sessionId)
+			log.Error(err)
+			s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
+			return
+		}
+
+		// get recent gpt messages
+		fetchCount := 5
+		messagesRaw, err := database.InMemoryDB.LRange(RoomGptKey(sessionId), int64(-fetchCount), -1)
+
+		// configure histories
+		histories := make([]text_completion.CompletionMessage, 0)
+		// push system message
+		histories = append(histories, text_completion.CompletionMessage{
+			Role:    text_completion.ROLE_SYSTEM,
+			Content: platform.GptBrainWashPrompt,
+			Name:    "System",
+		})
+		for _, messageRaw := range messagesRaw {
+			chatMessage, err := ChatMessageFromStr(messageRaw)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			var role string
+			if chatMessage.Type == TypeAssistantRequest {
+				role = text_completion.ROLE_USER
+			} else if chatMessage.Type == TypeAssistantResponse {
+				role = text_completion.ROLE_ASSISTANT
+			} else {
+				log.Warnf("Invalid message type %s", chatMessage.Type)
+				continue
+			}
+			histories = append(histories, text_completion.CompletionMessage{
+				Role:    role,
+				Content: chatMessage.Content,
+				Name:    chatMessage.SenderUsername,
+			})
+		}
+
+		resp, err := text_completion.RequestCompletion(text_completion.MODEL_GPT_4, histories)
+		if err != nil {
+			log.Error(err)
+			s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
+			return
+		}
 
 		io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/sendAssistantMessage", NewSuccess(chatMessage))
+
+		// resp
+		gptMessageId := uuid.New().String()
+		io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/assistantMessageStart", NewSuccess(GptResponseStartEvent{
+			GptResponseId: gptMessageId,
+		}))
+
+		go func() {
+			// create stream to store gpt response
+			// and send to client as segments (resp is *io.PipeReader)
+			scanner := bufio.NewScanner(resp)
+			scanner.Split(bufio.ScanRunes)
+			storedContent := ""
+
+			for scanner.Scan() {
+				runeText := scanner.Text()
+				storedContent += runeText
+				io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/assistantMessageStream", NewSuccess(GptResponseStreamEvent{
+					GptResponseId: gptMessageId,
+					Content:       runeText,
+				}))
+			}
+
+			if err := scanner.Err(); err != nil {
+				if err != io2.EOF {
+					log.Error(err)
+					io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/assistantMessageError", NewSuccess(GptResponseErrorEvent{
+						GptResponseId: gptMessageId,
+						ErrorMessage:  err.Error(),
+					}))
+				} else {
+					// first save response to memory db
+					gptResponse := ChatMessage{
+						SenderUserId:       "",
+						SenderUsername:     "",
+						SenderProfileImage: nil,
+						Content:            storedContent,
+						Timestamp:          time.Now().UnixMilli(),
+						Type:               TypeAssistantResponse,
+					}
+					gptResponseRaw, err := gptResponse.String()
+					if err != nil {
+						log.Errorf("Cannot parse GPT message %s", storedContent)
+						log.Error(err)
+						s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
+						return
+					}
+					if err := database.InMemoryDB.LPush(RoomGptKey(sessionId), gptResponseRaw); err != nil {
+						log.Errorf("Cannot push GPT message to session %s", sessionId)
+						log.Error(err)
+						s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
+						return
+					}
+
+					io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/streamClosed", NewSuccess(GptResponseEndEvent{
+						GptResponseId:   gptMessageId,
+						CompleteContent: storedContent,
+					}))
+				}
+			}
+		}()
 	})
 }

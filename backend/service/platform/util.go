@@ -2,6 +2,7 @@ package platform
 
 import (
 	"fmt"
+	"math/big"
 	"math/rand"
 	"os"
 	"regexp"
@@ -63,6 +64,16 @@ func ConvertDateInt64(dateInt64 int64) (time.Time, error) {
 	date := time.UnixMilli(dateInt64)
 	return date, nil
 }
+
+func Float64ToRat(f float64) *big.Rat {
+	// to string
+	s := fmt.Sprintf("%.f", f)
+	// to big.Rat
+	r := new(big.Rat)
+	r.SetString(s)
+	return r
+}
+
 
 func FindSessionIdByLocationId(locationId string) (string, error) {
 	var sessionId string

@@ -122,15 +122,19 @@ func RequestCompletionSync(model string, role string, prompt string) (Completion
 	}
 }
 
-func RequestCompletion(model string, role string, prompt string) (*io.PipeReader, error) {
+func RequestCompletionEx(model string, role string, prompt string) (*io.PipeReader, error) {
 	// make http request
 	message := CompletionMessage{
 		Role:    role,
 		Content: prompt,
 		Name:    "Traveler",
 	}
+	return RequestCompletion(model, []CompletionMessage{message})
+}
+
+func RequestCompletion(model string, prompts []CompletionMessage) (*io.PipeReader, error) {
 	request := CompletionRequest{
-		Messages:         []CompletionMessage{message},
+		Messages:         prompts,
 		Temperature:      0.7,
 		TopP:             1,
 		FrequencyPenalty: 0,

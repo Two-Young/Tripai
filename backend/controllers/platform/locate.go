@@ -50,7 +50,7 @@ func Location(c *gin.Context) {
 	}
 
 	data := locateLocationResponseDto{
-		PlaceId:        *cache.PlaceId,
+		PlaceId:        cache.PlaceId,
 		Name:           *cache.Name,
 		Address:        *cache.Address,
 		PhotoReference: "",

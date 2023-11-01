@@ -107,9 +107,9 @@ func CreateLocation(c *gin.Context) {
 	if _, err := database.DB.Exec(
 		"INSERT INTO locations (lid, place_id, name, latitude, longitude, address, photo_reference, sid) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
 		locationId, body.PlaceId,
-		*cache.Name, *cache.Latitude,
-		*cache.Longitude, *cache.Address,
-		*cache.PhotoReference, body.SessionId,
+		cache.Name, cache.Latitude,
+		cache.Longitude, cache.Address,
+		cache.PhotoReference, body.SessionId,
 	); err != nil {
 		var mysqlErr *mysql.MySQLError
 		if ok := errors.As(err, &mysqlErr); ok && mysqlErr.Number == 1062 {

@@ -35,7 +35,7 @@ func TextCompletion(c *gin.Context) {
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Transfer-Encoding", "chunked")
 
-	resp, err := text_completion.RequestCompletion(text_completion.MODEL_GPT_4, text_completion.ROLE_USER, body.Prompt)
+	resp, err := text_completion.RequestCompletionEx(text_completion.MODEL_GPT_4, text_completion.ROLE_USER, body.Prompt)
 	if err != nil {
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
 		return

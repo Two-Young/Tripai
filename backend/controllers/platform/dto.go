@@ -361,6 +361,11 @@ type BudgetCreateRequestDto struct {
 	SessionId    string   `json:"session_id" binding:"required"`
 }
 
+type BudgetEditRequestDto struct {
+	BudgetId string   `json:"budget_id" binding:"required"`
+	Amount   *float64 `json:"amount" binding:"required"`
+}
+
 type BudgetDeleteRequestDto struct {
 	BudgetId string `json:"budget_id" binding:"required"`
 }

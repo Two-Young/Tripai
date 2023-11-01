@@ -92,13 +92,13 @@ func CreateBudget(c *gin.Context) {
 	}
 
 	// is currency code valid
-	currencies, err := platform.GetSupportedSessionCurrencies(body.SessionId)
+	yes, err = platform.IsSupportedCurrency(body.CurrencyCode)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-	if _, ok := currencies[body.CurrencyCode]; !ok {
+	if !yes {
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid currency code")
 		return
 	}
@@ -145,7 +145,50 @@ func CreateBudget(c *gin.Context) {
 }
 
 func EditBudget(c *gin.Context) {
-	// TODO :: implement
+	uid := c.GetString("uid")
+
+	var body BudgetEditRequestDto
+	if err := c.ShouldBindJSON(&body); err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body: "+err.Error())
+		return
+	}
+
+	// get budget
+	budget, err := database_io.GetBudget(body.BudgetId)
+	if err != nil {
+		log.Error(err)
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "budget does not exist")
+		return
+	}
+	
+	// verify user can edit budget
+	if budget.UserId != uid {
+		util2.AbortWithStrJson(c, http.StatusBadRequest, "user is not budget owner")
+		return
+	}
+
+	tx, err := database.DB.BeginTx(c, nil)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if err := database_io.UpdateBudgetTx(tx, body.BudgetId, *body.Amount); err != nil {
+		_ = tx.Rollback()
+		log.Error(err)
+		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Error(err)
+		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
 }
 
 func DeleteBudget(c *gin.Context) {
