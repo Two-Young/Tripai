@@ -172,6 +172,18 @@ func GetExpenditureDistributionWithPayersBySessionId(sessionId string) ([]*Expen
 		})
 	}
 
+	for _, payer := range payers {
+		if _, ok := distsMap[payer.ExpenditureId]; !ok {
+			distsMap[payer.ExpenditureId] = &ExpenditureDistributionWithPayerMapEntity{
+				ExpenditureEntity: payer.ExpenditureEntity,
+				Distributions:     make([]database.ExpenditureDistributionEntity, 0),
+				Payers:            make([]string, 0),
+			}
+		}
+
+		distsMap[payer.ExpenditureId].Payers = append(distsMap[payer.ExpenditureId].Payers, payer.UserId)
+	}
+
 	// to list
 	for _, dist := range distsMap {
 		result = append(result, dist)

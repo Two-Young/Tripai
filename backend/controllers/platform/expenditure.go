@@ -18,8 +18,6 @@ import (
 	"travel-ai/util"
 )
 
-// TODO :: implement LOCK for single expenditure
-
 func Expenditures(c *gin.Context) {
 	uid := c.GetString("uid")
 
@@ -144,11 +142,6 @@ func Expenditure(c *gin.Context) {
 		Distribution: distribution,
 		PayedAt:      expenditureEntity.PayedAt,
 	})
-}
-
-func EditExpenditure(c *gin.Context) {
-	// TODO :: implement
-	c.JSON(http.StatusNotImplemented, nil)
 }
 
 func CreateExpenditure(c *gin.Context) {
@@ -487,11 +480,11 @@ func UploadReceipt(c *gin.Context) {
 		}
 
 		// delete temp file
-		//if err := os.Remove(dest); err != nil {
-		//	log.Error(err)
-		//	return
-		//}
-		//log.Debug("temp file deleted: " + dest)
+		if err := os.Remove(dest); err != nil {
+			log.Error(err)
+			return
+		}
+		log.Debug("temp file deleted: " + dest)
 	}(f)
 
 	taggunResp, err := taggun_receipt_ocr.ParseReceipt(f)

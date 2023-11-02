@@ -14,25 +14,28 @@ const (
 	EventSessionChatGetMessages            = "sessionChat/getMessages"
 	EventSessionChatSendMessage            = "sessionChat/sendMessage"
 	EventSessionChatMessage                = "sessionChat/message"
+	EventSessionChatUserJoined             = "sessionChat/userJoined"
 	EventSessionChatSendAssistantMessage   = "sessionChat/sendAssistantMessage"
 	EventSessionChatAssistantMessageStart  = "sessionChat/assistantMessageStart"
 	EventSessionChatAssistantMessageStream = "sessionChat/assistantMessageStream"
 	EventSessionChatAssistantMessageEnd    = "sessionChat/assistantMessageEnd"
 	EventSessionChatAssistantMessageError  = "sessionChat/assistantMessageError"
 
-	EventBudgetCreate          = "budget/create"
-	EventExpenditureCreated    = "expenditure/created"
-	EventExpenditureDeleted    = "expenditure/deleted"
-	EventFriendRequestReceived = "friend/requestReceived"
-	EventFriendConnected       = "friend/connected"
-	EventLocationCreated       = "location/created"
-	EventLocationDeleted       = "location/deleted"
-	EventScheduleCreated       = "schedule/created"
-	EventScheduleDeleted       = "schedule/deleted"
-	EventSettlementChanged     = "settlement/changed"
-	EventSessionMemberJoined   = "session/memberJoined"
-	EventSessionMemberLeft     = "session/memberLeft"
-	EventSessionDeleted        = "session/deleted"
+	EventBudgetCreate               = "budget/create"
+	EventExpenditureCreated         = "expenditure/created"
+	EventExpenditureDeleted         = "expenditure/deleted"
+	EventFriendRequestReceived      = "friend/requestReceived"
+	EventFriendConnected            = "friend/connected"
+	EventLocationCreated            = "location/created"
+	EventLocationDeleted            = "location/deleted"
+	EventScheduleCreated            = "schedule/created"
+	EventScheduleDeleted            = "schedule/deleted"
+	EventSettlementChanged          = "settlement/changed"
+	EventSessionMemberJoined        = "session/memberJoined"
+	EventSessionMemberLeft          = "session/memberLeft"
+	EventSessionMemberInvited       = "session/memberInvited"
+	EventSessionMemberJoinRequested = "session/memberJoinRequested"
+	EventSessionDeleted             = "session/deleted"
 )
 
 type UserSocket struct {
@@ -107,7 +110,14 @@ func (sm *Manager) Multicast(sessionId string, senderUserId string, event string
 		return
 	}
 	sm.Io.ForEach("/", RoomKey(sessionId), func(conn socketio.Conn) {
+		userSocket, ok := sm.sockets[conn.ID()]
+		if !ok {
+			log.Warnf("Socket not found for connId %s", conn.ID())
+			return
+		}
+
 		if conn.ID() != senderSocket.Conn.ID() {
+			log.Debugf("[%s] multicast to %s: %v", event, userSocket.User.Username, data)
 			conn.Emit(event, NewSuccess(data))
 		}
 	})
@@ -119,6 +129,22 @@ func (sm *Manager) Unicast(userId string, event string, data interface{}) {
 		return
 	}
 	userSocket.Conn.Emit(event, NewSuccess(data))
+}
+
+func (sm *Manager) Join(sessionId string, userId string) {
+	userSocket, ok := sm.GetUserByUserId(userId)
+	if !ok {
+		return
+	}
+	userSocket.Conn.Join(RoomKey(sessionId))
+}
+
+func (sm *Manager) Leave(sessionId string, userId string) {
+	userSocket, ok := sm.GetUserByUserId(userId)
+	if !ok {
+		return
+	}
+	userSocket.Conn.Leave(RoomKey(sessionId))
 }
 
 // -------------------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"math/big"
 	"net/http"
+	"time"
 	"travel-ai/controllers/socket"
 	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
@@ -126,11 +127,20 @@ func SettlementInfo(c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+
 	for _, exp := range expenditures {
 		totalPrice := exp.TotalPrice
 		stdTotalPrice, err := platform.Exchange(exp.CurrencyCode, currencyCode, totalPrice)
 		if err != nil {
 			log.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		log.Test("payers:", exp.Payers)
+		log.Testf("[%s] stdTotalPrice: %v", exp.Name, stdTotalPrice)
+
+		if len(exp.Payers) == 0 {
+			log.Errorf("no payer for %s", exp.Name)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
@@ -140,10 +150,11 @@ func SettlementInfo(c *gin.Context) {
 		for _, payer := range exp.Payers {
 			prev, ok := userPayments[payer]
 			if !ok {
-				log.Debugf("user not found: %s", payer)
+				log.Errorf("user not found: %s", payer)
 				continue
 			}
 			prev.Paid += paidDivision
+			log.Testf("[%s] %s paid %v", exp.Name, payer, paidDivision)
 			userPayments[payer] = prev
 		}
 
@@ -165,6 +176,7 @@ func SettlementInfo(c *gin.Context) {
 			}
 			prev.Used += exchanged
 			userPayments[dist.UserId] = prev
+			log.Testf("[%s] %s used %v", exp.Name, dist.UserId, exchanged)
 
 			if dist.UserId == uid {
 				currentUserUsage += exchanged
@@ -212,6 +224,7 @@ func SettlementInfo(c *gin.Context) {
 		}
 		userPayments[userEntity.UserId] = payment
 	}
+	log.Testf("userPayments: %v", userPayments)
 
 	// calculates used & paid users
 	deptors := make([]string, 0)
@@ -244,6 +257,7 @@ func SettlementInfo(c *gin.Context) {
 				CurrencyCode: currencyCode,
 			}
 		}
+		dept = depts[from][to]
 		dept.Amount += amount
 		depts[from][to] = dept
 
@@ -254,13 +268,20 @@ func SettlementInfo(c *gin.Context) {
 		payment = userPayments[to]
 		payment.Paid -= amount
 		userPayments[to] = payment
+
+		log.Testf("Added dept: %s -> %s (%v)", from, to, amount)
+		log.Testf("Dept: %v", dept)
 	}
+	log.Testf("deptors: %v", deptors)
+	log.Testf("creditors: %v", creditors)
 
 	for i, j := 0, 0; i < len(deptors) && j < len(creditors); {
 		deptor := deptors[i]
 		creditor := creditors[j]
 		dept := userPayments[deptor].Used
 		credit := userPayments[creditor].Paid
+
+		log.Testf("Comparing %s(%v) and %s(%v)", deptor, dept, creditor, credit)
 
 		if dept > credit {
 			addDept(deptor, creditor, credit)
@@ -283,6 +304,9 @@ func SettlementInfo(c *gin.Context) {
 		return
 	}
 
+	log.Testf("Found %v transactions", len(transactions))
+	log.Testf("depts: %v", depts)
+
 	// apply transactions to depts
 	for _, transaction := range transactions {
 		amount := transaction.Amount
@@ -292,6 +316,7 @@ func SettlementInfo(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+		log.Testf("transaction: %s -> %s (%v)", transaction.SenderUid, transaction.ReceiverUid, exchanged)
 		deptsByUser, ok := depts[transaction.SenderUid]
 		if !ok {
 			continue
@@ -318,9 +343,13 @@ func SettlementInfo(c *gin.Context) {
 			}
 			if dept.From == uid || dept.To == uid {
 				filteredDepts = append(filteredDepts, dept)
+			} else {
+				log.Testf("filtered out dept: %v, because from=%s, to=%s, uid=%s, dept=%v", dept, dept.From, dept.To, uid, dept)
 			}
 		}
 	}
+
+	log.Testf("filteredDepts: %v", filteredDepts)
 
 	// recalculate dept amount to creditor's default currency with depts (not credit)
 	for i, dept := range filteredDepts {
@@ -361,6 +390,7 @@ func SettlementInfo(c *gin.Context) {
 	}
 
 	resp.Settlements = settlements
+	log.Testf("settlements: %v", resp)
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -368,7 +398,7 @@ func CompleteSettlement(c *gin.Context) {
 	uid := c.GetString("uid")
 
 	var body SettlementCompleteRequestDto
-	if err := c.ShouldBindQuery(&body); err != nil {
+	if err := c.ShouldBindJSON(&body); err != nil {
 		log.Error(err)
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "invalid request body: "+err.Error())
 		return
@@ -402,7 +432,14 @@ func CompleteSettlement(c *gin.Context) {
 	}
 
 	// add transaction
-	if err := database_io.InsertTransactionTx(tx, body.SessionId, &database.TransactionEntity{}); err != nil {
+	if err := database_io.InsertTransactionTx(tx, body.SessionId, &database.TransactionEntity{
+		SenderUid:    body.TargetUserId,
+		ReceiverUid:  uid,
+		CurrencyCode: body.CurrencyCode,
+		Amount:       body.Amount,
+		SentAt:       time.Now(),
+		SessionId:    body.SessionId,
+	}); err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -423,5 +460,5 @@ func CompleteSettlement(c *gin.Context) {
 func UseSettlementRouter(g *gin.RouterGroup) {
 	rg := g.Group("/settlement")
 	rg.GET("", SettlementInfo)
-	rg.POST("", CompleteSettlement)
+	rg.POST("/complete", CompleteSettlement)
 }

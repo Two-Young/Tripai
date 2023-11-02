@@ -168,7 +168,6 @@ func RequestCompletion(model string, prompts []CompletionMessage) (*io.PipeReade
 			}()
 			reader := bufio.NewReader(resp.Body)
 
-			fmt.Printf("Response: ")
 			for {
 				lineBuffer, isPrefix, err := reader.ReadLine()
 				if err != nil {
@@ -193,11 +192,8 @@ func RequestCompletion(model string, prompts []CompletionMessage) (*io.PipeReade
 						log.Errorf("Failed to write to pipe: %s", err.Error())
 						continue
 					}
-
-					fmt.Printf("%s", content)
 				}
 			}
-			fmt.Printf("\n")
 		}()
 		return src, nil
 	} else {

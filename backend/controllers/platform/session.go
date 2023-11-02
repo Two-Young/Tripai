@@ -381,6 +381,11 @@ func InviteSession(c *gin.Context) {
 	}
 
 	tx, err := database.DB.BeginTx(c, nil)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
 
 	if alreadyRequested {
 		// delete requests
@@ -406,6 +411,9 @@ func InviteSession(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+
+		socket.SocketManager.Join(body.SessionId, uid)
+		socket.SocketManager.Broadcast(body.SessionId, socket.EventSessionMemberJoined, body.TargetUserId)
 	} else {
 		// add invitation
 		if err := database_io.InsertSessionInvitationTx(tx, database.SessionInvitationEntity{
@@ -418,6 +426,8 @@ func InviteSession(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+
+		socket.SocketManager.Unicast(body.TargetUserId, socket.EventSessionMemberInvited, body.SessionId)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -641,22 +651,7 @@ func ConfirmSessionInvite(c *gin.Context) {
 	// join user to session chatroom if possible
 	if *body.Accept {
 		go func() {
-			userEntity, err := database_io.GetUser(uid)
-			if err != nil {
-				log.Error(err)
-				return
-			}
-
-			sock, ok := socket.SocketManager.GetUserByUserId(userEntity.UserId)
-			if ok {
-				socket.SocketManager.Io.JoinRoom("/", socket.RoomKey(body.SessionId), sock.Conn)
-				socket.SocketManager.Io.BroadcastToRoom("/", socket.RoomKey(body.SessionId),
-					"sessionChat/userJoined", socket.NewChatMessage(
-						"", "", nil,
-						fmt.Sprintf("%s joined the session", userEntity.Username),
-						time.Now().UnixMilli(), socket.TypeSystemMessage),
-				)
-			}
+			socket.SocketManager.Join(body.SessionId, uid)
 			socket.SocketManager.Multicast(body.SessionId, uid, socket.EventSessionMemberJoined, uid)
 		}()
 	}
@@ -740,6 +735,9 @@ func JoinSession(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+
+		socket.SocketManager.Join(sessionEntity.SessionId, uid)
+		socket.SocketManager.Broadcast(sessionEntity.SessionId, socket.EventSessionMemberJoined, uid)
 	} else {
 		if err := database_io.InsertSessionJoinRequestTx(tx, database.SessionJoinRequestEntity{
 			SessionId:   sessionEntity.SessionId,
@@ -751,6 +749,8 @@ func JoinSession(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+
+		socket.SocketManager.Unicast(sessionEntity.CreatorUserId, socket.EventSessionMemberJoinRequested, uid)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -951,6 +951,9 @@ func ConfirmSessionJoin(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+
+		socket.SocketManager.Join(body.SessionId, uid)
+		socket.SocketManager.Multicast(body.SessionId, uid, socket.EventSessionMemberJoined, body.UserId)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -978,8 +981,6 @@ func ConfirmSessionJoin(c *gin.Context) {
 						time.Now().UnixMilli(), socket.TypeSystemMessage),
 				)
 			}
-
-			socket.SocketManager.Multicast(body.SessionId, uid, socket.EventSessionMemberJoined, body.UserId)
 		}()
 	}
 
@@ -1108,9 +1109,14 @@ func LeaveSession(c *gin.Context) {
 		return
 	}
 
-	// TODO :: delete session if no member
 	if len(members) == 1 {
 		// delete session
+		if err := database_io.DeleteSessionTx(tx, body.SessionId); err != nil {
+			log.Error(err)
+			_ = tx.Rollback()
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -1119,6 +1125,7 @@ func LeaveSession(c *gin.Context) {
 		return
 	}
 
+	socket.SocketManager.Leave(body.SessionId, uid)
 	socket.SocketManager.Multicast(body.SessionId, uid, socket.EventSessionMemberLeft, uid)
 	c.Status(http.StatusOK)
 }

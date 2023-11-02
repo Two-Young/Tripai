@@ -118,7 +118,6 @@ create table expenditure_distribution
             on delete cascade,
     constraint expenditure_distribution_users_uid_fk
         foreign key (uid) references users (uid)
-            on delete cascade
 );
 
 create table expenditure_items
@@ -156,7 +155,6 @@ create table expenditure_payers
             on delete cascade,
     constraint expenditure_payers_users_uid_fk
         foreign key (uid) references users (uid)
-            on delete cascade
 );
 
 create table locations
@@ -232,16 +230,13 @@ create table transactions
     amount        double       not null,
     sent_at       datetime     not null,
     sid           varchar(255) not null,
-    primary key (sender_uid, receiver_uid, sid),
     constraint transactions_sessions_sid_fk
         foreign key (sid) references sessions (sid)
             on delete cascade,
     constraint transactions_users_uid_fk
-        foreign key (sender_uid) references users (uid)
-            on delete cascade,
+        foreign key (sender_uid) references users (uid),
     constraint transactions_users_uid_fk2
         foreign key (receiver_uid) references users (uid)
-            on delete cascade
 );
 
 create table user_sessions

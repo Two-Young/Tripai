@@ -15,10 +15,12 @@ func GetTransactionsBySessionId(sessionId string) ([]database.TransactionEntity,
 }
 
 func InsertTransactionTx(tx *sql.Tx, sessionId string, transaction *database.TransactionEntity) error {
-	if _, err := tx.Exec(
-		"INSERT INTO transactions (sender_uid, receiver_uid, amount, sent_at, sid) VALUES (?, ?, ?, ?, ?);",
+	if _, err := tx.Exec(`
+		INSERT INTO transactions (sender_uid, receiver_uid, currency_code, amount, sent_at, sid) 
+		VALUES (?, ?, ?, ?, ?, ?);`,
 		transaction.SenderUid,
 		transaction.ReceiverUid,
+		transaction.CurrencyCode,
 		transaction.Amount,
 		transaction.SentAt,
 		sessionId); err != nil {
