@@ -119,7 +119,7 @@ const AddAddressScreen = () => {
                     {...{isZeroResult, searchResult, onPressListItem, onPressFooterItem}}
                   />
                 )}
-                <Text style={styles.label}>Registerd Places</Text>
+                <Text style={styles.label}>Registered Places</Text>
               </React.Fragment>
             )}
             contentContainerStyle={{paddingTop: 16}}
@@ -128,7 +128,9 @@ const AddAddressScreen = () => {
             )}
             numColumns={2}
             renderItem={({item}) => (
-              <TouchableOpacity onPress={() => onPressPlace(item)}>
+              <TouchableOpacity
+                onPress={() => onPressPlace(item)}
+                style={[STYLES.MARGIN_BOTTOM(10), STYLES.MARGIN_RIGHT(10)]}>
                 <PlaceImageCard name={item.name} photo_reference={item.photo_reference} />
               </TouchableOpacity>
             )}

@@ -1,4 +1,4 @@
-import {ImageBackground, StyleSheet, Text, View} from 'react-native';
+import {Dimensions, ImageBackground, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import {PropTypes} from 'prop-types';
 import {locatePlacePhoto} from '../../services/api';
@@ -35,8 +35,8 @@ const PlaceImageCard = ({name, photo_reference}) => {
     <ImageBackground
       source={image}
       style={{
-        width: 156,
-        height: 135,
+        width: (Dimensions.get('window').width - 42) / 2,
+        aspectRatio: 1.2,
         padding: 10,
         resizeMode: 'cover',
         justifyContent: 'flex-end',
