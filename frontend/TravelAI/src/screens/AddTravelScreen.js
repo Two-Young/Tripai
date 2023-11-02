@@ -15,6 +15,7 @@ import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHe
 import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
+import {showErrorToast} from '../utils/utils';
 
 const AddTravelScreen = () => {
   // state
@@ -35,7 +36,7 @@ const AddTravelScreen = () => {
       const sortedData = [...data].sort((a, b) => a.country_code.localeCompare(b.country_code));
       setCountries(sortedData);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 

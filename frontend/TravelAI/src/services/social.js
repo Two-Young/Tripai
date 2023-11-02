@@ -1,3 +1,5 @@
+import {showErrorToast} from '../utils/utils';
+
 const {GoogleSignin} = require('@react-native-google-signin/google-signin');
 const {authGoogleSign, authFacebookSign, authNaverSign} = require('./api');
 const {LoginManager, AccessToken} = require('react-native-fbsdk-next');
@@ -27,8 +29,7 @@ export async function socialGoogleSignIn() {
     const sign_result = await authGoogleSign(idToken);
     return sign_result;
   } catch (e) {
-    console.error('socialGoogleSignIn: ', e);
-    throw e;
+    showErrorToast(e);
   }
 }
 
@@ -51,8 +52,7 @@ export async function socialFacebookSignIn() {
     const sign_result = await authFacebookSign(data.accessToken);
     return sign_result;
   } catch (e) {
-    console.error('socialFacebookSignIn: ', e);
-    throw e;
+    showErrorToast(e);
   }
 }
 
@@ -71,8 +71,7 @@ export const socialNaverSignIn = async () => {
       throw failureResponse;
     }
   } catch (e) {
-    console.error('socialNaverSignIn: ', e);
-    throw e;
+    showErrorToast(e);
   }
 };
 
@@ -81,7 +80,6 @@ export const socialKakaoSignin = async () => {
     const token = await login();
     return token;
   } catch (e) {
-    console.error('socialKakaoSignin: ', e);
-    throw e;
+    showErrorToast(e);
   }
 };

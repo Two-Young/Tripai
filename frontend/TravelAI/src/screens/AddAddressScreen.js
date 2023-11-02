@@ -14,6 +14,7 @@ import SafeArea from '../component/molecules/SafeArea';
 import {SemiBold} from './../theme/fonts';
 import colors from '../theme/colors';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
+import {showErrorToast} from '../utils/utils';
 
 const AddAddressScreen = () => {
   // hooks
@@ -72,8 +73,7 @@ const AddAddressScreen = () => {
       });
       navigation.goBack();
     } catch (error) {
-      console.error(error);
-      throw error;
+      showErrorToast(error);
     }
   };
 

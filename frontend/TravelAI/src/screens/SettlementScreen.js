@@ -1,4 +1,4 @@
-import {Alert, FlatList, StyleSheet, Text, View, Image} from 'react-native';
+import {FlatList, StyleSheet, Text, View, Image} from 'react-native';
 import React, {useCallback} from 'react';
 import colors from '../theme/colors';
 import {Medium} from '../theme/fonts';
@@ -14,6 +14,7 @@ import {showErrorToast} from '../utils/utils';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import userAtom from '../recoil/user/user';
+import {socket} from '../services/socket';
 
 const SettlementScreen = () => {
   const currentSession = useRecoilValue(sessionAtom);
@@ -98,6 +99,17 @@ const SettlementScreen = () => {
   }, [currentSession]);
 
   console.log(settlement);
+
+  React.useEffect(() => {
+    if (socket?.connected) {
+      socket?.on('settlement/changed', async () => {
+        fetchSettlements();
+      });
+    }
+    return () => {
+      socket?.off('settlement/changed');
+    };
+  }, [socket?.connected]);
 
   return (
     <View style={styles.container}>

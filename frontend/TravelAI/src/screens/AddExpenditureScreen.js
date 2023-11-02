@@ -914,7 +914,9 @@ const AddExpenditureScreen = () => {
   // effects
   React.useEffect(() => {
     if (currentSessionID && route.params) {
-      fetchData();
+      fetchData().catch(err => {
+        showErrorToast(err);
+      });
     }
   }, [currentSessionID, route.params]);
 

@@ -28,6 +28,7 @@ import {
 import countriesAtom from '../recoil/countries/countries';
 import userAtom from '../recoil/user/user';
 import {socket} from '../services/socket';
+import {showErrorToast} from '../utils/utils';
 
 const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) => {
   const navigation = useNavigation();
@@ -48,7 +49,7 @@ const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) 
       navigation.setParams({refresh: true});
       setModalVisible(false);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -187,7 +188,7 @@ const SetBudgetScreen = () => {
       });
       setBudgets(resultBudgets2);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -207,7 +208,7 @@ const SetBudgetScreen = () => {
       await deleteBudget(budget_id);
       setBudgets(budgets.filter(item => item.budget_id !== budget_id));
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 

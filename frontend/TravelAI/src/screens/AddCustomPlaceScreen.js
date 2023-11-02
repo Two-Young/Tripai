@@ -11,6 +11,7 @@ import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
 import {FAB, IconButton} from 'react-native-paper';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
+import {showErrorToast} from '../utils/utils';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -66,7 +67,7 @@ const AddCustomPlaceScreen = () => {
       });
       setNeedAnimation(true);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -82,7 +83,7 @@ const AddCustomPlaceScreen = () => {
       });
       navigation.pop(2);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 

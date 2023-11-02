@@ -12,6 +12,7 @@ import dayjs from 'dayjs';
 import MainButton from '../component/atoms/MainButton';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import {STYLES} from '../styles/Stylesheets';
+import {showErrorToast} from '../utils/utils';
 
 const AddScheduleScreen = () => {
   // states
@@ -51,7 +52,7 @@ const AddScheduleScreen = () => {
 
       navigation.goBack();
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

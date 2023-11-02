@@ -69,7 +69,7 @@ const AddFriendsScreen = () => {
       setSearchResults(data);
       setIsResult(true);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     } finally {
       setIsSearching(false);
     }
@@ -114,7 +114,9 @@ const AddFriendsScreen = () => {
   }, [query]);
 
   useEffect(() => {
-    fetchFriendsWaiting();
+    fetchFriendsWaiting().catch(err => {
+      showErrorToast(err);
+    });
   }, []);
 
   return (

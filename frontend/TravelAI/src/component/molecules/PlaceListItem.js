@@ -2,7 +2,7 @@ import {StyleSheet, Linking} from 'react-native';
 import React from 'react';
 import {Button, Image, ListItem} from '@rneui/themed';
 import {API_URL_PROD, deleteLocation, locatePlacePhoto} from '../../services/api';
-import {arrayBufferToBase64} from '../../utils/utils';
+import {arrayBufferToBase64, showErrorToast} from '../../utils/utils';
 import {STYLES} from '../../styles/Stylesheets';
 import colors from '../../theme/colors';
 import defaultPlace from '../../assets/images/default-place.png';
@@ -28,7 +28,7 @@ const PlaceListItem = props => {
         `https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}`,
       );
     } catch (error) {
-      console.error(error);
+      showErrorToast(error);
     } finally {
       reset();
     }
@@ -39,7 +39,7 @@ const PlaceListItem = props => {
       await deleteLocation(item.location_id);
       setArr(prev => prev.filter(place => place.location_id !== item.location_id));
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     } finally {
       reset();
     }
