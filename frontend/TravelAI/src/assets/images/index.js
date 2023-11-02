@@ -10,6 +10,7 @@ import checkedbox from './checkedbox.png';
 import searchIcon from './search.png';
 import arrowRight from './arrow-right.png';
 import chatGPTIcon from './chatGPT-logo.png';
+import TripAIIcon from './ic_launcher_round.png';
 
 export {
   mainLogo,
@@ -24,4 +25,5 @@ export {
   searchIcon,
   arrowRight,
   chatGPTIcon,
+  TripAIIcon,
 };
