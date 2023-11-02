@@ -25,6 +25,10 @@ const PlaceCard = ({item, onPress, isFirst, isLast, isNext}) => {
 
     if (address === null && memo === null) {
       return '';
+    } else if (address === null) {
+      return memo;
+    } else if (memo === null) {
+      return address;
     } else {
       return `${address ?? ''} | ${memo ?? ''}`;
     }

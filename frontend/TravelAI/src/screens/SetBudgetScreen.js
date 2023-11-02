@@ -27,7 +27,6 @@ import {
 } from '../services/api';
 import countriesAtom from '../recoil/countries/countries';
 import userAtom from '../recoil/user/user';
-import {socket} from '../services/socket';
 import {showErrorToast} from '../utils/utils';
 
 const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) => {
@@ -235,11 +234,6 @@ const SetBudgetScreen = () => {
   );
 
   //
-
-  React.useEffect(() => {
-    socket.on('budget/created', data => {});
-  }, [socket]);
-
   return (
     <View style={styles.container}>
       <FlatList

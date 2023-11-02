@@ -82,6 +82,9 @@ const FlatListRenderItem = ({data}) => {
         onChangeText={text => {
           const newData = [...distribution];
           newData[item.index].amount.string = text;
+          var f1 = new Fraction(Number(text.replace(/,/g, '')));
+          newData[item.index].amount.num = f1.n;
+          newData[item.index].amount.denom = f1.d;
           setDistribution(newData);
         }}
         onEndEditing={() => {
