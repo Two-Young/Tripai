@@ -20,7 +20,6 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {getBudgetSummary, getExpenditures} from '../services/api';
 import {Icon} from '@rneui/themed';
 import currenciesAtom from '../recoil/currencies/currencies';
-import reactotron from 'reactotron-react-native';
 import {showErrorToast} from '../utils/utils';
 import {socket} from '../services/socket';
 
@@ -97,6 +96,7 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
   return (
     <Pressable onPress={() => (flipRotation ? flipToBack() : flipToFront())}>
       <Animated.View style={[styles.card, styles.front, flipToFrontStyle]}>
+        <Text style={styles.cardTitle}>My Budget</Text>
         <View style={STYLES.ALIGN_CENTER}>
           <AnimatedCircularProgress
             size={250}
@@ -112,15 +112,18 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
               You spent {spentRatio.toFixed(3).replace(/\.00$/, '').replace(/\.0$/, '')}%
             </Text>
             <Text style={styles.boxBold}>
-              {symbol} {myBudget?.spent?.toLocaleString()}
+              {symbol}
+              {myBudget?.spent?.toLocaleString()}
             </Text>
             <Text style={styles.boxText}>
-              of {symbol} {myBudget?.total?.toLocaleString()}
+              of {symbol}
+              {myBudget?.total?.toLocaleString()}
             </Text>
           </View>
         </View>
       </Animated.View>
       <Animated.View style={[styles.card, styles.back, flipToBackStyle]}>
+        <Text style={styles.cardTitle}>Session Budget</Text>
         <View style={STYLES.ALIGN_CENTER}>
           <AnimatedCircularProgress
             style={{transform: [{rotateY: '180deg'}]}}
@@ -137,10 +140,12 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
               Members spent {sessionSpentRatio.toFixed(3).replace(/\.00$/, '').replace(/\.0$/, '')}%
             </Text>
             <Text style={styles.boxBold}>
-              {symbol} {sessionBudget?.spent?.toLocaleString()}
+              {symbol}
+              {sessionBudget?.spent?.toLocaleString()}
             </Text>
             <Text style={styles.boxText}>
-              of {symbol} {sessionBudget?.total?.toLocaleString()}
+              of {symbol}
+              {sessionBudget?.total?.toLocaleString()}
             </Text>
           </View>
         </View>
@@ -259,7 +264,7 @@ const CurrentBudgetScreen = () => {
 
   // states
   const [defaultCurrency, setDefaultCurrency] = React.useState('');
-  const [myBudget, setMyBudget] = React.useState(0);
+  const [myBudget, setMyBudget] = React.useState(null);
   const [sessionBudget, setSessionBudget] = React.useState(null);
   const [spentByDay, setSpentByDay] = React.useState(null);
 
@@ -272,14 +277,14 @@ const CurrentBudgetScreen = () => {
     const dates = [];
     let currentDate = dayjs(startAt);
 
-    const totalSpent = Object.values(spentByDay || {}).reduce((acc, cur) => acc + cur, 0);
+    const total = myBudget?.total || 0;
 
     while (currentDate.isBefore(endAt) || currentDate.isSame(endAt)) {
       let spent = 0;
       spent = spentByDay?.[currentDate.format('YYYY-MM-DD')] || 0;
       let spentRatio = 0;
-      if (totalSpent > 0) {
-        spentRatio = ((spent / totalSpent) * 100).toFixed(2).replace(/\.00$/, '');
+      if (total > 0) {
+        spentRatio = ((spent / total) * 100).toFixed(2).replace(/\.00$/, '');
       } else if (spent > 0) {
         spentRatio = 100;
       }
@@ -292,10 +297,10 @@ const CurrentBudgetScreen = () => {
       currentDate = currentDate.add(1, 'day');
     }
     return dates;
-  }, [startAt, endAt, spentByDay]);
+  }, [startAt, endAt, spentByDay, myBudget]);
 
   const previousSpentRatio = React.useMemo(() => {
-    const totalSpent = Object.values(spentByDay || {}).reduce((acc, cur) => acc + cur, 0);
+    const total = myBudget?.total || 0;
     const keys = Object.keys(spentByDay || {});
     let previousSpent = 0;
 
@@ -305,13 +310,13 @@ const CurrentBudgetScreen = () => {
       }
     }
 
-    if (totalSpent > 0) {
-      return ((previousSpent / totalSpent) * 100).toFixed(2).replace(/\.00$/, '');
+    if (total > 0) {
+      return ((previousSpent / total) * 100).toFixed(2).replace(/\.00$/, '');
     } else if (previousSpent > 0) {
       return 100;
     }
     return 0;
-  }, [spentByDay, tripDays]);
+  }, [spentByDay, tripDays, myBudget]);
 
   const filteredExpenditures = React.useMemo(() => {
     if (selectedDay === 'A') {
@@ -501,8 +506,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     borderRadius: 10,
-    padding: 30,
+    paddingHorizontal: 15,
+    paddingTop: 15,
     backgroundColor: '#1E222B',
+  },
+  cardTitle: {
+    fontSize: 12,
+    color: colors.white,
+    fontWeight: 'bold',
   },
   title: {
     fontSize: 20,
