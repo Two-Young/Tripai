@@ -27,6 +27,7 @@ import {
 } from '../services/api';
 import countriesAtom from '../recoil/countries/countries';
 import userAtom from '../recoil/user/user';
+import {socket} from '../services/socket';
 
 const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) => {
   const navigation = useNavigation();
@@ -231,6 +232,12 @@ const SetBudgetScreen = () => {
       fetchBudgets();
     }, []),
   );
+
+  //
+
+  React.useEffect(() => {
+    socket.on('budget/created', data => {});
+  }, [socket]);
 
   return (
     <View style={styles.container}>

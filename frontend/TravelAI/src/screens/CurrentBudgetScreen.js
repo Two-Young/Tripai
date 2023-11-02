@@ -22,6 +22,7 @@ import {Icon} from '@rneui/themed';
 import currenciesAtom from '../recoil/currencies/currencies';
 import reactotron from 'reactotron-react-native';
 import {showErrorToast} from '../utils/utils';
+import {socket} from '../services/socket';
 
 const Card = ({myBudget, sessionBudget, currencyCode}) => {
   const currencies = useRecoilValue(currenciesAtom);
@@ -396,6 +397,25 @@ const CurrentBudgetScreen = () => {
       fetchData();
     }, []),
   );
+
+  React.useEffect(() => {
+    if (socket?.connected && fetchData) {
+      socket.on('budget/created', async data => {
+        fetchData();
+      });
+      socket.on('expenditure/created', async data => {
+        fetchData();
+      });
+      socket.on('expenditure/deleted', async data => {
+        fetchData();
+      });
+    }
+    return () => {
+      socket.off('budget/created');
+      socket.off('expenditure/created');
+      socket.off('expenditure/deleted');
+    };
+  }, [socket, fetchData]);
 
   return (
     <View style={styles.container}>

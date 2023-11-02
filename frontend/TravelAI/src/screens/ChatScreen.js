@@ -113,7 +113,7 @@ const ChatScreen = () => {
     <KeyboardAvoidingView
       style={STYLES.FLEX(1)}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={bottomSpace}>
+      keyboardVerticalOffset={bottomSpace + Platform.OS === 'ios' ? 0 : 80}>
       <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>
         <CustomHeader title={'AI CHAT'} useBack={false} />
         <FlatList

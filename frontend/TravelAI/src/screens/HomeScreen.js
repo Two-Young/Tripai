@@ -19,6 +19,7 @@ import Clipboard from '@react-native-community/clipboard';
 import {showSuccessToast} from '../utils/utils';
 import {deleteSession} from '../services/api';
 import {sessionsAtom} from '../recoil/session/sessions';
+import {socket} from '../services/socket';
 
 const HomeScreen = () => {
   // hooks
@@ -134,6 +135,29 @@ const HomeScreen = () => {
       });
     }
   }, [route.params?.place, currentSessionID]);
+
+  React.useEffect(() => {
+    if (currentSessionID && socket?.connected) {
+      socket.on('location/created', data => {
+        setPlaces(prev => [...prev, data]);
+      });
+      socket.on('location/deleted', data => {
+        setPlaces(prev => prev.filter(place => place.location_id !== data.location_id));
+      });
+      socket.on('session/memberJoined', data => async () => {
+        fetchJoined();
+      });
+      socket.on('session/memberLeft', data => async () => {
+        fetchJoined();
+      });
+    }
+    return () => {
+      socket.off('location/created');
+      socket.off('location/deleted');
+      socket.off('session/memberJoined');
+      socket.off('session/memberLeft');
+    };
+  }, [socket, currentSessionID]);
 
   return (
     <View style={defaultStyle.container}>
