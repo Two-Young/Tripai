@@ -22,6 +22,7 @@ import {Icon} from '@rneui/themed';
 import currenciesAtom from '../recoil/currencies/currencies';
 import {showErrorToast} from '../utils/utils';
 import {socket} from '../services/socket';
+import reactotron from 'reactotron-react-native';
 
 const Card = ({myBudget, sessionBudget, currencyCode}) => {
   const currencies = useRecoilValue(currenciesAtom);
@@ -112,12 +113,10 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
               You spent {spentRatio.toFixed(3).replace(/\.00$/, '').replace(/\.0$/, '')}%
             </Text>
             <Text style={styles.boxBold}>
-              {symbol}
-              {myBudget?.spent?.toLocaleString()}
+              {symbol} {myBudget?.spent?.toLocaleString()}
             </Text>
             <Text style={styles.boxText}>
-              of {symbol}
-              {myBudget?.total?.toLocaleString()}
+              of {symbol} {myBudget?.total?.toLocaleString()}
             </Text>
           </View>
         </View>
@@ -140,12 +139,10 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
               Members spent {sessionSpentRatio.toFixed(3).replace(/\.00$/, '').replace(/\.0$/, '')}%
             </Text>
             <Text style={styles.boxBold}>
-              {symbol}
-              {sessionBudget?.spent?.toLocaleString()}
+              {symbol} {sessionBudget?.spent?.toLocaleString()}
             </Text>
             <Text style={styles.boxText}>
-              of {symbol}
-              {sessionBudget?.total?.toLocaleString()}
+              of {symbol} {sessionBudget?.total?.toLocaleString()}
             </Text>
           </View>
         </View>
@@ -406,12 +403,15 @@ const CurrentBudgetScreen = () => {
   React.useEffect(() => {
     if (socket?.connected && fetchData) {
       socket.on('budget/created', async data => {
+        reactotron.log('budget/created', data);
         fetchData();
       });
       socket.on('expenditure/created', async data => {
+        reactotron.log('expenditure/created', data);
         fetchData();
       });
       socket.on('expenditure/deleted', async data => {
+        reactotron.log('expenditure/deleted', data);
         fetchData();
       });
     }
