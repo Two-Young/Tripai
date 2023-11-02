@@ -1,7 +1,7 @@
 import {showErrorToast} from '../utils/utils';
 
 const {GoogleSignin} = require('@react-native-google-signin/google-signin');
-const {authGoogleSign, authFacebookSign, authNaverSign} = require('./api');
+const {authGoogleSign, authFacebookSign, authNaverSign, authKakaoSign} = require('./api');
 const {LoginManager, AccessToken} = require('react-native-fbsdk-next');
 const {default: NaverLogin} = require('@react-native-seoul/naver-login');
 const {login} = require('@react-native-seoul/kakao-login');
@@ -78,7 +78,9 @@ export const socialNaverSignIn = async () => {
 export const socialKakaoSignin = async () => {
   try {
     const token = await login();
-    return token;
+    const {idToken, accessToken} = token;
+    const res = await authKakaoSign(accessToken);
+    return res;
   } catch (e) {
     showErrorToast(e);
   }

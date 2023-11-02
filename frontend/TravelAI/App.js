@@ -26,12 +26,6 @@ const App = () => {
   	}, []);
   */
 
-  /*
-      React.useEffect(() => {
-    AsyncStorage.clear();
-  }, []);
-  */
-
   return (
     <>
       <RecoilRoot>
