@@ -24,3 +24,16 @@ func GetSchedulesByDayCode(sessionId string, dayCode int64) ([]database.Schedule
 	}
 	return schedules, nil
 }
+
+func InsertScheduleTx(tx *sql.Tx, schedule database.ScheduleEntity) error {
+	if _, err := tx.Exec(`
+		INSERT INTO schedules (sscid, name, photo_reference, place_id, address, day, latitude, longitude, start_at, memo, sid) 
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+		schedule.ScheduleId, schedule.Name, schedule.PhotoReference,
+		schedule.PlaceId, schedule.Address, schedule.Day,
+		schedule.Latitude, schedule.Longitude, schedule.StartAt, schedule.Memo, schedule.SessionId,
+	); err != nil {
+		return err
+	}
+	return nil
+}

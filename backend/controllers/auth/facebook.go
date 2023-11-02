@@ -2,10 +2,8 @@ package auth
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"travel-ai/controllers/util"
 	"travel-ai/log"
@@ -24,60 +22,36 @@ func SignWithFacebook(c *gin.Context) {
 	}
 
 	// check if access token is valid
-	verifyUrl := fmt.Sprintf("https://graph.facebook.com/debug_token?input_token=%s&access_token=%s", body.IdToken)
-	resp, err := http.Get(verifyUrl)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-	defer resp.Body.Close()
-
-	bodyContent, err := io.ReadAll(resp.Body)
+	credential, err := GetFacebookUserInfo(body.IdToken)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	// convert body to FacebookCredentials
-	var facebookCredential FacebookCredentialsDto
-	if err := json.Unmarshal(bodyContent, &facebookCredential); err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	if !facebookCredential.Data.IsValid {
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	log.Debugf("facebook credential: %v", facebookCredential)
-
-	// Get user's information using Facebook Graph API
-	userInfoUrl := fmt.Sprintf("https://graph.facebook.com/me&fields=id,name,email,picture")
-	respUserInfo, err := http.Get(userInfoUrl)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-	defer respUserInfo.Body.Close()
-
-	bodyUserInfo, err := io.ReadAll(respUserInfo.Body)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	var facebookUser FacebookUser // Facebook 사용자 정보 형식에 맞게 구조체를 정의해야 합니다.
-	if err := json.Unmarshal(bodyUserInfo, &facebookUser); err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
+	//// Get user's information using Facebook Graph API
+	//userInfoUrl := fmt.Sprintf("https://graph.facebook.com/me&fields=id,name,email,picture")
+	//respUserInfo, err := http.Get(userInfoUrl)
+	//if err != nil {
+	//	log.Error(err)
+	//	c.AbortWithStatus(http.StatusInternalServerError)
+	//	return
+	//}
+	//defer respUserInfo.Body.Close()
+	//
+	//bodyUserInfo, err := io.ReadAll(respUserInfo.Body)
+	//if err != nil {
+	//	log.Error(err)
+	//	c.AbortWithStatus(http.StatusInternalServerError)
+	//	return
+	//}
+	//
+	//var facebookUser FacebookUser // Facebook 사용자 정보 형식에 맞게 구조체를 정의해야 합니다.
+	//if err := json.Unmarshal(bodyUserInfo, &facebookUser); err != nil {
+	//	log.Error(err)
+	//	c.AbortWithStatus(http.StatusInternalServerError)
+	//	return
+	//}
 
 	// register user
 	// check if user already registered in database with auth
@@ -89,7 +63,8 @@ func SignWithFacebook(c *gin.Context) {
 		returnCode int
 		userInfo   UserInfoDto
 	)
-	result := database.DB.QueryRowx("SELECT * FROM users WHERE id = ? AND platform = ?", facebookUser.Email, GOOGLE)
+	profileImageUrl := fmt.Sprintf("http://graph.facebook.com/%s/picture?type=large&redirect=true&width=500&height=500", credential.ID)
+	result := database.DB.QueryRowx("SELECT * FROM users WHERE id = ? AND platform = ?", credential.Email, FACEBOOK)
 	if err := result.StructScan(&userEntity); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			alreadyRegistered = false
@@ -97,10 +72,10 @@ func SignWithFacebook(c *gin.Context) {
 			userCode = platform.GenerateTenLengthCode()
 			userInfo = UserInfoDto{
 				UserId:       uid,
-				Id:           facebookUser.Email,
+				Id:           credential.Email,
 				UserCode:     userCode,
-				Username:     facebookUser.Name,
-				ProfileImage: facebookUser.Picture.Data.URL,
+				Username:     credential.Name,
+				ProfileImage: profileImageUrl,
 				Platform:     FACEBOOK,
 			}
 		} else {

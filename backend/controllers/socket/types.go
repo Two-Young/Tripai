@@ -7,6 +7,34 @@ import (
 	"travel-ai/service/database"
 )
 
+// types
+const (
+	EventTest = "test"
+
+	EventSessionChatGetMessages            = "sessionChat/getMessages"
+	EventSessionChatSendMessage            = "sessionChat/sendMessage"
+	EventSessionChatMessage                = "sessionChat/message"
+	EventSessionChatSendAssistantMessage   = "sessionChat/sendAssistantMessage"
+	EventSessionChatAssistantMessageStart  = "sessionChat/assistantMessageStart"
+	EventSessionChatAssistantMessageStream = "sessionChat/assistantMessageStream"
+	EventSessionChatAssistantMessageEnd    = "sessionChat/assistantMessageEnd"
+	EventSessionChatAssistantMessageError  = "sessionChat/assistantMessageError"
+
+	EventBudgetCreate          = "budget/create"
+	EventExpenditureCreated    = "expenditure/created"
+	EventExpenditureDeleted    = "expenditure/deleted"
+	EventFriendRequestReceived = "friend/requestReceived"
+	EventFriendConnected       = "friend/connected"
+	EventLocationCreated       = "location/created"
+	EventLocationDeleted       = "location/deleted"
+	EventScheduleCreated       = "schedule/created"
+	EventScheduleDeleted       = "schedule/deleted"
+	EventSettlementChanged     = "settlement/changed"
+	EventSessionMemberJoined   = "session/memberJoined"
+	EventSessionMemberLeft     = "session/memberLeft"
+	EventSessionDeleted        = "session/deleted"
+)
+
 type UserSocket struct {
 	User database.UserEntity
 	Conn socketio.Conn
@@ -62,6 +90,35 @@ func (sm *Manager) GetUserByConnId(connId string) (UserSocket, bool) {
 
 func (sm *Manager) GetUsers() map[string]UserSocket {
 	return sm.users
+}
+
+// Broadcast broadcasts to all users in the session
+func (sm *Manager) Broadcast(sessionId string, event string, data interface{}) {
+	sm.Io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/streamClosed",
+		NewSuccess(data))
+}
+
+// Multicast broadcasts to all users in the session except the sender
+func (sm *Manager) Multicast(sessionId string, senderUserId string, event string, data interface{}) {
+	// get sender's socket
+	senderSocket, ok := sm.GetUserByUserId(senderUserId)
+	if !ok {
+		sm.Broadcast(sessionId, event, NewSuccess(data))
+		return
+	}
+	sm.Io.ForEach("/", RoomKey(sessionId), func(conn socketio.Conn) {
+		if conn.ID() != senderSocket.Conn.ID() {
+			conn.Emit(event, NewSuccess(data))
+		}
+	})
+}
+
+func (sm *Manager) Unicast(userId string, event string, data interface{}) {
+	userSocket, ok := sm.GetUserByUserId(userId)
+	if !ok {
+		return
+	}
+	userSocket.Conn.Emit(event, NewSuccess(data))
 }
 
 // -------------------------------------------------------------------------------------

@@ -29,7 +29,7 @@ type SignResponseDto struct {
 	UserInfo   UserInfoDto     `json:"user_info"`
 }
 
-type GoogleCredentialsDto struct {
+type GoogleUser struct {
 	Iss           string `json:"iss"`
 	Azp           string `json:"azp"`
 	Aud           string `json:"aud"`
@@ -64,17 +64,6 @@ type NaverProfileDto struct {
 	}
 }
 
-type FacebookCredentialsDto struct {
-	Data struct {
-		AppID       string `json:"app_id"`
-		Type        string `json:"type"`
-		Application string `json:"application"`
-		ExpiresAt   int64  `json:"expires_at"`
-		IsValid     bool   `json:"is_valid"`
-		UserID      string `json:"user_id"`
-	} `json:"data"`
-}
-
 type FacebookUser struct {
 	ID      string `json:"id"`
 	Name    string `json:"name"`
@@ -87,4 +76,28 @@ type FacebookUser struct {
 			Width        int    `json:"width"`
 		} `json:"data"`
 	} `json:"picture"`
+}
+
+type KakaoUser struct {
+	ID          int64  `json:"id"`
+	ConnectedAt string `json:"connected_at"`
+	Properties  struct {
+		Nickname       string `json:"nickname"`
+		ProfileImage   string `json:"profile_image"`
+		ThumbnailImage string `json:"thumbnail_image"`
+	} `json:"properties"`
+	KakaoAccount struct {
+		ProfileNicknameNeedsAgreement bool `json:"profile_nickname_needs_agreement"`
+		ProfileImageNeedsAgreement    bool `json:"profile_image_needs_agreement"`
+		Profile                       struct {
+			Nickname          string `json:"nickname"`
+			ThumbnailImageURL string `json:"thumbnail_image_url"`
+			ProfileImageURL   string `json:"profile_image_url"`
+			IsDefaultImage    bool   `json:"is_default_image"`
+		} `json:"profile"`
+		HasEmail        bool   `json:"has_email"`
+		IsEmailValid    bool   `json:"is_email_valid"`
+		IsEmailVerified bool   `json:"is_email_verified"`
+		Email           string `json:"email"`
+	} `json:"kakao_account"`
 }

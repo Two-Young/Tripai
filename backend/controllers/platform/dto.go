@@ -237,7 +237,7 @@ type schedulesResponseItem struct {
 	Latitude       *float64 `json:"latitude"`
 	Longitude      *float64 `json:"longitude"`
 	StartAt        int64    `json:"start_at"`
-	Memo           *string  `json:"memo"`
+	Memo           string   `json:"memo"`
 }
 
 type schedulesResponseDto []schedulesResponseItem
@@ -436,12 +436,13 @@ type ExpenditureGetResponseDto struct {
 }
 
 type ExpenditureCreateRequestDto struct {
-	Name         string   `json:"name" binding:"required"`
-	Category     string   `json:"category" binding:"required"`
-	TotalPrice   *float64 `json:"total_price" binding:"required"`
-	CurrencyCode string   `json:"currency_code" binding:"required"`
-	PayersId     []string `json:"payers_id" binding:"required"`
-	Distribution []struct {
+	ExpenditureId *string  `json:"expenditure_id"`
+	Name          string   `json:"name" binding:"required"`
+	Category      string   `json:"category" binding:"required"`
+	TotalPrice    *float64 `json:"total_price" binding:"required"`
+	CurrencyCode  string   `json:"currency_code" binding:"required"`
+	PayersId      []string `json:"payers_id" binding:"required"`
+	Distribution  []struct {
 		UserId string   `json:"user_id" binding:"required"`
 		Amount Fraction `json:"amount" binding:"required"`
 	} `json:"distribution"`

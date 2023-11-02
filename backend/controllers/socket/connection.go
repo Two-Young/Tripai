@@ -117,18 +117,18 @@ func userHandlers(io *socketio.Server) {
 		s.LeaveAll()
 	})
 
-	io.OnEvent("/", "test", func(s socketio.Conn, msg string) {
-		s.Emit("test", "test")
+	io.OnEvent("/", EventTest, func(s socketio.Conn, msg string) {
+		s.Emit(EventTest, "test")
 	})
 
 	// get all messages in chat room (TODO :: maybe need pagination)
-	io.OnEvent("/", "sessionChat/getMessages", func(s socketio.Conn, sessionId string) {
-		log.Debugf("sessionChat/getMessages (%s): [%s]", sessionId, getUsername(s))
+	io.OnEvent("/", EventSessionChatGetMessages, func(s socketio.Conn, sessionId string) {
+		log.Debugf("%s (%s): [%s]", EventSessionChatGetMessages, sessionId, getUsername(s))
 
 		messagesRaw, err := database.InMemoryDB.LRange(RoomKey(sessionId), 0, -1)
 		if err != nil {
 			log.Error(err)
-			s.Emit("sessionChat/getMessages", NewFailure(err.Error()))
+			s.Emit(EventSessionChatGetMessages, NewFailure(err.Error()))
 			return
 		}
 
@@ -138,7 +138,7 @@ func userHandlers(io *socketio.Server) {
 			if err != nil {
 				log.Debug(messageRaw)
 				log.Error(err)
-				s.Emit("sessionChat/getMessages", NewFailure("Cannot parse messages in chatroom"))
+				s.Emit(EventSessionChatGetMessages, NewFailure("Cannot parse messages in chatroom"))
 				return
 			}
 		}
@@ -147,11 +147,11 @@ func userHandlers(io *socketio.Server) {
 		sort.Slice(messages, func(i, j int) bool {
 			return messages[i].Timestamp < messages[j].Timestamp
 		})
-		s.Emit("sessionChat/getMessages", NewSuccess(messages))
+		s.Emit(EventSessionChatGetMessages, NewSuccess(messages))
 	})
 
-	io.OnEvent("/", "sessionChat/sendMessage", func(s socketio.Conn, sessionId string, message string) {
-		log.Debugf("sessionChat/sendMessage (%s): [%s] %s", sessionId, getUsername(s), message)
+	io.OnEvent("/", EventSessionChatSendMessage, func(s socketio.Conn, sessionId string, message string) {
+		log.Debugf("%s (%s): [%s] %s", EventSessionChatSendMessage, sessionId, getUsername(s), message)
 
 		user := s.Context().(database.UserEntity)
 		chatMessage := NewChatMessage(
@@ -165,19 +165,19 @@ func userHandlers(io *socketio.Server) {
 		chatMessageRaw, err := chatMessage.String()
 		if err != nil {
 			log.Error(err)
-			s.Emit("sessionChat/message", NewFailure(err.Error()))
+			s.Emit(EventSessionChatMessage, NewFailure(err.Error()))
 			return
 		}
 		if err := database.InMemoryDB.LPushExp(RoomKey(sessionId), chatMessageRaw, time.Hour*24*7); err != nil {
 			log.Error(err)
-			s.Emit("sessionChat/message", NewFailure(err.Error()))
+			s.Emit(EventSessionChatMessage, NewFailure(err.Error()))
 			return
 		}
-		io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/message", NewSuccess(chatMessage))
+		io.BroadcastToRoom("/", RoomKey(sessionId), EventSessionChatMessage, NewSuccess(chatMessage))
 	})
 
-	io.OnEvent("/", "sendAssistantMessage", func(s socketio.Conn, sessionId string, message string) {
-		log.Debugf("sessionChat/sendAssistantMessage (%s): [%s] %s", sessionId, getUsername(s), message)
+	io.OnEvent("/", EventSessionChatSendAssistantMessage, func(s socketio.Conn, sessionId string, message string) {
+		log.Debugf("%s (%s): [%s] %s", EventSessionChatSendAssistantMessage, sessionId, getUsername(s), message)
 
 		user := s.Context().(database.UserEntity)
 		chatMessage := NewChatMessage(
@@ -192,24 +192,24 @@ func userHandlers(io *socketio.Server) {
 		if err != nil {
 			log.Errorf("Cannot parse GPT message %s", message)
 			log.Error(err)
-			s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
+			s.Emit(EventSessionChatSendAssistantMessage, NewFailure(err.Error()))
 			return
 		}
-		if err := database.InMemoryDB.LPushExp(RoomKey(sessionId), chatMessageRaw, time.Hour*24*31); err != nil {
+		if err := database.InMemoryDB.RPushExp(RoomKey(sessionId), chatMessageRaw, time.Hour*24*31); err != nil {
 			log.Errorf("Cannot push GPT message to session %s", sessionId)
 			log.Error(err)
-			s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
+			s.Emit(EventSessionChatSendAssistantMessage, NewFailure(err.Error()))
 			return
 		}
-		if err := database.InMemoryDB.LPush(RoomGptKey(sessionId), chatMessageRaw); err != nil {
+		if err := database.InMemoryDB.RPush(RoomGptKey(sessionId), chatMessageRaw); err != nil {
 			log.Errorf("Cannot push GPT message to session %s", sessionId)
 			log.Error(err)
-			s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
+			s.Emit(EventSessionChatSendAssistantMessage, NewFailure(err.Error()))
 			return
 		}
 
 		// get recent gpt messages
-		fetchCount := 5
+		fetchCount := 8
 		messagesRaw, err := database.InMemoryDB.LRange(RoomGptKey(sessionId), int64(-fetchCount), -1)
 
 		// configure histories
@@ -220,6 +220,7 @@ func userHandlers(io *socketio.Server) {
 			Content: platform.GptBrainWashPrompt,
 			Name:    "System",
 		})
+		log.Debugf("Histories:")
 		for _, messageRaw := range messagesRaw {
 			chatMessage, err := ChatMessageFromStr(messageRaw)
 			if err != nil {
@@ -238,22 +239,24 @@ func userHandlers(io *socketio.Server) {
 			histories = append(histories, text_completion.CompletionMessage{
 				Role:    role,
 				Content: chatMessage.Content,
-				Name:    chatMessage.SenderUsername,
+				Name:    "Traveler",
 			})
+			log.Debugf("%s: %s\n", chatMessage.SenderUsername, chatMessage.Content)
 		}
 
 		resp, err := text_completion.RequestCompletion(text_completion.MODEL_GPT_4, histories)
 		if err != nil {
 			log.Error(err)
-			s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
+			s.Emit(EventSessionChatSendAssistantMessage, NewFailure(err.Error()))
 			return
 		}
 
-		io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/sendAssistantMessage", NewSuccess(chatMessage))
+		io.BroadcastToRoom("/", RoomKey(sessionId), EventSessionChatMessage, NewSuccess(chatMessage))
 
 		// resp
 		gptMessageId := uuid.New().String()
-		io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/assistantMessageStart", NewSuccess(GptResponseStartEvent{
+		gptResponseStartTime := time.Now().UnixMilli()
+		io.BroadcastToRoom("/", RoomKey(sessionId), EventSessionChatAssistantMessageStart, NewSuccess(GptResponseStartEvent{
 			GptResponseId: gptMessageId,
 		}))
 
@@ -267,48 +270,57 @@ func userHandlers(io *socketio.Server) {
 			for scanner.Scan() {
 				runeText := scanner.Text()
 				storedContent += runeText
-				io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/assistantMessageStream", NewSuccess(GptResponseStreamEvent{
+				io.BroadcastToRoom("/", RoomKey(sessionId), EventSessionChatAssistantMessageStream, NewSuccess(GptResponseStreamEvent{
 					GptResponseId: gptMessageId,
 					Content:       runeText,
 				}))
 			}
 
 			if err := scanner.Err(); err != nil {
+				log.Error(err)
 				if err != io2.EOF {
 					log.Error(err)
-					io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/assistantMessageError", NewSuccess(GptResponseErrorEvent{
+					io.BroadcastToRoom("/", RoomKey(sessionId), EventSessionChatAssistantMessageError, NewSuccess(GptResponseErrorEvent{
 						GptResponseId: gptMessageId,
 						ErrorMessage:  err.Error(),
 					}))
-				} else {
-					// first save response to memory db
-					gptResponse := ChatMessage{
-						SenderUserId:       "",
-						SenderUsername:     "",
-						SenderProfileImage: nil,
-						Content:            storedContent,
-						Timestamp:          time.Now().UnixMilli(),
-						Type:               TypeAssistantResponse,
-					}
-					gptResponseRaw, err := gptResponse.String()
-					if err != nil {
-						log.Errorf("Cannot parse GPT message %s", storedContent)
-						log.Error(err)
-						s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
-						return
-					}
-					if err := database.InMemoryDB.LPush(RoomGptKey(sessionId), gptResponseRaw); err != nil {
-						log.Errorf("Cannot push GPT message to session %s", sessionId)
-						log.Error(err)
-						s.Emit("sessionChat/sendAssistantMessage", NewFailure(err.Error()))
-						return
-					}
-
-					io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/streamClosed", NewSuccess(GptResponseEndEvent{
-						GptResponseId:   gptMessageId,
-						CompleteContent: storedContent,
-					}))
 				}
+			} else {
+				// first save response to memory db
+				gptResponse := ChatMessage{
+					SenderUserId:       "",
+					SenderUsername:     "",
+					SenderProfileImage: nil,
+					Content:            storedContent,
+					Timestamp:          gptResponseStartTime,
+					Type:               TypeAssistantResponse,
+				}
+				gptResponseRaw, err := gptResponse.String()
+				if err != nil {
+					log.Errorf("Cannot parse GPT message %s", storedContent)
+					log.Error(err)
+					s.Emit(EventSessionChatSendAssistantMessage, NewFailure(err.Error()))
+					return
+				}
+
+				if err := database.InMemoryDB.RPushExp(RoomKey(sessionId), gptResponseRaw, time.Hour*24*31); err != nil {
+					log.Errorf("Cannot push GPT message to session %s", sessionId)
+					log.Error(err)
+					s.Emit(EventSessionChatSendAssistantMessage, NewFailure(err.Error()))
+					return
+				}
+				log.Debugf("GPT response saved to memory db to room %s", RoomKey(sessionId))
+				if err := database.InMemoryDB.RPush(RoomGptKey(sessionId), gptResponseRaw); err != nil {
+					log.Errorf("Cannot push GPT message to session %s", sessionId)
+					log.Error(err)
+					s.Emit(EventSessionChatSendAssistantMessage, NewFailure(err.Error()))
+					return
+				}
+				log.Debugf("GPT response saved to memory db to gptroom %s", RoomGptKey(sessionId))
+				io.BroadcastToRoom("/", RoomKey(sessionId), EventSessionChatAssistantMessageEnd, NewSuccess(GptResponseEndEvent{
+					GptResponseId:   gptMessageId,
+					CompleteContent: storedContent,
+				}))
 			}
 		}()
 	})

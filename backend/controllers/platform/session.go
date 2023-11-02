@@ -243,6 +243,7 @@ func DeleteSession(c *gin.Context) {
 		return
 	}
 
+	socket.SocketManager.Multicast(body.SessionId, uid, socket.EventSessionDeleted, body.SessionId)
 	c.Status(http.StatusOK)
 }
 
@@ -578,6 +579,7 @@ func SessionInviteRequests(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// ConfirmSessionInvite 세션에서 보낸 초대 수락/거절
 func ConfirmSessionInvite(c *gin.Context) {
 	uid := c.GetString("uid")
 	var body sessionInviteConfirmRequestDto
@@ -655,6 +657,7 @@ func ConfirmSessionInvite(c *gin.Context) {
 						time.Now().UnixMilli(), socket.TypeSystemMessage),
 				)
 			}
+			socket.SocketManager.Multicast(body.SessionId, uid, socket.EventSessionMemberJoined, uid)
 		}()
 	}
 
@@ -975,6 +978,8 @@ func ConfirmSessionJoin(c *gin.Context) {
 						time.Now().UnixMilli(), socket.TypeSystemMessage),
 				)
 			}
+
+			socket.SocketManager.Multicast(body.SessionId, uid, socket.EventSessionMemberJoined, body.UserId)
 		}()
 	}
 
@@ -1039,6 +1044,7 @@ func ExpelSession(c *gin.Context) {
 		return
 	}
 
+	socket.SocketManager.Multicast(body.SessionId, uid, socket.EventSessionMemberLeft, body.UserId)
 	c.Status(http.StatusOK)
 }
 
@@ -1113,6 +1119,7 @@ func LeaveSession(c *gin.Context) {
 		return
 	}
 
+	socket.SocketManager.Multicast(body.SessionId, uid, socket.EventSessionMemberLeft, uid)
 	c.Status(http.StatusOK)
 }
 

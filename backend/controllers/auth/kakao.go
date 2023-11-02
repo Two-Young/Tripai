@@ -2,11 +2,9 @@ package auth
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"net/http"
+	"strconv"
 	"travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
@@ -16,40 +14,17 @@ import (
 	"github.com/google/uuid"
 )
 
-func SignWithKakaotalk(c *gin.Context) {
+func SignWithKakao(c *gin.Context) {
 	var body SignRequestDto
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.AbortWithErrJson(c, http.StatusBadRequest, err)
 		return
 	}
 
-	// check if id token is valid
-	verifyUrl := fmt.Sprintf("https://oauth2.googleapis.com/tokeninfo?id_token=%s", body.IdToken)
-	resp, err := http.Get(verifyUrl)
+	credential, err := GetKakaoUserInfo(body.IdToken)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-	defer resp.Body.Close()
-
-	bodyContent, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	// convert body to GoogleCredentials
-	var googleCredentials GoogleCredentialsDto
-	if err := json.Unmarshal(bodyContent, &googleCredentials); err != nil {
-		log.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
@@ -63,7 +38,11 @@ func SignWithKakaotalk(c *gin.Context) {
 		returnCode int
 		userInfo   UserInfoDto
 	)
-	result := database.DB.QueryRowx("SELECT * FROM users WHERE id = ? AND platform = ?", googleCredentials.Email, GOOGLE)
+	id := credential.KakaoAccount.Email
+	if !credential.KakaoAccount.HasEmail {
+		id = strconv.FormatInt(credential.ID, 10)
+	}
+	result := database.DB.QueryRowx("SELECT * FROM users WHERE id = ? AND platform = ?", id, KAKAO)
 	if err := result.StructScan(&userEntity); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			alreadyRegistered = false
@@ -71,11 +50,11 @@ func SignWithKakaotalk(c *gin.Context) {
 			userCode = platform.GenerateTenLengthCode()
 			userInfo = UserInfoDto{
 				UserId:       uid,
-				Id:           googleCredentials.Email,
+				Id:           id,
 				UserCode:     userCode,
-				Username:     googleCredentials.Name,
-				ProfileImage: googleCredentials.Picture,
-				Platform:     GOOGLE,
+				Username:     credential.KakaoAccount.Profile.Nickname,
+				ProfileImage: credential.KakaoAccount.Profile.ProfileImageURL,
+				Platform:     KAKAO,
 			}
 		} else {
 			log.Error(err)
@@ -128,7 +107,7 @@ func SignWithKakaotalk(c *gin.Context) {
 	c.JSON(returnCode, signResponseDto)
 }
 
-func UseKakaotalkAuthRouter(g *gin.RouterGroup) {
-	sg := g.Group("/kakaotalk")
-	sg.POST("sign", SignWithKakaotalk)
+func UseKakaoAuthRouter(g *gin.RouterGroup) {
+	sg := g.Group("/kakao")
+	sg.POST("sign", SignWithKakao)
 }

@@ -38,7 +38,9 @@ const SettlementSummary = ({title, settlements}) => {
               {item.category} ({((item.amount / total) * 100).toFixed(2)}%)
             </Text>
           </View>
-          <Text style={[styles.propertyAmountText, {color: item.color}]}>{item.amount}</Text>
+          <Text style={[styles.propertyAmountText, {color: item.color}]}>
+            {item.amount.toFixed(2)}
+          </Text>
         </View>
       );
     },

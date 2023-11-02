@@ -59,18 +59,18 @@ type CountryEntity struct {
 }
 
 type LocationEntity struct {
-	LocationId     *string  `db:"lid" json:"location_id"`
+	LocationId     string   `db:"lid" json:"location_id"`
 	PlaceId        *string  `db:"place_id" json:"place_id"`
 	Name           *string  `db:"name" json:"name"`
 	Latitude       *float64 `db:"latitude" json:"latitude"`
 	Longitude      *float64 `db:"longitude" json:"longitude"`
 	Address        *string  `db:"address" json:"address"`
 	PhotoReference *string  `db:"photo_reference" json:"photo_reference"`
-	SessionId      *string  `db:"sid" json:"session_id"`
+	SessionId      string   `db:"sid" json:"session_id"`
 }
 
 type ScheduleEntity struct {
-	ScheduleId     *string    `db:"sscid" json:"schedule_id"`
+	ScheduleId     string     `db:"sscid" json:"schedule_id"`
 	Name           *string    `db:"name" json:"name"`
 	PhotoReference *string    `db:"photo_reference" json:"photo_reference"`
 	PlaceId        *string    `db:"place_id" json:"place_id"`
@@ -79,8 +79,8 @@ type ScheduleEntity struct {
 	Latitude       *float64   `db:"latitude" json:"latitude"`
 	Longitude      *float64   `db:"longitude" json:"longitude"`
 	StartAt        *time.Time `db:"start_at" json:"start_at"`
-	Memo           *string    `db:"memo" json:"memo"`
-	SessionId      *string    `db:"sid" json:"session_id"`
+	Memo           string     `db:"memo" json:"memo"`
+	SessionId      string     `db:"sid" json:"session_id"`
 }
 
 type ExpenditureEntity struct {

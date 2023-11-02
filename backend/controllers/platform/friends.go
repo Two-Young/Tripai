@@ -3,6 +3,7 @@ package platform
 import (
 	"net/http"
 	"time"
+	"travel-ai/controllers/socket"
 	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
@@ -113,6 +114,8 @@ func RequestFriend(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+		socket.SocketManager.Unicast(uid, socket.EventFriendConnected, body.TargetUserId)
+		socket.SocketManager.Unicast(body.TargetUserId, socket.EventFriendConnected, uid)
 	} else {
 		// create a new request
 		if err := database_io.InsertFriendRelationTx(tx, database.FriendEntity{
@@ -127,6 +130,7 @@ func RequestFriend(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+		socket.SocketManager.Unicast(body.TargetUserId, socket.EventFriendRequestReceived, uid)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -173,7 +177,7 @@ func CancelFriendRequest(c *gin.Context) {
 		return
 	}
 
-	// check if the I sent a request
+	// check if I sent a request
 	if !iSentToOpposite {
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "no request from me: abnormal request")
 		return
@@ -280,6 +284,7 @@ func AcceptFriend(c *gin.Context) {
 		return
 	}
 
+	socket.SocketManager.Unicast(body.RequestedUserId, socket.EventFriendConnected, uid)
 	c.JSON(http.StatusOK, nil)
 }
 

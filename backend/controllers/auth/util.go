@@ -1,10 +1,15 @@
 package auth
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/golang-jwt/jwt"
+	"io"
+	"net/http"
 	"os"
 	"time"
+	"travel-ai/log"
 	"travel-ai/service/database"
 	"travel-ai/util"
 )
@@ -15,6 +20,7 @@ const (
 	NAVER     = "NAVER"
 	INSTAGRAM = "INSTAGRAM"
 	FACEBOOK  = "FACEBOOK"
+	KAKAO     = "KAKAO"
 )
 
 func CreateAuthToken(uid string) (*AuthTokenBundle, error) {
@@ -74,4 +80,70 @@ func saveRefreshToken(uid string, refreshToken authToken) error {
 		return err
 	}
 	return nil
+}
+
+func GetFacebookUserInfo(accessToken string) (*FacebookUser, error) {
+	url := "https://graph.facebook.com/v11.0/me?fields=id,name,email,picture&access_token=" + accessToken
+
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting user info, HTTP status: %s", resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	log.Debugf("facebook user info: %s", string(body))
+
+	var userInfo FacebookUser
+	err = json.Unmarshal(body, &userInfo)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	return &userInfo, nil
+}
+
+func GetKakaoUserInfo(accessToken string) (*KakaoUser, error) {
+	url := "https://kapi.kakao.com/v2/user/me"
+
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Error getting user info. HTTP status: %s", resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	var userInfo KakaoUser
+	err = json.Unmarshal(body, &userInfo)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	return &userInfo, nil
 }

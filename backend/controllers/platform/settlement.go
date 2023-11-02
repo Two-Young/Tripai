@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"math/big"
 	"net/http"
+	"travel-ai/controllers/socket"
 	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
@@ -415,6 +416,7 @@ func CompleteSettlement(c *gin.Context) {
 		return
 	}
 
+	socket.SocketManager.Unicast(body.TargetUserId, socket.EventSettlementChanged, nil)
 	c.JSON(http.StatusOK, nil)
 }
 
