@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleSheet, View, SectionList, Text} from 'react-native';
 import {Searchbar, IconButton} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
-import {useRecoilValue} from 'recoil';
+import {useRecoilValue, useRecoilState} from 'recoil';
 import {
   getSessionMembers,
   getSessionInvitationWaitings,
@@ -13,7 +13,7 @@ import {
   confirmSessionJoinRequest,
 } from '../services/api';
 import sessionAtom from '../recoil/session/session';
-import {getFriendsSelector} from '../recoil/friends/friends';
+import {friendsAtom} from '../recoil/friends/friends';
 import SafeArea from '../component/molecules/SafeArea';
 import colors from '../theme/colors';
 import CustomHeader from '../component/molecules/CustomHeader';
@@ -21,6 +21,7 @@ import {STYLES} from '../styles/Stylesheets';
 import {Medium} from '../theme/fonts';
 import UserItem from '../component/molecules/UserItem';
 import {showErrorToast} from '../utils/utils';
+import {getFriends} from '../services/api';
 
 const ManageParticipantsScreen = () => {
   // hooks
@@ -29,7 +30,7 @@ const ManageParticipantsScreen = () => {
   const session = useRecoilValue(sessionAtom);
   const sessionID = React.useMemo(() => session?.session_id, [session]);
 
-  const friends = useRecoilValue(getFriendsSelector);
+  const [friends, setFriends] = useRecoilState(friendsAtom);
 
   // states
   const [refreshing, setRefreshing] = React.useState(true);
@@ -41,6 +42,15 @@ const ManageParticipantsScreen = () => {
   const [requested, setRequested] = React.useState([]);
 
   // functions
+  const fetchFriends = async () => {
+    try {
+      const data = await getFriends();
+      setFriends(data);
+    } catch (err) {
+      showErrorToast(err);
+    }
+  };
+
   const fetchJoined = React.useCallback(async () => {
     try {
       const res = await getSessionMembers(sessionID);
@@ -96,8 +106,7 @@ const ManageParticipantsScreen = () => {
     async (friendID, accept) => {
       try {
         await confirmSessionJoinRequest(sessionID, friendID, accept);
-        await fetchRequeted();
-        await fetchJoined();
+        Promise.all([fetchInviting(), fetchRequeted()]);
       } catch (err) {
         showErrorToast(err);
       }
@@ -120,7 +129,7 @@ const ManageParticipantsScreen = () => {
   // effects
   React.useEffect(() => {
     if (refreshing) {
-      Promise.all([fetchJoined(), fetchInviting(), fetchRequeted()])
+      Promise.all([fetchFriends(), fetchJoined(), fetchInviting(), fetchRequeted()])
         .catch(err => {
           showErrorToast(err);
         })
@@ -132,12 +141,7 @@ const ManageParticipantsScreen = () => {
 
   React.useEffect(() => {
     if (sessionID) {
-      const fetchDatas = async () => {
-        await fetchJoined();
-        await fetchInviting();
-        await fetchRequeted();
-      };
-      fetchDatas().catch(err => {
+      Promise.all([fetchFriends(), fetchJoined(), fetchInviting(), fetchRequeted()]).catch(err => {
         showErrorToast(err);
       });
     }
