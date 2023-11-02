@@ -3,7 +3,7 @@ import React, {useEffect} from 'react';
 import defaultStyle from '../styles/styles';
 import PlaceListItem from '../component/molecules/PlaceListItem';
 import colors from '../theme/colors';
-import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
+import {CommonActions, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {getLocations, getSessionCurrencies, leaveSession} from '../services/api';
 import {useRecoilValue, useRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
@@ -53,6 +53,7 @@ const HomeScreen = () => {
       if (!refreshing) {
         setRefreshing(true);
         await fetchPlaces();
+        await fetchJoined();
         setRefreshing(false);
       }
     } catch (err) {
@@ -162,9 +163,11 @@ const HomeScreen = () => {
         setPlaces(prev => prev.filter(place => place.location_id !== data.data));
       });
       socket.on('session/memberJoined', data => async () => {
+        reactotron.log('memberJoined', data);
         await fetchJoined();
       });
       socket.on('session/memberLeft', data => async () => {
+        reactotron.log('memberLeft', data);
         await fetchJoined();
       });
     }
@@ -175,6 +178,14 @@ const HomeScreen = () => {
       socket.off('session/memberLeft');
     };
   }, [socket, currentSessionID]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (currentSessionID) {
+        fetchDatas();
+      }
+    }, [currentSessionID]),
+  );
 
   return (
     <View style={defaultStyle.container}>

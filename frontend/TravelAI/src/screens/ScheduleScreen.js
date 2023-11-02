@@ -16,6 +16,7 @@ import PlaceCard from '../component/atoms/PlaceCard';
 import {Medium, Light} from '../theme/fonts';
 import {socket} from '../services/socket';
 import {showErrorToast} from '../utils/utils';
+import reactotron from 'reactotron-react-native';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -196,9 +197,9 @@ const ScheduleScreen = () => {
   }, [schedules]);
 
   const fetchScheduleEvent = React.useCallback(
-    async data => {
-      if (data?.day === currentIndex) {
-        setSchedules(prev => [...prev, data].sort((a, b) => a.start_at - b.start_at));
+    data => {
+      if (data?.data?.day === currentIndex) {
+        setSchedules(prev => [...prev, data?.data].sort((a, b) => a.start_at - b.start_at));
       }
     },
     [currentIndex, setSchedules],
@@ -207,7 +208,10 @@ const ScheduleScreen = () => {
   // socket
   React.useEffect(() => {
     if (socket?.connected) {
-      socket.on('schedule/created', fetchScheduleEvent);
+      socket.on('schedule/created', data => {
+        reactotron.log('schedule/created', data);
+        fetchScheduleEvent(data);
+      });
     }
     return () => {
       socket.off('schedule/created');
@@ -216,8 +220,9 @@ const ScheduleScreen = () => {
 
   React.useEffect(() => {
     if (socket?.connected) {
-      socket.on('schedule/deleted', schedule_id => {
-        setSchedules(schedules.filter(item => item.schedule_id !== schedule_id));
+      socket.on('schedule/deleted', data => {
+        reactotron.log('schedule/deleted', data);
+        setSchedules(schedules.filter(item => item.schedule_id !== data.data));
       });
     }
     return () => {

@@ -60,8 +60,8 @@ const AddScheduleScreen = () => {
 
   // memo
   const addDisabled = React.useMemo(() => {
-    return name.length === 0 || !place?.address;
-  }, [name, place]);
+    return name.length === 0;
+  }, [name]);
 
   return (
     <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
