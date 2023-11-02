@@ -4,7 +4,7 @@ import defaultStyle from '../styles/styles';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {getReceipt, getReceiptImage} from '../services/api';
-import {arrayBufferToBase64} from '../utils/utils';
+import {arrayBufferToBase64, showErrorToast} from '../utils/utils';
 
 const ReceiptScreen = () => {
   // hooks
@@ -49,7 +49,7 @@ const ReceiptScreen = () => {
       const resImage = await getReceiptImage(receipt_id);
       setReceiptImageData(arrayBufferToBase64(resImage));
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 

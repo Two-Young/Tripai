@@ -12,6 +12,7 @@ import MainButton from '../component/atoms/MainButton';
 import dayjs from 'dayjs';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import {STYLES} from '../styles/Stylesheets';
+import {showErrorToast} from '../utils/utils';
 
 const EditScheduleScreen = () => {
   // states
@@ -48,7 +49,7 @@ const EditScheduleScreen = () => {
       });
       navigation.goBack();
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,7 @@ const EditScheduleScreen = () => {
       });
       navigation.goBack();
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

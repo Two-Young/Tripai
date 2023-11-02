@@ -18,11 +18,12 @@ import {IconButton} from 'react-native-paper';
 import MessageItem from '../component/molecules/MessageItem';
 import colors from '../theme/colors';
 import {socket} from '../services/socket';
-import {chatGPTIcon} from '../assets/images';
+import {TripAIIcon} from '../assets/images';
 import _ from 'lodash';
 import {STYLES} from '../styles/Stylesheets';
 import useBottomSpace from '../utils/useBottomSpace';
 import {Regular} from '../theme/fonts';
+import LinearGradient from 'react-native-linear-gradient';
 
 const ChatScreen = () => {
   const navigation = useNavigation();
@@ -42,6 +43,7 @@ const ChatScreen = () => {
       return;
     }
     if (useChatGPT) {
+      console.log('sendAssistantMessage ::', inputContent);
       socket.emit('sessionChat/sendAssistantMessage', currentSessionID, inputContent);
     } else {
       socket.emit('sessionChat/sendMessage', currentSessionID, inputContent);
@@ -66,7 +68,13 @@ const ChatScreen = () => {
 
   const assistantMessageCallback = React.useCallback(async res => {
     if (res.success) {
-      setMessages(prev => [...prev, res]);
+      setMessages(prev => [
+        ...prev,
+        {
+          ...res,
+          type: 'assistant_response',
+        },
+      ]);
     }
   }, []);
 
@@ -76,17 +84,86 @@ const ChatScreen = () => {
     }
   }, []);
 
+  const assistantMessageStartCallback = React.useCallback(async res => {
+    console.log('assistantMessageStartCallback ::', res);
+    if (res.success) {
+      setMessages(prev => [...prev, {...res.data, type: 'assistant_response', content: ''}]);
+    }
+  }, []);
+
+  const assistantMessageStreamCallback = React.useCallback(async res => {
+    if (res.success) {
+      setMessages(prev =>
+        prev.map(item => {
+          if (item.gpt_response_id === res.data.gpt_response_id) {
+            return {
+              ...item,
+              content: item.content + res.data.content,
+            };
+          }
+          return item;
+        }),
+      );
+    }
+  }, []);
+
+  const assistantMessageEndCallback = React.useCallback(async res => {
+    console.log('assistantMessageEndCallback ::', res);
+    if (res.success) {
+      setMessages(prev =>
+        prev.map(item => {
+          if (item.gpt_response_id === res.data.gpt_response_id) {
+            return {
+              ...item,
+              content: res.data.complete_content,
+              isEnd: true,
+            };
+          }
+          return item;
+        }),
+      );
+    }
+  }, []);
+
+  const assistantMessageErrorCallback = React.useCallback(async res => {
+    console.log('assistantMessageErrorCallback ::', res);
+    if (res.success) {
+      setMessages(prev =>
+        prev.map(item => {
+          if (item.gpt_response_id === res.data.gpt_response_id) {
+            return {
+              ...item,
+              content: 'Error occurred. Please try again.',
+              isError: true,
+            };
+          }
+          return item;
+        }),
+      );
+    }
+  }, []);
+
+  // TODO:: Chat GPT의 경우, Box 하나에 메시지가 추가되는 형태로 구현 (byte 단위로 와서 그럼)
+
   useEffect(() => {
     socket.on('sessionChat/getMessages', getMessagesCallback);
     socket.on('sessionChat/message', messageCallback);
     socket.on('sessionChat/assistantMessage', assistantMessageCallback);
     socket.on('sessionChat/userJoined', userJoinedCallback);
+    socket.on('sessionChat/assistantMessageStart', assistantMessageStartCallback);
+    socket.on('sessionChat/assistantMessageStream', assistantMessageStreamCallback);
+    socket.on('sessionChat/assistantMessageEnd', assistantMessageEndCallback);
+    socket.on('sessionChat/assistantMessageError', assistantMessageErrorCallback);
 
     () => {
       socket.off('sessionChat/getMessages', getMessagesCallback);
       socket.off('sessionChat/message', messageCallback);
       socket.off('sessionChat/assistantMessage', assistantMessageCallback);
       socket.off('sessionChat/userJoined', userJoinedCallback);
+      socket.off('sessionChat/assistantMessageStart', assistantMessageStartCallback);
+      socket.off('sessionChat/assistantMessageStream', assistantMessageStreamCallback);
+      socket.off('sessionChat/assistantMessageEnd', assistantMessageEndCallback);
+      socket.off('sessionChat/assistantMessageError', assistantMessageErrorCallback);
     };
   }, [socket]);
 
@@ -105,13 +182,15 @@ const ChatScreen = () => {
         flatListRef.current.scrollToEnd();
       }, 500);
     }
-  }, [flatListRef]);
+  }, [flatListRef, messages]);
+
+  // console.log('messages ::', messages);
 
   return (
     <KeyboardAvoidingView
       style={STYLES.FLEX(1)}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={bottomSpace}>
+      keyboardVerticalOffset={bottomSpace + Platform.OS === 'ios' ? 0 : 80}>
       <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>
         <CustomHeader title={'AI CHAT'} useBack={false} />
         <FlatList
@@ -120,12 +199,19 @@ const ChatScreen = () => {
           renderItem={({item, index}) => <MessageItem {...item} />}
           contentContainerStyle={STYLES.PADDING(16)}
         />
-        <View
-          style={[styles.inputComponent, {backgroundColor: useChatGPT ? '#74AA9C' : '#E5E5EA'}]}>
+        <LinearGradient
+          colors={
+            useChatGPT
+              ? ['purple', 'black', 'black', 'black', 'black', 'black', 'cyan']
+              : ['#E5E5EA', '#E5E5EA']
+          }
+          useAngle={true}
+          angle={70}
+          style={[styles.inputComponent]}>
           <TouchableOpacity
             style={[STYLES.MARGIN_RIGHT(12)]}
             onPress={() => setUseChatGPT(prev => !prev)}>
-            <Image source={chatGPTIcon} style={[styles.gptIcon]} />
+            <Image source={TripAIIcon} style={[styles.gptIcon]} />
           </TouchableOpacity>
           <TextInput style={styles.input} value={inputContent} onChangeText={setInputContent} />
           <IconButton
@@ -136,7 +222,24 @@ const ChatScreen = () => {
             style={STYLES.MARGIN(0)}
             onPress={sendMessage}
           />
-        </View>
+        </LinearGradient>
+        {/* <View
+          style={[styles.inputComponent, {backgroundColor: useChatGPT ? colors.gpt : '#E5E5EA'}]}>
+          <TouchableOpacity
+            style={[STYLES.MARGIN_RIGHT(12)]}
+            onPress={() => setUseChatGPT(prev => !prev)}>
+            <Image source={TripAIIcon} style={[styles.gptIcon]} />
+          </TouchableOpacity>
+          <TextInput style={styles.input} value={inputContent} onChangeText={setInputContent} />
+          <IconButton
+            icon="send"
+            iconColor={useChatGPT ? '#74AA9C' : colors.white}
+            containerColor={useChatGPT ? colors.white : colors.primary}
+            size={20}
+            style={STYLES.MARGIN(0)}
+            onPress={sendMessage}
+          />
+        </View> */}
       </View>
     </KeyboardAvoidingView>
   );

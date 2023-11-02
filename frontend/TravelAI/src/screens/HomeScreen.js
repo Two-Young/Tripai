@@ -16,9 +16,10 @@ import {Avatar, List} from 'react-native-paper';
 import {STYLES} from '../styles/Stylesheets';
 import {SemiBold} from '../theme/fonts';
 import Clipboard from '@react-native-community/clipboard';
-import {showSuccessToast} from '../utils/utils';
+import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
 import {deleteSession} from '../services/api';
 import {sessionsAtom} from '../recoil/session/sessions';
+import {socket} from '../services/socket';
 
 const HomeScreen = () => {
   // hooks
@@ -54,7 +55,7 @@ const HomeScreen = () => {
         setRefreshing(false);
       }
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
       setRefreshing(false);
     }
   };
@@ -70,13 +71,21 @@ const HomeScreen = () => {
     setFmVisible(true);
   };
 
-  const onPressLeave = async () => {
+  const onLeave = async () => {
     try {
       await leaveSession(currentSessionID);
       setSessions(sessions.filter(session => session.session_id !== currentSessionID));
       navigation.goBack();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const onPressLeave = async () => {
+    try {
+      requestAlert('Exit Session', 'Are you sure you want to exit this session?', onLeave);
+    } catch (err) {
+      showErrorToast(err);
     }
   };
 
@@ -98,7 +107,7 @@ const HomeScreen = () => {
       setSessions(sessions.filter(session => session.session_id !== currentSessionID));
       navigation.goBack();
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -113,27 +122,57 @@ const HomeScreen = () => {
     }
   }, [currentSessionID]);
 
-  useEffect(() => {
-    if (currentSessionID) {
-      fetchJoined();
+  const fetchDatas = React.useCallback(async () => {
+    try {
+      await fetchPlaces();
+      await fetchJoined();
+    } catch (err) {
+      showErrorToast(err);
     }
   }, [currentSessionID]);
 
   // effects
-  React.useEffect(() => {
-    if (currentSessionID && !_.isEmpty(currentSession)) {
-      fetchPlaces();
+  useEffect(() => {
+    if (currentSessionID) {
+      fetchDatas();
     }
-  }, [currentSession, currentSessionID]);
+  }, [currentSessionID]);
 
   React.useEffect(() => {
     if (route.params?.place && currentSessionID) {
       // setPlaces(_.uniqWith([...places, route.params?.place], _.isEqual));
-      fetchPlaces().then(() => {
-        navigation.dispatch({...CommonActions.setParams({place: null})});
-      });
+      fetchPlaces()
+        .then(() => {
+          navigation.dispatch({...CommonActions.setParams({place: null})});
+        })
+        .catch(err => {
+          showErrorToast(err);
+        });
     }
   }, [route.params?.place, currentSessionID]);
+
+  React.useEffect(() => {
+    if (currentSessionID && socket?.connected) {
+      socket.on('location/created', data => {
+        setPlaces(prev => [...prev, data]);
+      });
+      socket.on('location/deleted', data => {
+        setPlaces(prev => prev.filter(place => place.location_id !== data.location_id));
+      });
+      socket.on('session/memberJoined', data => async () => {
+        fetchJoined();
+      });
+      socket.on('session/memberLeft', data => async () => {
+        fetchJoined();
+      });
+    }
+    return () => {
+      socket.off('location/created');
+      socket.off('location/deleted');
+      socket.off('session/memberJoined');
+      socket.off('session/memberLeft');
+    };
+  }, [socket, currentSessionID]);
 
   return (
     <View style={defaultStyle.container}>

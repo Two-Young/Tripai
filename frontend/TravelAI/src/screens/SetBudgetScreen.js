@@ -18,10 +18,20 @@ import Modal from 'react-native-modal';
 import {Icon} from '@rneui/themed';
 import sessionAtom from '../recoil/session/session';
 import {useRecoilValue} from 'recoil';
-import {deleteBudget, getBudget, getBudgetCurrent} from '../services/api';
-import reactotron from 'reactotron-react-native';
+import {
+  deleteBudget,
+  getBudget,
+  getBudgetCurrent,
+  getCurrenciesExchangeInfo,
+  postBudget,
+} from '../services/api';
+import countriesAtom from '../recoil/countries/countries';
+import userAtom from '../recoil/user/user';
+import {socket} from '../services/socket';
+import {showErrorToast} from '../utils/utils';
 
 const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) => {
+  const navigation = useNavigation();
   // states
   const [value, setValue] = React.useState('');
 
@@ -32,9 +42,14 @@ const BudgetModal = ({isVisible, setModalVisible, item, requestDeletingBudget}) 
 
   const onPressSave = async () => {
     try {
+      await postBudget({
+        budget_id: item.budget_id,
+        amount: Number(value.replace(/[^0-9]/g, '')),
+      });
+      navigation.setParams({refresh: true});
       setModalVisible(false);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -114,7 +129,18 @@ const SetBudgetScreen = () => {
   const route = useRoute();
 
   const currentSession = useRecoilValue(sessionAtom);
+
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
+
+  const countries = useRecoilValue(countriesAtom);
+  const user = useRecoilValue(userAtom);
+
+  const defaultCurrency = React.useMemo(() => {
+    if (user?.user_info?.default_currency_code) {
+      return user.user_info.default_currency_code;
+    }
+    return 'USD';
+  }, [user]);
 
   // states
   const [budgets, setBudgets] = React.useState([]);
@@ -137,19 +163,32 @@ const SetBudgetScreen = () => {
     try {
       const res = await getBudget(currentSessionID);
       const res2 = await getBudgetCurrent(currentSessionID);
-      reactotron.log(res);
-      reactotron.log(res2);
-      setBudgets(
-        res.map(item => {
-          const current = res2.find(item2 => item2.currency_code === item.currency_code);
-          return {
-            ...item,
-            ...current,
-          };
-        }),
-      );
+      const resultBudgets = res.map(item => {
+        const current = res2.find(item2 => item2.currency_code === item.currency_code);
+        return {
+          ...item,
+          ...current,
+        };
+      });
+      let promiseArr = [];
+      resultBudgets.forEach(item => {
+        promiseArr.push(
+          getCurrenciesExchangeInfo({
+            from_currency_code: item.currency_code,
+            to_currency_code: defaultCurrency,
+          }),
+        );
+      });
+      const res3 = await Promise.all(promiseArr);
+      const resultBudgets2 = resultBudgets.map((item, index) => {
+        return {
+          ...item,
+          exchange_rate: res3[index],
+        };
+      });
+      setBudgets(resultBudgets2);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -169,7 +208,7 @@ const SetBudgetScreen = () => {
       await deleteBudget(budget_id);
       setBudgets(budgets.filter(item => item.budget_id !== budget_id));
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -195,6 +234,12 @@ const SetBudgetScreen = () => {
     }, []),
   );
 
+  //
+
+  React.useEffect(() => {
+    socket.on('budget/created', data => {});
+  }, [socket]);
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -205,7 +250,25 @@ const SetBudgetScreen = () => {
         onRefresh={onRefresh}
         renderItem={({item}) => (
           <TouchableOpacity onPress={() => onPressItem(item)}>
-            <BudgetWithCurrencyItem item={item} />
+            <BudgetWithCurrencyItem
+              data={{
+                ...item,
+                defaultCurrency: defaultCurrency,
+                countries: countries
+                  .filter(
+                    country =>
+                      country.currencies
+                        .map(currency => currency.code)
+                        .indexOf(item.currency_code) > -1,
+                  )
+                  .sort(
+                    // session에서 받은 국가 정보를 기준으로 정렬
+                    (a, b) =>
+                      currentSession.country_codes.indexOf(b.country_code) -
+                      currentSession.country_codes.indexOf(a.country_code),
+                  ),
+              }}
+            />
           </TouchableOpacity>
         )}
         ItemSeparatorComponent={<View style={STYLES.PADDING_VERTICAL(10)} />}

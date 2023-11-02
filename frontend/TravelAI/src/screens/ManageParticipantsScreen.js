@@ -20,6 +20,7 @@ import CustomHeader from '../component/molecules/CustomHeader';
 import {STYLES} from '../styles/Stylesheets';
 import {Medium} from '../theme/fonts';
 import UserItem from '../component/molecules/UserItem';
+import {showErrorToast} from '../utils/utils';
 
 const ManageParticipantsScreen = () => {
   // hooks
@@ -61,7 +62,7 @@ const ManageParticipantsScreen = () => {
   const fetchRequeted = React.useCallback(async () => {
     try {
       const res = await getSessionJoinRequests(sessionID);
-      setRequested(res);
+      await setRequested(res);
     } catch (err) {
       console.error(err);
     }
@@ -71,9 +72,9 @@ const ManageParticipantsScreen = () => {
     async friendID => {
       try {
         await inviteSession(sessionID, friendID);
-        fetchInviting();
+        await fetchInviting();
       } catch (err) {
-        console.error(err);
+        showErrorToast(err);
       }
     },
     [sessionID],
@@ -83,9 +84,9 @@ const ManageParticipantsScreen = () => {
     async friendID => {
       try {
         await cancelInvitationForSession(sessionID, friendID);
-        fetchInviting();
+        await fetchInviting();
       } catch (err) {
-        console.error(err);
+        showErrorToast(err);
       }
     },
     [sessionID],
@@ -95,10 +96,10 @@ const ManageParticipantsScreen = () => {
     async (friendID, accept) => {
       try {
         await confirmSessionJoinRequest(sessionID, friendID, accept);
-        fetchRequeted();
-        fetchJoined();
+        await fetchRequeted();
+        await fetchJoined();
       } catch (err) {
-        console.error(err);
+        showErrorToast(err);
       }
     },
     [sessionID],
@@ -108,9 +109,9 @@ const ManageParticipantsScreen = () => {
     async friendID => {
       try {
         await expelUserFromSession(sessionID, friendID);
-        fetchJoined();
+        await fetchJoined();
       } catch (err) {
-        console.error(err);
+        showErrorToast(err);
       }
     },
     [sessionID],
@@ -119,17 +120,26 @@ const ManageParticipantsScreen = () => {
   // effects
   React.useEffect(() => {
     if (refreshing) {
-      Promise.all([fetchJoined(), fetchInviting(), fetchRequeted()]).finally(() => {
-        setRefreshing(false);
-      });
+      Promise.all([fetchJoined(), fetchInviting(), fetchRequeted()])
+        .catch(err => {
+          showErrorToast(err);
+        })
+        .finally(() => {
+          setRefreshing(false);
+        });
     }
   }, [refreshing]);
 
   React.useEffect(() => {
     if (sessionID) {
-      fetchJoined();
-      fetchInviting();
-      fetchRequeted();
+      const fetchDatas = async () => {
+        await fetchJoined();
+        await fetchInviting();
+        await fetchRequeted();
+      };
+      fetchDatas().catch(err => {
+        showErrorToast(err);
+      });
     }
   }, [sessionID]);
 

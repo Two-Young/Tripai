@@ -14,6 +14,7 @@ import SafeArea from '../component/molecules/SafeArea';
 import {SemiBold} from './../theme/fonts';
 import colors from '../theme/colors';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
+import {showErrorToast} from '../utils/utils';
 
 const AddAddressScreen = () => {
   // hooks
@@ -72,8 +73,7 @@ const AddAddressScreen = () => {
       });
       navigation.goBack();
     } catch (error) {
-      console.error(error);
-      throw error;
+      showErrorToast(error);
     }
   };
 
@@ -119,7 +119,7 @@ const AddAddressScreen = () => {
                     {...{isZeroResult, searchResult, onPressListItem, onPressFooterItem}}
                   />
                 )}
-                <Text style={styles.label}>Registerd Places</Text>
+                <Text style={styles.label}>Registered Places</Text>
               </React.Fragment>
             )}
             contentContainerStyle={{paddingTop: 16}}
@@ -128,7 +128,9 @@ const AddAddressScreen = () => {
             )}
             numColumns={2}
             renderItem={({item}) => (
-              <TouchableOpacity onPress={() => onPressPlace(item)}>
+              <TouchableOpacity
+                onPress={() => onPressPlace(item)}
+                style={[STYLES.MARGIN_BOTTOM(10), STYLES.MARGIN_RIGHT(10)]}>
                 <PlaceImageCard name={item.name} photo_reference={item.photo_reference} />
               </TouchableOpacity>
             )}

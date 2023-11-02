@@ -16,6 +16,7 @@ import TravelItem from '../component/molecules/TravelItem';
 import {Fonts} from '../theme';
 import LinearGradient from 'react-native-linear-gradient';
 import {sessionsAtom} from '../recoil/session/sessions';
+import {showErrorToast} from '../utils/utils';
 
 const MainScreen = () => {
   /* states */
@@ -83,7 +84,7 @@ const MainScreen = () => {
         await fetchSessions();
       }
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     } finally {
       setRefreshing(false);
     }
@@ -95,7 +96,7 @@ const MainScreen = () => {
       await fetchCountries();
       await fetchCurrencies();
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 

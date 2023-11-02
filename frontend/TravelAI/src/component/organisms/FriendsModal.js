@@ -16,6 +16,7 @@ import {
 import sessionAtom from '../../recoil/session/session';
 import reactotron from 'reactotron-react-native';
 import userAtom from '../../recoil/user/user';
+import {showErrorToast} from '../../utils/utils';
 
 const FriendsModal = props => {
   const {visible, setVisible} = props;
@@ -46,7 +47,7 @@ const FriendsModal = props => {
       const res = await getSessionMembers(sessionID);
       setJoined(res);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   }, [sessionID]);
 
@@ -55,7 +56,7 @@ const FriendsModal = props => {
       const res = await getSessionInvitationWaitings(sessionID);
       setInviting(res);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   }, [sessionID]);
 
@@ -64,7 +65,7 @@ const FriendsModal = props => {
       const res = await getSessionJoinRequests(sessionID);
       setRequested(res);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   }, [sessionID]);
 
@@ -72,9 +73,9 @@ const FriendsModal = props => {
     async friendID => {
       try {
         await inviteSession(sessionID, friendID);
-        fetchInviting();
+        await fetchInviting();
       } catch (err) {
-        console.error(err);
+        showErrorToast(err);
       }
     },
     [sessionID],
@@ -84,9 +85,9 @@ const FriendsModal = props => {
     async friendID => {
       try {
         await cancelInvitationForSession(sessionID, friendID);
-        fetchInviting();
+        await fetchInviting();
       } catch (err) {
-        console.error(err);
+        showErrorToast(err);
       }
     },
     [sessionID],
@@ -96,9 +97,9 @@ const FriendsModal = props => {
     async friendID => {
       try {
         await expelUserFromSession(sessionID, friendID);
-        fetchJoined();
+        await fetchJoined();
       } catch (err) {
-        console.error(err);
+        showErrorToast(err);
       }
     },
     [sessionID],
@@ -108,10 +109,10 @@ const FriendsModal = props => {
     async (friendID, accept) => {
       try {
         await confirmSessionJoinRequest(sessionID, friendID, accept);
-        fetchJoined();
-        fetchRequested();
+        await fetchJoined();
+        await fetchRequested();
       } catch (err) {
-        console.error(err);
+        showErrorToast(err);
       }
     },
     [sessionID],
@@ -120,9 +121,14 @@ const FriendsModal = props => {
   // effects
   React.useEffect(() => {
     if (sessionID && visible) {
-      fetchJoined();
-      fetchInviting();
-      fetchRequested();
+      const fetchDatas = async () => {
+        await fetchJoined();
+        await fetchInviting();
+        await fetchRequested();
+      };
+      fetchDatas().catch(err => {
+        showErrorToast(err);
+      });
     }
   }, [sessionID, visible]);
 

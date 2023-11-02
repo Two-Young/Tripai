@@ -1,4 +1,4 @@
-import {StyleSheet, View, Keyboard, Pressable, FlatList} from 'react-native';
+import {StyleSheet, View, FlatList} from 'react-native';
 import React from 'react';
 import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
@@ -15,7 +15,7 @@ import {useNavigation, CommonActions, useNavigationState} from '@react-navigatio
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import {getBudget, getSessionCurrencies, putBudget} from '../services/api';
 import sessionAtom from '../recoil/session/session';
-import reactotron from 'reactotron-react-native';
+import {showErrorToast} from '../utils/utils';
 
 const defaultCurrencyObject = {
   currency_code: '',
@@ -44,32 +44,29 @@ const AddBudgetScreen = () => {
 
   // functions
   const fetchDatas = async () => {
-    await fetchSessionCurrencies();
-    await fetchBudgets();
-    setFetching(false);
+    try {
+      await fetchSessionCurrencies();
+      await fetchBudgets();
+    } catch (err) {
+      showErrorToast(err);
+    } finally {
+      setFetching(false);
+    }
   };
 
   const fetchSessionCurrencies = async () => {
-    try {
-      const res = await getSessionCurrencies(currentSessionID);
-      setSessionCurrencies(
-        _.keys(res).map(item => ({
-          ...res[item][0],
-          country_code: item,
-        })),
-      );
-    } catch (err) {
-      console.log(err);
-    }
+    const res = await getSessionCurrencies(currentSessionID);
+    setSessionCurrencies(
+      _.keys(res).map(item => ({
+        ...res[item][0],
+        country_code: item,
+      })),
+    );
   };
 
   const fetchBudgets = async () => {
-    try {
-      const res = await getBudget(currentSessionID);
-      setBudgets(res);
-    } catch (err) {
-      console.error(err);
-    }
+    const res = await getBudget(currentSessionID);
+    setBudgets(res);
   };
 
   const onPressAdd = async () => {
@@ -86,7 +83,7 @@ const AddBudgetScreen = () => {
       });
       navigation.goBack();
     } catch (err) {
-      console.log(err);
+      showErrorToast(err);
     }
   };
 
@@ -98,7 +95,7 @@ const AddBudgetScreen = () => {
   }, [currentSessionID]);
 
   const filteredCurrencies = React.useMemo(() => {
-    return _.uniqBy([...sessionCurrencies, ...currencies], 'currency_code')
+    return [...sessionCurrencies, ...currencies]
       .filter(item => !budgets.find(budget => budget.currency_code === item.currency_code))
       .filter(
         item =>

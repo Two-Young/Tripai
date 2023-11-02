@@ -20,6 +20,7 @@ import {Icon} from '@rneui/themed';
 import reactotron from 'reactotron-react-native';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import colors from '../theme/colors';
+import {showErrorToast} from '../utils/utils';
 
 const ProfileScreen = () => {
   // hooks
@@ -81,7 +82,7 @@ const ProfileScreen = () => {
       setNicknameSearch(res.allow_nickname_search);
       setDefaultCurrencyCode(res.default_currency_code);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     } finally {
       setFetching(false);
     }
@@ -95,7 +96,7 @@ const ProfileScreen = () => {
       }
       setProfileImage(res.assets[0].uri);
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -132,7 +133,7 @@ const ProfileScreen = () => {
       setUser(newUser);
       await AsyncStorage.setItem('user', JSON.stringify(newUser));
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     } finally {
       setTimeout(() => {
         setLoading(false);

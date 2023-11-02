@@ -11,6 +11,7 @@ import SafeArea from '../component/molecules/SafeArea';
 import MainButton from '../component/atoms/MainButton';
 import {STYLES} from './../styles/Stylesheets';
 import LoadingModal from '../component/atoms/LoadingModal';
+import {showErrorToast} from '../utils/utils';
 
 const today = new Date();
 const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -59,7 +60,7 @@ const AddDateScreen = () => {
         session_id: res,
       });
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     } finally {
       setTimeout(() => {
         setLoading(false);

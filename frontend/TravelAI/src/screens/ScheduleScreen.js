@@ -14,6 +14,8 @@ import {STYLES} from '../styles/Stylesheets';
 import {Fonts} from '../theme';
 import PlaceCard from '../component/atoms/PlaceCard';
 import {Medium, Light} from '../theme/fonts';
+import {socket} from '../services/socket';
+import {showErrorToast} from '../utils/utils';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -88,7 +90,7 @@ const ScheduleScreen = () => {
       const data = await getSchedules(currentSessionID, currentIndex);
       setSchedules(data.sort((a, b) => a.start_at - b.start_at));
     } catch (err) {
-      console.error(err);
+      showErrorToast(err);
     }
   };
 
@@ -192,6 +194,36 @@ const ScheduleScreen = () => {
     }
     return result;
   }, [schedules]);
+
+  const fetchScheduleEvent = React.useCallback(
+    async data => {
+      if (data?.day === currentIndex) {
+        setSchedules(prev => [...prev, data].sort((a, b) => a.start_at - b.start_at));
+      }
+    },
+    [currentIndex, setSchedules],
+  );
+
+  // socket
+  React.useEffect(() => {
+    if (socket?.connected) {
+      socket.on('schedule/created', fetchScheduleEvent);
+    }
+    return () => {
+      socket.off('schedule/created');
+    };
+  }, [socket, fetchScheduleEvent]);
+
+  React.useEffect(() => {
+    if (socket?.connected) {
+      socket.on('schedule/deleted', schedule_id => {
+        setSchedules(schedules.filter(item => item.schedule_id !== schedule_id));
+      });
+    }
+    return () => {
+      socket.off('schedule/deleted');
+    };
+  }, [socket, schedules]);
 
   return (
     <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>

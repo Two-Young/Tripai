@@ -785,23 +785,8 @@ const AddExpenditureScreen = () => {
         })),
       );
       setTotal(res.items.reduce((acc, cur) => acc + cur.price, 0).toLocaleString());
-
-      // setItems([
-      //   {
-      //     id: 'id' + Math.random().toString(16).slice(2),
-      //     label: 'Cola 2.0L',
-      //     price: '6,350',
-      //     allocations: [],
-      //   },
-      //   {
-      //     id: 'id' + Math.random().toString(16).slice(2),
-      //     label: 'Organic Salad',
-      //     price: '23,000',
-      //     allocations: [],
-      //   },
-      // ]);
     } catch (error) {
-      throw error;
+      showErrorToast(error);
     } finally {
       setLoading(false);
     }
@@ -914,7 +899,9 @@ const AddExpenditureScreen = () => {
   // effects
   React.useEffect(() => {
     if (currentSessionID && route.params) {
-      fetchData();
+      fetchData().catch(err => {
+        showErrorToast(err);
+      });
     }
   }, [currentSessionID, route.params]);
 

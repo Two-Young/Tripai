@@ -20,6 +20,7 @@ import EmptyComponent from '../component/atoms/EmptyComponent';
 import UserItem from '../component/molecules/UserItem';
 import {useRecoilState} from 'recoil';
 import {friendsAtom, receivedFriendsAtom, sentFriendsAtom} from '../recoil/friends/friends';
+import {socket} from '../services/socket';
 
 const FriendsTab = createMaterialTopTabNavigator();
 
@@ -84,6 +85,17 @@ const Friends = () => {
       fetchFriends();
     }, []),
   );
+
+  React.useEffect(() => {
+    if (socket?.connected) {
+      socket?.on('friend/connected', async () => {
+        fetchFriends();
+      });
+    }
+    return () => {
+      socket?.off('friend/connected');
+    };
+  }, [socket?.connected]);
 
   return (
     <FlatList
@@ -171,6 +183,21 @@ const Received = () => {
     }, []),
   );
 
+  React.useEffect(() => {
+    if (socket?.connected) {
+      socket?.on('friend/requestReceived', async () => {
+        fetchFriendsWaiting();
+      });
+      socket?.on('friend/connected', async () => {
+        fetchFriendsWaiting();
+      });
+    }
+    return () => {
+      socket?.off('friend/requestReceived');
+      socket?.off('friend/connected');
+    };
+  }, [socket?.connected]);
+
   return (
     <FlatList
       style={styles.container}
@@ -254,6 +281,17 @@ const Sent = () => {
       fetchFriendsWaiting();
     }, []),
   );
+
+  React.useEffect(() => {
+    if (socket?.connected) {
+      socket?.on('friend/connected', async () => {
+        fetchFriendsWaiting();
+      });
+    }
+    return () => {
+      socket?.off('friend/connected');
+    };
+  }, [socket?.connected]);
 
   return (
     <FlatList

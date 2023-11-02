@@ -612,12 +612,11 @@ export const putBudget = async ({currency_code, amount, session_id}) => {
   }
 };
 
-export const postBudget = async ({currency_code, amount, session_id}) => {
+export const postBudget = async ({budget_id, amount}) => {
   try {
     const response = await api.post('/platform/budget', {
-      currency_code,
+      budget_id,
       amount,
-      session_id,
     });
     return response.data;
   } catch (error) {
