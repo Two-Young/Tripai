@@ -20,6 +20,14 @@ var (
 		CategoryEtc:       "etc",
 		CategoryUnknown:   "unknown",
 	}
+	SupportedCategories = []string{
+		CategoryMeal,
+		CategoryLodgment,
+		CategoryTransport,
+		CategoryShopping,
+		CategoryActivity,
+		CategoryEtc,
+	}
 )
 
 type Currency struct {

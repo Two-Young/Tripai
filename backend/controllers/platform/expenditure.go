@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"travel-ai/controllers/socket"
 	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
@@ -143,6 +144,11 @@ func Expenditure(c *gin.Context) {
 		Distribution: distribution,
 		PayedAt:      expenditureEntity.PayedAt,
 	})
+}
+
+func EditExpenditure(c *gin.Context) {
+	// TODO :: implement
+	c.JSON(http.StatusNotImplemented, nil)
 }
 
 func CreateExpenditure(c *gin.Context) {
@@ -289,9 +295,30 @@ func CreateExpenditure(c *gin.Context) {
 		return
 	}
 
-	// insert expenditure
 	expenditureId := uuid.New().String()
-	if err := database_io.InsertExpenditureTx(tx, database.ExpenditureEntity{
+
+	// find expenditure
+	if body.ExpenditureId != nil {
+		_, err := database_io.GetExpenditure(*body.ExpenditureId)
+		if err != nil {
+			log.Error(err)
+			c.AbortWithStatus(http.StatusBadRequest)
+			util2.AbortWithStrJsonF(c, http.StatusBadRequest, "expenditure does not exist: %s", *body.ExpenditureId)
+			return
+		}
+		expenditureId = *body.ExpenditureId
+
+		// delete expenditure
+		if err := database_io.DeleteExpenditureTx(tx, expenditureId); err != nil {
+			_ = tx.Rollback()
+			log.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// insert expenditure
+	newExpenditure := database.ExpenditureEntity{
 		ExpenditureId: expenditureId,
 		Name:          body.Name,
 		TotalPrice:    *body.TotalPrice,
@@ -299,7 +326,8 @@ func CreateExpenditure(c *gin.Context) {
 		Category:      body.Category,
 		SessionId:     body.SessionId,
 		PayedAt:       time.UnixMilli(body.PayedAt),
-	}); err != nil {
+	}
+	if err := database_io.InsertExpenditureTx(tx, newExpenditure); err != nil {
 		_ = tx.Rollback()
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -340,6 +368,7 @@ func CreateExpenditure(c *gin.Context) {
 		return
 	}
 
+	socket.SocketManager.Multicast(body.SessionId, uid, socket.EventExpenditureCreated, newExpenditure)
 	c.JSON(http.StatusOK, nil)
 }
 
@@ -395,14 +424,13 @@ func DeleteExpenditure(c *gin.Context) {
 		return
 	}
 
-	// TODO :: delete receipt if exists (and image file)
-
 	if err := tx.Commit(); err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
+	socket.SocketManager.Multicast(sessionEntity.SessionId, uid, socket.EventExpenditureDeleted, body.ExpenditureId)
 	c.JSON(http.StatusOK, nil)
 }
 
@@ -549,17 +577,14 @@ func UploadReceipt(c *gin.Context) {
 }
 
 func Categories(c *gin.Context) {
-	categories := make([]string, 0)
-	for _, category := range platform.ExpenditureCategories {
-		categories = append(categories, category)
-	}
-	c.JSON(http.StatusOK, categories)
+	c.JSON(http.StatusOK, platform.SupportedCategories)
 }
 
 func UseExpenditureRouter(g *gin.RouterGroup) {
 	rg := g.Group("/expenditure")
 	rg.GET("/list", Expenditures)
 	rg.GET("", Expenditure)
+	rg.POST("", CreateExpenditure)
 	rg.PUT("", CreateExpenditure)
 	rg.DELETE("", DeleteExpenditure)
 

@@ -6,6 +6,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"net/http"
+	"travel-ai/controllers/socket"
 	"travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
@@ -50,7 +51,7 @@ func Locations(c *gin.Context) {
 	locationResp := make(locationsResponseDto, 0)
 	for _, l := range locations {
 		item := locationsResponseItem{
-			LocationId:     *l.LocationId,
+			LocationId:     l.LocationId,
 			PlaceId:        *l.PlaceId,
 			Name:           *l.Name,
 			Latitude:       *l.Latitude,
@@ -102,15 +103,27 @@ func CreateLocation(c *gin.Context) {
 		return
 	}
 
+	tx, err := database.DB.BeginTx(c, nil)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
 	// create location entity
 	locationId := uuid.New().String()
-	if _, err := database.DB.Exec(
-		"INSERT INTO locations (lid, place_id, name, latitude, longitude, address, photo_reference, sid) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
-		locationId, body.PlaceId,
-		cache.Name, cache.Latitude,
-		cache.Longitude, cache.Address,
-		cache.PhotoReference, body.SessionId,
-	); err != nil {
+	locationEntity := database.LocationEntity{
+		LocationId:     locationId,
+		PlaceId:        &body.PlaceId,
+		Name:           cache.Name,
+		Latitude:       cache.Latitude,
+		Longitude:      cache.Longitude,
+		Address:        cache.Address,
+		PhotoReference: cache.PhotoReference,
+		SessionId:      body.SessionId,
+	}
+	if err := database_io.InsertLocationTx(tx, &locationEntity); err != nil {
+		_ = tx.Rollback()
 		var mysqlErr *mysql.MySQLError
 		if ok := errors.As(err, &mysqlErr); ok && mysqlErr.Number == 1062 {
 			util.AbortWithStrJson(c, http.StatusConflict, "location already exists")
@@ -121,7 +134,14 @@ func CreateLocation(c *gin.Context) {
 		return
 	}
 
+	if err := tx.Commit(); err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
 	// return location id
+	socket.SocketManager.Multicast(body.SessionId, uid, socket.EventLocationCreated, locationEntity)
 	c.JSON(http.StatusOK, locationId)
 }
 
@@ -171,6 +191,7 @@ func DeleteLocation(c *gin.Context) {
 		return
 	}
 
+	socket.SocketManager.Multicast(sessionId, uid, socket.EventLocationDeleted, body.LocationId)
 	c.Status(http.StatusOK)
 }
 

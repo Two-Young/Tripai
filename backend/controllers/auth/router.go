@@ -60,8 +60,8 @@ func UseAuthRouter(r *gin.Engine) {
 	g := r.Group("/auth")
 	UseGoogleAuthRouter(g)
 	UseNaverAuthRouter(g)
-	UseKakaotalkAuthRouter(g)
 	UseFacebookAuthRouter(g)
+	UseKakaoAuthRouter(g)
 	UseUserAuthRouter(g)
 
 	g.POST("/refreshToken", RefreshToken)

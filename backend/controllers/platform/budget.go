@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"math/big"
 	"net/http"
+	"travel-ai/controllers/socket"
 	util2 "travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
@@ -122,13 +123,14 @@ func CreateBudget(c *gin.Context) {
 	}
 
 	budgetId := uuid.New().String()
-	if err := database_io.InsertBudgetTx(tx, database.BudgetEntity{
+	newBudget := database.BudgetEntity{
 		BudgetId:     budgetId,
 		CurrencyCode: body.CurrencyCode,
 		Amount:       *body.Amount,
 		UserId:       uid,
 		SessionId:    body.SessionId,
-	}); err != nil {
+	}
+	if err := database_io.InsertBudgetTx(tx, newBudget); err != nil {
 		_ = tx.Rollback()
 		log.Error(err)
 		util2.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -141,6 +143,7 @@ func CreateBudget(c *gin.Context) {
 		return
 	}
 
+	socket.SocketManager.Multicast(body.SessionId, uid, socket.EventBudgetCreate, newBudget)
 	c.JSON(http.StatusOK, nil)
 }
 
@@ -161,7 +164,7 @@ func EditBudget(c *gin.Context) {
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "budget does not exist")
 		return
 	}
-	
+
 	// verify user can edit budget
 	if budget.UserId != uid {
 		util2.AbortWithStrJson(c, http.StatusBadRequest, "user is not budget owner")

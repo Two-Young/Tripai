@@ -6,6 +6,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"net/http"
+	"travel-ai/controllers/socket"
 	"travel-ai/controllers/util"
 	"travel-ai/log"
 	"travel-ai/service/database"
@@ -51,7 +52,7 @@ func Schedules(c *gin.Context) {
 	resp := make(schedulesResponseDto, 0)
 	for _, s := range schedules {
 		resp = append(resp, schedulesResponseItem{
-			ScheduleId:     *s.ScheduleId,
+			ScheduleId:     s.ScheduleId,
 			Name:           *s.Name,
 			PhotoReference: s.PhotoReference,
 			PlaceId:        s.PlaceId,
@@ -157,14 +158,30 @@ func CreateSchedule(c *gin.Context) {
 		placeId = &body.PlaceId
 	}
 
+	tx, err := database.DB.BeginTx(c, nil)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
 	// create schedule entity
 	scheduleId := uuid.New().String()
-	if _, err := database.DB.Exec(
-		"INSERT INTO schedules (sscid, name, photo_reference, place_id, address, day, latitude, longitude, start_at, memo, sid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
-		scheduleId, placeName, photoReference, placeId,
-		address, dayIndex, lat, lng,
-		startAt, body.Memo, body.SessionId,
-	); err != nil {
+	scheduleEntity := database.ScheduleEntity{
+		ScheduleId:     scheduleId,
+		Name:           placeName,
+		PhotoReference: photoReference,
+		PlaceId:        placeId,
+		Address:        address,
+		Day:            &dayIndex,
+		Latitude:       lat,
+		Longitude:      lng,
+		StartAt:        &startAt,
+		Memo:           body.Memo,
+		SessionId:      body.SessionId,
+	}
+	if err := database_io.InsertScheduleTx(tx, scheduleEntity); err != nil {
+		_ = tx.Rollback()
 		var mysqlErr *mysql.MySQLError
 		if ok := errors.As(err, &mysqlErr); ok && mysqlErr.Number == 1062 {
 			util.AbortWithStrJson(c, http.StatusConflict, "location already exists")
@@ -174,6 +191,15 @@ func CreateSchedule(c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+
+	if err := tx.Commit(); err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	socket.SocketManager.Multicast(body.SessionId, uid, socket.EventScheduleCreated, scheduleEntity)
+	c.JSON(http.StatusOK, nil)
 }
 
 func EditSchedule(c *gin.Context) {
@@ -201,7 +227,7 @@ func EditSchedule(c *gin.Context) {
 	}
 
 	// check if user has permission to create schedule
-	yes, err := platform.IsSessionMember(uid, *originalSchedule.SessionId)
+	yes, err := platform.IsSessionMember(uid, originalSchedule.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -213,7 +239,7 @@ func EditSchedule(c *gin.Context) {
 	}
 
 	// get session
-	session, err := database_io.GetSession(*originalSchedule.SessionId)
+	session, err := database_io.GetSession(originalSchedule.SessionId)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -311,7 +337,7 @@ func DeleteSchedule(c *gin.Context) {
 	}
 
 	// check if user has permission to delete location
-	yes, err := platform.IsSessionMember(uid, *schedule.SessionId)
+	yes, err := platform.IsSessionMember(uid, schedule.SessionId)
 	if err != nil {
 		log.Error(err)
 		util.AbortWithErrJson(c, http.StatusInternalServerError, err)
@@ -332,6 +358,7 @@ func DeleteSchedule(c *gin.Context) {
 		return
 	}
 
+	socket.SocketManager.Multicast(schedule.SessionId, uid, socket.EventScheduleDeleted, body.ScheduleId)
 	c.Status(http.StatusOK)
 }
 

@@ -40,6 +40,12 @@ func SetupRouter() *gin.Engine {
 	controller3.UsePlatformRouter(r)
 	UseAssetRouter(r)
 	socket.UseSocket(r)
+
+	// 404
+	r.NoRoute(func(c *gin.Context) {
+		c.JSON(404, gin.H{"code": 404, "message": "Page not found"})
+	})
+
 	return r
 }
 

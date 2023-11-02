@@ -18,8 +18,7 @@ func GetBudgetsBySessionIdAndUserId(sessionId string, userId string) ([]database
 	var budgets []database.BudgetEntity
 	if err := database.DB.Select(&budgets,
 		`SELECT budgets.* FROM budgets
-		INNER JOIN user_sessions ON budgets.sid = user_sessions.sid
-		WHERE budgets.sid = ? AND user_sessions.uid = ?;`, sessionId, userId); err != nil {
+		WHERE budgets.sid = ? AND uid = ?;`, sessionId, userId); err != nil {
 		return nil, err
 	}
 	return budgets, nil

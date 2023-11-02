@@ -44,7 +44,7 @@ func SignWithGoogle(c *gin.Context) {
 	}
 
 	// convert body to GoogleCredentials
-	var googleCredentials GoogleCredentialsDto
+	var googleCredentials GoogleUser
 	if err := json.Unmarshal(bodyContent, &googleCredentials); err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
