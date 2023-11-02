@@ -180,9 +180,20 @@ const ChatScreen = () => {
     if (messages.length) {
       setTimeout(() => {
         flatListRef.current.scrollToEnd();
-      }, 500);
+      }, 1000);
     }
   }, [flatListRef, messages]);
+
+  useEffect(() => {
+    Keyboard.addListener('keyboardDidShow', () => {
+      setTimeout(() => {
+        flatListRef.current.scrollToEnd();
+      }, 500);
+    });
+    return () => {
+      Keyboard.removeAllListeners('keyboardDidShow');
+    };
+  }, []);
 
   // console.log('messages ::', messages);
 
@@ -190,14 +201,14 @@ const ChatScreen = () => {
     <KeyboardAvoidingView
       style={STYLES.FLEX(1)}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={bottomSpace + Platform.OS === 'ios' ? 0 : 80}>
-      <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>
+      keyboardVerticalOffset={bottomSpace + (Platform.OS === 'ios' ? 0 : 60)}>
+      <View style={[STYLES.FLEX(1), {backgroundColor: '#f2f7ff'}]}>
         <CustomHeader title={'AI CHAT'} useBack={false} />
         <FlatList
           ref={flatListRef}
           data={messages}
           renderItem={({item, index}) => <MessageItem {...item} />}
-          contentContainerStyle={STYLES.PADDING(16)}
+          contentContainerStyle={[STYLES.PADDING(16), {backgroundColor: '#f2f7ff'}]}
         />
         <LinearGradient
           colors={
@@ -213,7 +224,17 @@ const ChatScreen = () => {
             onPress={() => setUseChatGPT(prev => !prev)}>
             <Image source={TripAIIcon} style={[styles.gptIcon]} />
           </TouchableOpacity>
-          <TextInput style={styles.input} value={inputContent} onChangeText={setInputContent} />
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: useChatGPT ? '#ffffff20' : '#ffffff',
+                color: useChatGPT ? '#ffffff' : '#000000',
+              },
+            ]}
+            value={inputContent}
+            onChangeText={setInputContent}
+          />
           <IconButton
             icon="send"
             iconColor={useChatGPT ? '#74AA9C' : colors.white}
@@ -253,6 +274,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 12,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     // paddingHorizontal: 12,
   },
   gptIcon: {

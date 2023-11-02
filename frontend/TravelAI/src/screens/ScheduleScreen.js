@@ -196,9 +196,9 @@ const ScheduleScreen = () => {
   }, [schedules]);
 
   const fetchScheduleEvent = React.useCallback(
-    async data => {
-      if (data?.day === currentIndex) {
-        setSchedules(prev => [...prev, data].sort((a, b) => a.start_at - b.start_at));
+    async res => {
+      if (res.success && res?.data?.day === currentIndex) {
+        setSchedules(prev => [...prev, res?.data].sort((a, b) => a.start_at - b.start_at));
       }
     },
     [currentIndex, setSchedules],
