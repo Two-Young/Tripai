@@ -20,6 +20,7 @@ import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
 import {deleteSession} from '../services/api';
 import {sessionsAtom} from '../recoil/session/sessions';
 import {socket} from '../services/socket';
+import reactotron from 'reactotron-react-native';
 
 const HomeScreen = () => {
   // hooks
@@ -153,17 +154,18 @@ const HomeScreen = () => {
 
   React.useEffect(() => {
     if (currentSessionID && socket?.connected) {
-      socket.on('location/created', data => {
-        setPlaces(prev => [...prev, data]);
+      socket.on('location/created', async data => {
+        // setPlaces(prev => [...prev, data.data]);
+        await fetchPlaces();
       });
       socket.on('location/deleted', data => {
-        setPlaces(prev => prev.filter(place => place.location_id !== data.location_id));
+        setPlaces(prev => prev.filter(place => place.location_id !== data.data));
       });
       socket.on('session/memberJoined', data => async () => {
-        fetchJoined();
+        await fetchJoined();
       });
       socket.on('session/memberLeft', data => async () => {
-        fetchJoined();
+        await fetchJoined();
       });
     }
     return () => {
