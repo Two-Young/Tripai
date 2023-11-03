@@ -4,6 +4,8 @@ import {API_URL_DEBUG, API_URL_PROD} from './api';
 import {useRecoilValue} from 'recoil';
 import userAtom from '../recoil/user/user';
 import reactotron from 'reactotron-react-native';
+import {showSuccessToast} from '../utils/utils';
+import Toast from 'react-native-toast-message';
 
 export let socket;
 
@@ -41,6 +43,22 @@ export const SocketManager = () => {
       initiateSocket(token);
       connectSocket();
 
+      socket.on('session/memberInvited', () => {
+        Toast.show({
+          type: 'info',
+          text: 'You have been invited to a session',
+          position: 'bottom',
+        });
+      });
+
+      socket.on('session/memberJoinedRequest', () => {
+        Toast.show({
+          type: 'info',
+          text: 'You have received a request to join a session',
+          position: 'bottom',
+        });
+      });
+
       socket.on('connect', () => {
         reactotron.log('connected');
       });
@@ -48,6 +66,8 @@ export const SocketManager = () => {
 
     return () => {
       disconnectSocket();
+      socket.off('session/memberInvited');
+      socket.off('session/memberJoinedRequest');
     };
   }, [token]);
 

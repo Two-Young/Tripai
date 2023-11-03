@@ -17,6 +17,7 @@ import {Fonts} from '../theme';
 import LinearGradient from 'react-native-linear-gradient';
 import {sessionsAtom} from '../recoil/session/sessions';
 import {showErrorToast} from '../utils/utils';
+import {socket} from '../services/socket';
 
 const MainScreen = () => {
   /* states */
@@ -123,6 +124,17 @@ const MainScreen = () => {
       fetchData();
     }, []),
   );
+
+  React.useEffect(() => {
+    if (socket?.connected) {
+      socket.on('session/deleted', data => {
+        setSessions(prev => prev.filter(session => session.session_id !== data.data));
+      });
+    }
+    return () => {
+      socket.off('session/deleted');
+    };
+  }, [socket?.connected]);
 
   return (
     <SafeArea bottom={{inactive: true}}>
