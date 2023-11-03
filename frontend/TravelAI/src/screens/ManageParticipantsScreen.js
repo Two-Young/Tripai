@@ -22,6 +22,7 @@ import {Medium} from '../theme/fonts';
 import UserItem from '../component/molecules/UserItem';
 import {showErrorToast} from '../utils/utils';
 import {getFriends} from '../services/api';
+import {socket} from '../services/socket';
 
 const ManageParticipantsScreen = () => {
   // hooks
@@ -106,7 +107,7 @@ const ManageParticipantsScreen = () => {
     async (friendID, accept) => {
       try {
         await confirmSessionJoinRequest(sessionID, friendID, accept);
-        Promise.all([fetchInviting(), fetchRequeted()]);
+        Promise.all([fetchJoined(), fetchInviting(), fetchRequeted()]);
       } catch (err) {
         showErrorToast(err);
       }
@@ -185,7 +186,7 @@ const ManageParticipantsScreen = () => {
       data: inviting,
     };
     const requestedSection = {
-      title: 'Requeted',
+      title: 'Requested',
       data: requested,
     };
     const notInvitedSection = {
@@ -246,6 +247,27 @@ const ManageParticipantsScreen = () => {
     },
     [getJoinStatus],
   );
+
+  React.useEffect(() => {
+    socket.on('session/memberJoined', () => {
+      fetchJoined();
+      fetchInviting();
+      fetchRequeted();
+    });
+    socket.on('session/memberLeft', () => {
+      fetchJoined();
+    });
+    socket.on('session/memberJoinRequested', data => {
+      fetchRequeted();
+    });
+    return () => {
+      if (socket) {
+        socket.off('session/memberJoined');
+        socket.off('session/memberLeft');
+        socket.off('session/memberJoinRequested');
+      }
+    };
+  }, [socket]);
 
   return (
     <SafeArea top={{style: {backgroundColor: colors.primary}, barStyle: 'light-content'}}>

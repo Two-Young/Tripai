@@ -86,13 +86,11 @@ const PriceCell = ({item, setData}) => {
           setData(prev => {
             const newData = [...prev];
             const target = newData[item.index].price;
-            console.log(target);
             if (Number(target.replace(/,/g, ''))) {
               newData[item.index].price = Number(target.replace(/,/g, '')).toLocaleString();
             } else {
               newData[item.index].price = '';
             }
-            console.log(newData[item.index].price);
             return newData;
           });
         }}

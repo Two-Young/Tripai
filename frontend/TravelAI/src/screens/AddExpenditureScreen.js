@@ -1,18 +1,22 @@
-import {StyleSheet, Text, TextInput, TouchableOpacity, View, Image} from 'react-native';
+import {StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Keyboard} from 'react-native';
 import React from 'react';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import CustomInput from '../component/molecules/CustomInput';
 import colors from '../theme/colors';
-import BottomSheet, {BottomSheetFlatList} from '@gorhom/bottom-sheet';
+import BottomSheet, {
+  BottomSheetFlatList,
+  BottomSheetTextInput,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet';
 import {STYLES} from '../styles/Stylesheets';
 import {
   deleteExpenditure,
-  getBudget,
   getExpenditure,
   getExpenditureCategories,
   getSessionCurrencies,
   getSessionMembers,
+  postExpenditure,
   postExpenditureReceipt,
   putExpenditure,
 } from '../services/api';
@@ -26,6 +30,7 @@ import Checkbox from '../component/atoms/Checkbox';
 import SelectDropdown from 'react-native-select-dropdown';
 import Modal from 'react-native-modal';
 import userAtom from '../recoil/user/user';
+import {Tooltip} from '@rneui/themed';
 import {ActivityIndicator, Searchbar} from 'react-native-paper';
 import {FlatList} from 'react-native';
 import {AvoidSoftInput, AvoidSoftInputView} from 'react-native-avoid-softinput';
@@ -36,6 +41,8 @@ import currenciesAtom from '../recoil/currencies/currencies';
 import _ from 'lodash';
 import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
 import LoadingModal from '../component/atoms/LoadingModal';
+import infoIcon from '../assets/images/information-circle-sharp.png';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
 
 const FlatListRenderItem = ({data}) => {
   const {
@@ -44,6 +51,7 @@ const FlatListRenderItem = ({data}) => {
     setDistribution,
     members,
     detail,
+    setDetail,
     setIsFirstSectionVisible,
     setSelectedUser,
   } = data;
@@ -60,24 +68,47 @@ const FlatListRenderItem = ({data}) => {
     return members[index].username;
   }, [data]);
 
+  const [tooltipVisible, setTooltipVisible] = React.useState(false);
+
   return (
     <TouchableOpacity
-      style={styles.individualWrapper}
+      style={[styles.individualWrapper, detail.length > 0 && styles.individualWrapperClickable]}
       disabled={detail.length === 0}
       onPress={onPressItem}>
-      <View style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.FLEX(1)]}>
-        {/* <TouchableOpacity style={styles.minusButton}>
-          <Icon name="remove" size={12} color={colors.white} />
-        </TouchableOpacity> */}
+      <BottomSheetView style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.FLEX(1)]}>
+        {detail.length > 0 && (
+          <Tooltip
+            width={200}
+            height={60}
+            backgroundColor={colors.primary}
+            visible={tooltipVisible}
+            onOpen={() => setTooltipVisible(true)}
+            onClose={() => setTooltipVisible(false)}
+            popover={
+              <Text
+                style={{
+                  color: colors.white,
+                  fontSize: 12,
+                }}>
+                Press the row to edit the items that the user occupied
+              </Text>
+            }>
+            <Image
+              source={infoIcon}
+              style={[styles.infoIcon, STYLES.MARGIN_LEFT(0), STYLES.MARGIN_RIGHT(5)]}
+            />
+          </Tooltip>
+        )}
         <Text style={[styles.bottomSheetText, styles.individualText]}>{userName}</Text>
-      </View>
-      <TextInput
+      </BottomSheetView>
+      <BottomSheetTextInput
         ref={inputRef}
         style={[styles.bottomSheetText, styles.individualInput, styles.individualText]}
         placeholder="0"
         placeholderTextColor={colors.white}
         textAlign="right"
         keyboardType="numeric"
+        editable={detail.length === 0}
         value={item.item?.amount?.string}
         onChangeText={text => {
           const newData = [...distribution];
@@ -86,6 +117,14 @@ const FlatListRenderItem = ({data}) => {
           newData[item.index].amount.num = f1.n;
           newData[item.index].amount.denom = f1.d;
           setDistribution(newData);
+          if (detail) {
+            setDetail(prev => {
+              return prev.map(el => ({
+                ...el,
+                allocations: [],
+              }));
+            });
+          }
         }}
         onEndEditing={() => {
           const newData = [...distribution];
@@ -135,6 +174,7 @@ const FirstSection = ({data}) => {
     setIsFirstSectionVisible,
     setSelectedUser,
     detail,
+    setDetail,
     members,
   } = data;
 
@@ -154,6 +194,14 @@ const FirstSection = ({data}) => {
         },
       }));
     });
+    if (detail) {
+      setDetail(prev => {
+        return prev.map(el => ({
+          ...el,
+          allocations: distribution.map(dt => dt.user_id),
+        }));
+      });
+    }
   };
 
   const paidButtonText = React.useMemo(() => {
@@ -201,12 +249,14 @@ const FirstSection = ({data}) => {
               distribution: distribution,
               setDistribution: setDistribution,
               detail: detail,
+              setDetail: setDetail,
               setIsFirstSectionVisible: setIsFirstSectionVisible,
               setSelectedUser: setSelectedUser,
               members: members,
             }}
           />
         )}
+        ItemSeparatorComponent={() => <View style={{height: 5}} />}
       />
       <TouchableOpacity
         style={styles.dropdown2BtnStyle}
@@ -274,6 +324,7 @@ const SecondSection = ({data}) => {
     user,
     members,
     distribution,
+    setDistribution,
     detail,
     setDetail,
     selectedUser,
@@ -316,6 +367,31 @@ const SecondSection = ({data}) => {
       }, 0)
       .toLocaleString();
   }, [data]);
+
+  React.useEffect(() => {
+    setDistribution(prev => {
+      const target = prev.find(el => el.user_id === selectedUser);
+      if (target) {
+        var f1 = new Fraction(Number(selectedUserTotal.replace(/,/g, '')));
+        return prev.map(el => {
+          if (el.user_id === selectedUser) {
+            return {
+              ...el,
+              amount: {
+                num: f1.n,
+                denom: f1.d,
+                string: selectedUserTotal,
+              },
+            };
+          } else {
+            return el;
+          }
+        });
+      } else {
+        return prev;
+      }
+    });
+  }, [selectedUser, selectedUserTotal]);
 
   return (
     <View style={styles.bottomSheetHideSection}>
@@ -372,11 +448,13 @@ const SecondSection = ({data}) => {
           </Text>
         </View>
       </View>
-      <BottomSheetFlatList
-        data={detail.filter(el => el.label.length > 0 && el.price.length > 0)}
-        keyExtractor={item => item.id}
-        renderItem={({item}) => <SecondSectionFlatListRenderItem data={{...data, item}} />}
-      />
+      <AvoidSoftInputView style={STYLES.FLEX(1)}>
+        <BottomSheetFlatList
+          data={detail.filter(el => el.label.length > 0 && el.price.length > 0)}
+          keyExtractor={item => item.id}
+          renderItem={({item}) => <SecondSectionFlatListRenderItem data={{...data, item}} />}
+        />
+      </AvoidSoftInputView>
       <Text style={styles.infoTxt}>select items that you occupied.</Text>
     </View>
   );
@@ -386,7 +464,7 @@ const ExpenditureBottomSheet = ({data}) => {
   const [isFirstSectionVisible, setIsFirstSectionVisible] = React.useState(true);
   const [selectedUser, setSelectedUser] = React.useState(null); // 선택한 멤버
 
-  const {total, setTotal, currencyCode, setCurrencyCode, currencySelectData} = data;
+  const {total, setTotal, detail, currencyCode, setCurrencyCode, currencySelectData} = data;
 
   // ref
   const bottomSheetRef = React.useRef(null);
@@ -405,73 +483,93 @@ const ExpenditureBottomSheet = ({data}) => {
     }
   };
 
+  const [snapIndex, setSnapIndex] = React.useState(0);
+
+  // if keyboard dismiss, bottom sheet to default
+  React.useEffect(() => {
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      if (snapIndex === 1) {
+        bottomSheetRef?.current?.snapToIndex(1);
+      }
+    });
+    return () => {
+      keyboardDidHideListener.remove();
+    };
+  }, [snapIndex]);
+
   return (
     <BottomSheet
       ref={bottomSheetRef}
       index={0}
       snapPoints={snapPoints}
+      onChange={index => {
+        setSnapIndex(index);
+      }}
       backgroundStyle={styles.bottomSheet}
       handleIndicatorStyle={styles.bottomSheetIndicator}>
-      <View style={STYLES.FLEX(1)}>
-        <View style={styles.totalWrapper}>
-          <Text style={[styles.bottomSheetText, styles.totalText]}>Total</Text>
-          <View style={[STYLES.FLEX_ROW, STYLES.FLEX_END]}>
-            <SelectDropdown
-              data={currencySelectData}
-              onSelect={(selectedItem, index) => {
-                setCurrencyCode(selectedItem);
-              }}
-              defaultValue={currencyCode}
-              buttonStyle={styles.dropdownBtnStyle}
-              buttonTextStyle={{
-                ...styles.bottomSheetText,
-                ...styles.totalText,
-              }}
-              renderDropdownIcon={isOpen => {
-                return (
-                  <Icon
-                    name={isOpen ? 'chevron-up' : 'chevron-down'}
-                    type="material-community"
-                    color={colors.white}
-                  />
-                );
-              }}
-              dropdownIconPosition="right"
-              dropdownStyle={styles.dropdownDropdownStyle}
-              rowStyle={styles.dropdownRowStyle}
-              rowTextStyle={styles.dropdownRowTxt}
-              search
-              searchPlaceHolder="Search..."
-              searchInputStyle={styles.dropdownsearchInputStyleStyle}
-              searchPlaceHolderColor={'#888888'}
-              renderSearchInputLeftIcon={() => (
-                <Icon name="magnify" type="material-community" size={20} />
-              )}
-            />
-            <TextInput
-              ref={totalInputRef}
-              style={[styles.bottomSheetText, styles.totalInput]}
-              value={total}
-              placeholder="0"
-              placeholderTextColor={colors.white}
-              onChangeText={text => setTotal(text)}
-              onEndEditing={handleEndEditing}
-              textAlign="right"
-              keyboardType="numeric"
-              onFocus={() => {
-                totalInputRef.current.setNativeProps({
-                  style: {...styles.totalInput, backgroundColor: '#00000020'},
-                });
-              }}
-              onBlur={() => {
-                totalInputRef.current.setNativeProps({
-                  style: {...styles.totalInput, backgroundColor: 'transparent'},
-                });
-              }}
-            />
-          </View>
-        </View>
-        <View style={styles.bottomSheetHide}>
+      <BottomSheetView style={STYLES.FLEX(1)}>
+        <DismissKeyboard>
+          <BottomSheetView style={styles.totalWrapper}>
+            <Text style={[styles.bottomSheetText, styles.totalText]}>Total</Text>
+            <BottomSheetView style={[STYLES.FLEX_ROW, STYLES.FLEX_END]}>
+              <SelectDropdown
+                data={currencySelectData}
+                onSelect={(selectedItem, index) => {
+                  setCurrencyCode(selectedItem);
+                }}
+                defaultValue={currencyCode}
+                buttonStyle={styles.dropdownBtnStyle}
+                buttonTextStyle={{
+                  ...styles.bottomSheetText,
+                  ...styles.totalText,
+                }}
+                renderDropdownIcon={isOpen => {
+                  return (
+                    <Icon
+                      name={isOpen ? 'chevron-up' : 'chevron-down'}
+                      type="material-community"
+                      color={colors.white}
+                    />
+                  );
+                }}
+                dropdownIconPosition="right"
+                dropdownStyle={styles.dropdownDropdownStyle}
+                rowStyle={styles.dropdownRowStyle}
+                rowTextStyle={styles.dropdownRowTxt}
+                search
+                searchPlaceHolder="Search..."
+                searchInputStyle={styles.dropdownsearchInputStyleStyle}
+                searchPlaceHolderColor={'#888888'}
+                renderSearchInputLeftIcon={() => (
+                  <Icon name="magnify" type="material-community" size={20} />
+                )}
+              />
+              <BottomSheetTextInput
+                ref={totalInputRef}
+                style={[styles.bottomSheetText, styles.totalInput]}
+                value={total}
+                editable={detail.length === 0}
+                placeholder="0"
+                placeholderTextColor={colors.white}
+                onChangeText={text => setTotal(text)}
+                onEndEditing={handleEndEditing}
+                textAlign="right"
+                keyboardType="numeric"
+                onFocus={() => {
+                  totalInputRef.current.setNativeProps({
+                    style: {...styles.totalInput, backgroundColor: '#00000020'},
+                  });
+                }}
+                onBlur={() => {
+                  totalInputRef.current.setNativeProps({
+                    style: {...styles.totalInput, backgroundColor: 'transparent'},
+                  });
+                }}
+              />
+            </BottomSheetView>
+          </BottomSheetView>
+        </DismissKeyboard>
+        <BottomSheetView style={styles.bottomSheetHide}>
           {isFirstSectionVisible ? (
             <FirstSection
               data={{
@@ -490,8 +588,8 @@ const ExpenditureBottomSheet = ({data}) => {
               }}
             />
           )}
-        </View>
-      </View>
+        </BottomSheetView>
+      </BottomSheetView>
     </BottomSheet>
   );
 };
@@ -779,12 +877,15 @@ const AddExpenditureScreen = () => {
       });
       setLoading(true);
       const res = await postExpenditureReceipt(formData);
-      setCurrencyCode(res.currency_code);
+      if (res?.currency_code) {
+        setCurrencyCode(res.currency_code);
+      }
       setItems(
         res.items.map(el => ({
+          id: 'id' + Math.random().toString(16).slice(2),
           label: el.label,
           price: el.price.toLocaleString(),
-          id: 'id' + Math.random().toString(16).slice(2),
+          allocations: [],
         })),
       );
       setTotal(res.items.reduce((acc, cur) => acc + cur.price, 0).toLocaleString());
@@ -813,6 +914,7 @@ const AddExpenditureScreen = () => {
         items: items.map(el => ({
           label: el.label,
           price: Number(el.price.replace(/,/g, '')),
+          allocations: el.allocations,
         })),
         payed_at: Date.parse(time + 'Z'),
         session_id: currentSessionID,
@@ -845,8 +947,15 @@ const AddExpenditureScreen = () => {
     if (paid.length === 0) {
       return true;
     }
+    if (currencyCode.length === 0) {
+      return true;
+    }
+    if (items.length > 0 && items.some(el => el.label.length === 0 || el.price.length === 0)) {
+      return true;
+    }
+
     return false;
-  }, [name, category, total, distribution, paid]);
+  }, [name, category, currencyCode, items, total, distribution, paid]);
 
   // edit
   const [expenditure, setExpenditure] = React.useState(null);
@@ -869,10 +978,11 @@ const AddExpenditureScreen = () => {
         },
       })),
     );
-    if (res?.item) {
+    if (res?.items) {
       setItems(
-        res.item.map(el => ({
+        res.items.map(el => ({
           ...el,
+          price: el.price.toLocaleString(),
           id: 'id' + Math.random().toString(16).slice(2),
         })),
       );
@@ -880,7 +990,35 @@ const AddExpenditureScreen = () => {
     setTime(dayjs(res.payed_at).format('YYYY-MM-DD HH:mm'));
   };
 
-  const onPressEdit = async () => {};
+  const onPressEdit = async () => {
+    try {
+      await postExpenditure({
+        name: name,
+        category: category,
+        currency_code: currencyCode,
+        total_price: Number(total.replace(/,/g, '')),
+        payers_id: paid,
+        distribution: distribution.map(el => ({
+          user_id: el.user_id,
+          amount: {
+            num: el.amount.num,
+            denom: el.amount.denom,
+          },
+        })),
+        items: items.map(el => ({
+          label: el.label,
+          price: Number(el.price.replace(/,/g, '')),
+          allocations: el.allocations,
+        })),
+        payed_at: Date.parse(time + 'Z'),
+        session_id: currentSessionID,
+        expenditure_id: route.params?.expenditure_id,
+      });
+      navigation.goBack();
+    } catch (err) {
+      showErrorToast(err);
+    }
+  };
 
   const requestDelete = async () => {
     try {
@@ -910,14 +1048,16 @@ const AddExpenditureScreen = () => {
 
   const onFocusEffect = React.useCallback(() => {
     // This should be run when screen gains focus - enable the module where it's needed
-    AvoidSoftInput.setShouldMimicIOSBehavior(true);
-    return () => {
-      // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
-      AvoidSoftInput.setShouldMimicIOSBehavior(false);
-    };
-  }, []);
+    if (items.length > 0) {
+      AvoidSoftInput.setShouldMimicIOSBehavior(true);
+      return () => {
+        // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
+        AvoidSoftInput.setShouldMimicIOSBehavior(false);
+      };
+    }
+  }, [items]);
 
-  useFocusEffect(onFocusEffect); // register callback to focus events
+  useFocusEffect(onFocusEffect);
 
   React.useEffect(() => {
     if (items.length >= 0) {
@@ -933,6 +1073,8 @@ const AddExpenditureScreen = () => {
 
   const [loading, setLoading] = React.useState(false);
 
+  const [tooltipVisible, setTooltipVisible] = React.useState(false);
+
   return (
     <SafeArea
       top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
@@ -942,35 +1084,37 @@ const AddExpenditureScreen = () => {
         },
       }}>
       <LoadingModal isVisible={loading} />
-      <CustomHeader
-        title={route.params?.expenditure_id ? 'Edit Expenditure' : 'Add Expenditure'}
-        theme={CUSTOM_HEADER_THEME.WHITE}
-        rightComponent={
-          <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
-            {route.params?.expenditure_id && (
+      <DismissKeyboard>
+        <CustomHeader
+          title={route.params?.expenditure_id ? 'Edit Expenditure' : 'Add Expenditure'}
+          theme={CUSTOM_HEADER_THEME.WHITE}
+          rightComponent={
+            <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
+              {route.params?.expenditure_id && (
+                <TouchableOpacity
+                  onPress={onPressDelete}
+                  disabled={fetching}
+                  style={STYLES.MARGIN_RIGHT(10)}>
+                  <Icon
+                    name="delete"
+                    type="material-community"
+                    color={addButtonDisabled || fetching ? '#808080' : colors.red}
+                  />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
-                onPress={onPressDelete}
-                disabled={fetching}
-                style={STYLES.MARGIN_RIGHT(10)}>
+                onPress={route.params?.expenditure_id ? onPressEdit : onPressAdd}
+                disabled={addButtonDisabled || fetching}>
                 <Icon
-                  name="delete"
+                  name="pencil"
                   type="material-community"
-                  color={addButtonDisabled || fetching ? '#808080' : colors.red}
+                  color={addButtonDisabled || fetching ? '#808080' : colors.primary}
                 />
               </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              onPress={route.params?.expenditure_id ? onPressEdit : onPressAdd}
-              disabled={addButtonDisabled || fetching}>
-              <Icon
-                name="pencil"
-                type="material-community"
-                color={addButtonDisabled || fetching ? '#808080' : colors.primary}
-              />
-            </TouchableOpacity>
-          </View>
-        }
-      />
+            </View>
+          }
+        />
+      </DismissKeyboard>
       {fetching ? (
         <View
           style={[
@@ -1030,20 +1174,44 @@ const AddExpenditureScreen = () => {
             }}
             type="date"
           />
-          <Text style={[styles.label, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>
-            Receipt
-          </Text>
-          {items.length === 0 ? (
-            <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
-              <Text style={styles.receiptText}>Upload Receipt</Text>
-            </TouchableOpacity>
-          ) : (
-            <AvoidSoftInputView style={STYLES.FLEX(1)}>
-              <View style={STYLES.PADDING_BOTTOM(70)}>
-                <InputTable data={items} setData={setItems} />
-              </View>
-            </AvoidSoftInputView>
-          )}
+          <DismissKeyboard>
+            <View
+              style={[
+                STYLES.FLEX_ROW_ALIGN_CENTER,
+                STYLES.MARGIN_BOTTOM(5),
+                STYLES.MARGIN_TOP(15),
+              ]}>
+              <Text style={styles.label}>Receipt</Text>
+              <Tooltip
+                visible={tooltipVisible}
+                onClose={() => setTooltipVisible(false)}
+                onOpen={() => setTooltipVisible(true)}
+                popover={
+                  <Text style={{color: colors.white, fontSize: 12}}>
+                    You can upload receipt image to automatically fill out the details.
+                  </Text>
+                }
+                backgroundColor={colors.primary}
+                height={50}
+                width={200}>
+                <Image source={infoIcon} style={[styles.infoIcon]} />
+              </Tooltip>
+            </View>
+          </DismissKeyboard>
+          <DismissKeyboard>
+            {items.length === 0 ? (
+              <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
+                <Text style={styles.receiptText}>Upload Receipt</Text>
+              </TouchableOpacity>
+            ) : (
+              <AvoidSoftInputView style={STYLES.FLEX(1)}>
+                <View style={STYLES.PADDING_BOTTOM(70)}>
+                  <InputTable data={items} setData={setItems} />
+                </View>
+              </AvoidSoftInputView>
+            )}
+          </DismissKeyboard>
+
           {isBottomSheetOpen && (
             <ExpenditureBottomSheet
               data={{
@@ -1150,7 +1318,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 5,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+  },
+  individualWrapperClickable: {
+    backgroundColor: '#ffffff10',
   },
   individualText: {
     fontSize: 14,
@@ -1309,5 +1482,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#EFEFEF',
     borderBottomColor: '#C5C5C5',
     height: 30,
+  },
+  infoIcon: {
+    width: 12,
+    height: 12,
+    marginLeft: 4,
   },
 });

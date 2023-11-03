@@ -14,6 +14,7 @@ import colors from '../theme/colors';
 import CustomHeader from '../component/molecules/CustomHeader';
 import {showErrorToast, showSuccessToast} from '../utils/utils';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import {socket} from '../services/socket';
 
 const MyRequestTab = createMaterialTopTabNavigator();
 
@@ -131,6 +132,17 @@ const MyInvitation = () => {
       fetchInvited().finally(() => [setRefreshing(false)]);
     }
   }, [refreshing]);
+
+  React.useEffect(() => {
+    if (socket?.connected) {
+      socket.on('session/memberInvited', async () => {
+        fetchInvited();
+      });
+    }
+    return () => {
+      socket?.off('session/memberInvited');
+    };
+  }, [socket?.connected]);
 
   return (
     <FlatList
