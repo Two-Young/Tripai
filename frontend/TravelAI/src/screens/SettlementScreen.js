@@ -9,22 +9,33 @@ import SettlementSummary from '../component/molecules/SettlementSummary';
 import infoIcon from '../assets/images/information-circle-sharp.png';
 import closeIcon from '../assets/images/close-icon.png';
 import {Regular} from '../theme/fonts';
-import {completeSettlement, getSettlement} from '../services/api';
+import {completeSettlement, getSettlement, getSessionMembers} from '../services/api';
 import {showErrorToast} from '../utils/utils';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
-import userAtom from '../recoil/user/user';
 import {socket} from '../services/socket';
+import {formatWithCommas} from '../utils/number';
+import {useFocusEffect} from '@react-navigation/native';
 
 const SettlementScreen = () => {
   const currentSession = useRecoilValue(sessionAtom);
-  const user = useRecoilValue(userAtom);
 
   // state
+  const [sessionUsers, setSessionUsers] = React.useState([]);
   const [settlement, setSettlement] = React.useState([]);
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = React.useState(true);
 
   // TODO: fetch settlements from API
+
+  const fetchSessionUsers = React.useCallback(async () => {
+    try {
+      const res = await getSessionMembers(currentSession.session_id);
+      setSessionUsers(res);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [currentSession]);
+
   const fetchSettlements = async () => {
     try {
       const data = await getSettlement(currentSession.session_id);
@@ -34,59 +45,68 @@ const SettlementScreen = () => {
     }
   };
 
-  const confirmReceive = async target_user_id => {
+  const confirmReceive = async item => {
     try {
-      await completeSettlement(currentSession.session_id, target_user_id);
+      const {target_user_id, amount, currency_code} = item;
+      await completeSettlement(currentSession.session_id, target_user_id, amount, currency_code);
       fetchSettlements();
     } catch (err) {
       showErrorToast(err);
     }
   };
 
-  const renderItem = useCallback(({item}) => {
-    const getTypeColor = type => {
-      if (type) {
-        return '#FF8181';
-      }
-      return colors.primary;
-    };
+  const renderItem = useCallback(
+    ({item}) => {
+      const getTypeColor = type => {
+        if (type) {
+          return '#FF8181';
+        }
+        return colors.primary;
+      };
 
-    return (
-      <View style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.SPACE_BETWEEN, STYLES.MARGIN_VERTICAL(2)]}>
-        <View style={[STYLES.FLEX_ROW_ALIGN_CENTER]}>
-          <View style={[styles.settlementType, {backgroundColor: getTypeColor(item.owed)}]}>
-            <Text style={[styles.settlementTypeText]}>{item.owed ? 'DEPT' : 'RECV'}</Text>
+      const targetUsername =
+        sessionUsers?.find(user => user.user_id === item.target_user_id)?.username ??
+        '(deleted user)';
+
+      return (
+        <View
+          style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.SPACE_BETWEEN, STYLES.MARGIN_VERTICAL(2)]}>
+          <View style={[STYLES.FLEX_ROW_ALIGN_CENTER]}>
+            <View style={[styles.settlementType, {backgroundColor: getTypeColor(item.owed)}]}>
+              <Text style={[styles.settlementTypeText]}>{item.owed ? 'DEPT' : 'RECV'}</Text>
+            </View>
+            <Text style={[STYLES.MARGIN_LEFT(8), styles.username]}>{targetUsername}</Text>
           </View>
-          <Text style={[STYLES.MARGIN_LEFT(8), styles.username]}>{item.target_user_id}</Text>
+          <View style={[STYLES.FLEX_ROW_ALIGN_CENTER]}>
+            <Text style={[styles.amountText]}>
+              {formatWithCommas(item?.amount)} {item.currency_code}
+            </Text>
+            {!item.owed && (
+              <IconButton
+                icon={closeIcon}
+                iconColor={colors.gray}
+                size={12}
+                style={{margin: 0, padding: 0}}
+                onPress={() => {
+                  requestAlert(
+                    'Confirm receive',
+                    `Are you sure to confirm budget settlement from ${targetUsername}?`,
+                    () => confirmReceive(item),
+                  );
+                }}
+              />
+            )}
+          </View>
         </View>
-        <View style={[STYLES.FLEX_ROW_ALIGN_CENTER]}>
-          <Text style={[styles.amountText]}>
-            {item.amount} {item.currency_code}
-          </Text>
-          {!item.owed && (
-            <IconButton
-              icon={closeIcon}
-              iconColor={colors.gray}
-              size={12}
-              style={{margin: 0, padding: 0}}
-              onPress={() => {
-                requestAlert(
-                  'Confirm receive',
-                  `Are you sure to confirm budget settlement from ${item.target_user_id}?`,
-                  () => confirmReceive(item.id),
-                );
-              }}
-            />
-          )}
-        </View>
-      </View>
-    );
-  }, []);
+      );
+    },
+    [sessionUsers],
+  );
 
   // effects
   React.useEffect(() => {
     if (refreshing) {
-      fetchSettlements().finally(() => {
+      Promise.all([fetchSessionUsers(), fetchSettlements()]).finally(() => {
         setRefreshing(false);
       });
     }
@@ -94,11 +114,15 @@ const SettlementScreen = () => {
 
   React.useEffect(() => {
     if (currentSession?.session_id) {
-      fetchSettlements();
+      Promise.all([fetchSessionUsers(), fetchSettlements()]);
     }
   }, [currentSession]);
 
-  console.log(settlement);
+  useFocusEffect(
+    useCallback(() => {
+      Promise.all([fetchSessionUsers(), fetchSettlements()]);
+    }, []),
+  );
 
   React.useEffect(() => {
     if (socket?.connected) {
@@ -122,6 +146,7 @@ const SettlementScreen = () => {
                 category: key,
                 amount: settlement.session_usage[key],
               }))}
+              total={settlement?.session_usage?.total_budget}
             />
             <View style={[STYLES.HEIGHT(20)]} />
             <SettlementSummary
@@ -130,6 +155,7 @@ const SettlementScreen = () => {
                 category: key,
                 amount: settlement.my_usage[key],
               }))}
+              total={settlement?.my_usage?.total_budget}
             />
             <View style={[STYLES.HEIGHT(20)]} />
             <Tooltip title={'tooltip'}>
