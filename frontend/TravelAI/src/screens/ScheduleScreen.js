@@ -214,7 +214,9 @@ const ScheduleScreen = () => {
       });
     }
     return () => {
-      socket.off('schedule/created');
+      if (socket) {
+        socket.off('schedule/created');
+      }
     };
   }, [socket, fetchScheduleEvent]);
 
@@ -226,7 +228,9 @@ const ScheduleScreen = () => {
       });
     }
     return () => {
-      socket.off('schedule/deleted');
+      if (socket) {
+        socket.off('schedule/deleted');
+      }
     };
   }, [socket, schedules]);
 

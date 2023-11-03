@@ -416,9 +416,11 @@ const CurrentBudgetScreen = () => {
       });
     }
     return () => {
-      socket.off('budget/created');
-      socket.off('expenditure/created');
-      socket.off('expenditure/deleted');
+      if (socket) {
+        socket.off('budget/created');
+        socket.off('expenditure/created');
+        socket.off('expenditure/deleted');
+      }
     };
   }, [socket, fetchData]);
 

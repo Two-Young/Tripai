@@ -143,24 +143,28 @@ const ChatScreen = () => {
   // TODO:: Chat GPT의 경우, Box 하나에 메시지가 추가되는 형태로 구현 (byte 단위로 와서 그럼)
 
   useEffect(() => {
-    socket.on('sessionChat/getMessages', getMessagesCallback);
-    socket.on('sessionChat/message', messageCallback);
-    socket.on('sessionChat/assistantMessage', assistantMessageCallback);
-    socket.on('sessionChat/userJoined', userJoinedCallback);
-    socket.on('sessionChat/assistantMessageStart', assistantMessageStartCallback);
-    socket.on('sessionChat/assistantMessageStream', assistantMessageStreamCallback);
-    socket.on('sessionChat/assistantMessageEnd', assistantMessageEndCallback);
-    socket.on('sessionChat/assistantMessageError', assistantMessageErrorCallback);
+    if (socket?.connected) {
+      socket.on('sessionChat/getMessages', getMessagesCallback);
+      socket.on('sessionChat/message', messageCallback);
+      socket.on('sessionChat/assistantMessage', assistantMessageCallback);
+      socket.on('sessionChat/userJoined', userJoinedCallback);
+      socket.on('sessionChat/assistantMessageStart', assistantMessageStartCallback);
+      socket.on('sessionChat/assistantMessageStream', assistantMessageStreamCallback);
+      socket.on('sessionChat/assistantMessageEnd', assistantMessageEndCallback);
+      socket.on('sessionChat/assistantMessageError', assistantMessageErrorCallback);
+    }
 
     () => {
-      socket.off('sessionChat/getMessages', getMessagesCallback);
-      socket.off('sessionChat/message', messageCallback);
-      socket.off('sessionChat/assistantMessage', assistantMessageCallback);
-      socket.off('sessionChat/userJoined', userJoinedCallback);
-      socket.off('sessionChat/assistantMessageStart', assistantMessageStartCallback);
-      socket.off('sessionChat/assistantMessageStream', assistantMessageStreamCallback);
-      socket.off('sessionChat/assistantMessageEnd', assistantMessageEndCallback);
-      socket.off('sessionChat/assistantMessageError', assistantMessageErrorCallback);
+      if (socket) {
+        socket.off('sessionChat/getMessages', getMessagesCallback);
+        socket.off('sessionChat/message', messageCallback);
+        socket.off('sessionChat/assistantMessage', assistantMessageCallback);
+        socket.off('sessionChat/userJoined', userJoinedCallback);
+        socket.off('sessionChat/assistantMessageStart', assistantMessageStartCallback);
+        socket.off('sessionChat/assistantMessageStream', assistantMessageStreamCallback);
+        socket.off('sessionChat/assistantMessageEnd', assistantMessageEndCallback);
+        socket.off('sessionChat/assistantMessageError', assistantMessageErrorCallback);
+      }
     };
   }, [socket]);
 

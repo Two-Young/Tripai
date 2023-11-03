@@ -170,10 +170,12 @@ const HomeScreen = () => {
     });
     // }
     return () => {
-      socket.off('location/created');
-      socket.off('location/deleted');
-      socket.off('session/memberJoined');
-      socket.off('session/memberLeft');
+      if (socket) {
+        socket.off('location/created');
+        socket.off('location/deleted');
+        socket.off('session/memberJoined');
+        socket.off('session/memberLeft');
+      }
     };
   }, [socket, currentSessionID]);
 

@@ -257,8 +257,10 @@ const ManageParticipantsScreen = () => {
     });
     // }
     return () => {
-      socket.off('session/memberJoined');
-      socket.off('session/memberLeft');
+      if (socket) {
+        socket.off('session/memberJoined');
+        socket.off('session/memberLeft');
+      }
     };
   }, [socket]);
 
