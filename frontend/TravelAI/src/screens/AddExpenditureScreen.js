@@ -1,4 +1,4 @@
-import {StyleSheet, Text, TextInput, TouchableOpacity, View, Image} from 'react-native';
+import {StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Keyboard} from 'react-native';
 import React from 'react';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
@@ -482,6 +482,9 @@ const ExpenditureBottomSheet = ({data}) => {
       ref={bottomSheetRef}
       index={0}
       snapPoints={snapPoints}
+      onChange={index => {
+        Keyboard.dismiss();
+      }}
       backgroundStyle={styles.bottomSheet}
       handleIndicatorStyle={styles.bottomSheetIndicator}>
       <View style={STYLES.FLEX(1)}>
@@ -1144,17 +1147,20 @@ const AddExpenditureScreen = () => {
               </Tooltip>
             </View>
           </DismissKeyboard>
-          {items.length === 0 ? (
-            <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
-              <Text style={styles.receiptText}>Upload Receipt</Text>
-            </TouchableOpacity>
-          ) : (
-            <AvoidSoftInputView style={STYLES.FLEX(1)}>
-              <View style={STYLES.PADDING_BOTTOM(70)}>
-                <InputTable data={items} setData={setItems} />
-              </View>
-            </AvoidSoftInputView>
-          )}
+          <DismissKeyboard>
+            {items.length === 0 ? (
+              <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
+                <Text style={styles.receiptText}>Upload Receipt</Text>
+              </TouchableOpacity>
+            ) : (
+              <AvoidSoftInputView style={STYLES.FLEX(1)}>
+                <View style={STYLES.PADDING_BOTTOM(70)}>
+                  <InputTable data={items} setData={setItems} />
+                </View>
+              </AvoidSoftInputView>
+            )}
+          </DismissKeyboard>
+
           {isBottomSheetOpen && (
             <ExpenditureBottomSheet
               data={{
