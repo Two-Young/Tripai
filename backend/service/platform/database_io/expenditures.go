@@ -18,7 +18,8 @@ func GetExpendituresBySessionId(sessionId string) ([]ExpenditureHasReceiptEntity
 		`SELECT expenditures.*, IF(expenditure_items.eid IS NULL, FALSE, TRUE) AS has_receipt
 		FROM expenditures
 		LEFT JOIN expenditure_items ON expenditures.eid = expenditure_items.eid
-		WHERE expenditures.sid = ?;`, sessionId); err != nil {
+		WHERE expenditures.sid = ?
+		GROUP BY expenditures.eid;`, sessionId); err != nil {
 		return nil, err
 	}
 	return expenditures, nil
@@ -81,6 +82,46 @@ func InsertExpenditureDistributionTx(tx *sql.Tx, expenditureDistribution databas
 		VALUES (?, ?, ?, ?);`,
 		expenditureDistribution.ExpenditureId, expenditureDistribution.UserId,
 		expenditureDistribution.Numerator, expenditureDistribution.Denominator,
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetExpenditureItems(expenditureId string) ([]database.ExpenditureItemEntity, error) {
+	var items []database.ExpenditureItemEntity
+	if err := database.DB.Select(&items,
+		"SELECT * FROM expenditure_items WHERE eid = ?;", expenditureId); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func InsertExpenditureItemTx(tx *sql.Tx, expenditureItem database.ExpenditureItemEntity) error {
+	if _, err := tx.Exec(`
+		INSERT INTO expenditure_items(eiid, label, price, eid) 
+		VALUES (?, ?, ?, ?);`,
+		expenditureItem.ExpenditureItemId, expenditureItem.Label, expenditureItem.Price, expenditureItem.ExpenditureId,
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetExpenditureItemAllocations(expenditureItemId string) ([]database.ExpenditureItemAllocationEntity, error) {
+	var allocations []database.ExpenditureItemAllocationEntity
+	if err := database.DB.Select(&allocations,
+		"SELECT * FROM expenditure_item_allocations WHERE eiid = ?;", expenditureItemId); err != nil {
+		return nil, err
+	}
+	return allocations, nil
+}
+
+func InsertExpenditureItemAllocationTx(tx *sql.Tx, expenditureItemAllocation database.ExpenditureItemAllocationEntity) error {
+	if _, err := tx.Exec(`
+		INSERT INTO expenditure_item_allocations(eiid, uid) 
+		VALUES (?, ?);`,
+		expenditureItemAllocation.ExpenditureItemId, expenditureItemAllocation.UserId,
 	); err != nil {
 		return err
 	}

@@ -67,13 +67,12 @@ func ConvertDateInt64(dateInt64 int64) (time.Time, error) {
 
 func Float64ToRat(f float64) *big.Rat {
 	// to string
-	s := fmt.Sprintf("%.f", f)
+	s := fmt.Sprintf("%f", f)
 	// to big.Rat
 	r := new(big.Rat)
 	r.SetString(s)
 	return r
 }
-
 
 func FindSessionIdByLocationId(locationId string) (string, error) {
 	var sessionId string
@@ -232,7 +231,8 @@ func GetUpdatedExchangeRate(from string, to string) (float64, error) {
 	ex, err := database_io.GetExchangeRate(from, to)
 	needUpdate := err != nil || ex.UpdatedAt.Unix() < time.Now().Unix()-86400
 	if err != nil {
-		log.Error(err)
+		log.Debug(err)
+		log.Debugf("needUpdate: %v", needUpdate)
 	}
 
 	// if rate update is needed (1 day has passed)

@@ -143,7 +143,7 @@ func CreateBudget(c *gin.Context) {
 		return
 	}
 
-	socket.SocketManager.Multicast(body.SessionId, uid, socket.EventBudgetCreate, newBudget)
+	socket.SocketManager.Multicast(body.SessionId, uid, socket.EventBudgetCreated, newBudget)
 	c.JSON(http.StatusOK, nil)
 }
 

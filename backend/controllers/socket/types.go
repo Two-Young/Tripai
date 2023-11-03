@@ -21,7 +21,7 @@ const (
 	EventSessionChatAssistantMessageEnd    = "sessionChat/assistantMessageEnd"
 	EventSessionChatAssistantMessageError  = "sessionChat/assistantMessageError"
 
-	EventBudgetCreate               = "budget/create"
+	EventBudgetCreated              = "budget/created"
 	EventExpenditureCreated         = "expenditure/created"
 	EventExpenditureDeleted         = "expenditure/deleted"
 	EventFriendRequestReceived      = "friend/requestReceived"
@@ -97,6 +97,7 @@ func (sm *Manager) GetUsers() map[string]UserSocket {
 
 // Broadcast broadcasts to all users in the session
 func (sm *Manager) Broadcast(sessionId string, event string, data interface{}) {
+	log.Debugf("[%s] broadcast to %s: %v", event, sessionId, data)
 	sm.Io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/streamClosed",
 		NewSuccess(data))
 }
@@ -128,6 +129,7 @@ func (sm *Manager) Unicast(userId string, event string, data interface{}) {
 	if !ok {
 		return
 	}
+	log.Debugf("[%s] unicast to %s: %v", event, userSocket.User.Username, data)
 	userSocket.Conn.Emit(event, NewSuccess(data))
 }
 

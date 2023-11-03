@@ -133,6 +133,36 @@ func Expenditure(c *gin.Context) {
 		})
 	}
 
+	// get items
+	itemEntities, err := database_io.GetExpenditureItems(query.ExpenditureId)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	items := make([]ExpenditureGetResponseItem, 0)
+	for _, item := range itemEntities {
+		// get allocations
+		allocations, err := database_io.GetExpenditureItemAllocations(item.ExpenditureItemId)
+		if err != nil {
+			log.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		allocatedUsers := make([]string, 0)
+		for _, allocation := range allocations {
+			allocatedUsers = append(allocatedUsers, allocation.UserId)
+		}
+
+		items = append(items, ExpenditureGetResponseItem{
+			Label:       item.Label,
+			Price:       item.Price,
+			Allocations: allocatedUsers,
+		})
+	}
+
 	c.JSON(http.StatusOK, ExpenditureGetResponseDto{
 		Name:         expenditureEntity.Name,
 		TotalPrice:   expenditureEntity.TotalPrice,
@@ -140,6 +170,7 @@ func Expenditure(c *gin.Context) {
 		Category:     expenditureEntity.Category,
 		PayersId:     payers,
 		Distribution: distribution,
+		Items:        items,
 		PayedAt:      expenditureEntity.PayedAt,
 	})
 }
@@ -252,11 +283,28 @@ func CreateExpenditure(c *gin.Context) {
 		calculatedAllocatedPrice := make(map[string]*big.Rat)
 		for _, item := range body.Items {
 			price := platform.Float64ToRat(*item.Price)
+			if len(item.Allocations) == 0 {
+				log.Errorf("no allocation specified for item: %s", item.Label)
+				util2.AbortWithStrJson(c, http.StatusBadRequest, "no allocation specified for item")
+				return
+			}
 			allocatedUserCnt := big.NewRat(int64(len(item.Allocations)), 1)
 			dividedPrice := new(big.Rat)
 			dividedPrice.Quo(price, allocatedUserCnt)
 
 			for _, allocatedUid := range item.Allocations {
+				// check if user exists
+				yes, err := platform.IsSessionMember(allocatedUid, body.SessionId)
+				if err != nil {
+					log.Error(err)
+					c.AbortWithStatus(http.StatusInternalServerError)
+					return
+				}
+				if !yes {
+					util2.AbortWithStrJson(c, http.StatusBadRequest, "allocated user is not in session")
+					return
+				}
+
 				allocatedPrice, ok := calculatedAllocatedPrice[allocatedUid]
 				if !ok {
 					allocatedPrice = new(big.Rat)
@@ -352,6 +400,35 @@ func CreateExpenditure(c *gin.Context) {
 			log.Error(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
+		}
+	}
+
+	// insert items
+	for _, item := range body.Items {
+		itemId := uuid.New().String()
+		if err := database_io.InsertExpenditureItemTx(tx, database.ExpenditureItemEntity{
+			ExpenditureItemId: itemId,
+			Label:             item.Label,
+			Price:             *item.Price,
+			ExpenditureId:     expenditureId,
+		}); err != nil {
+			_ = tx.Rollback()
+			log.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		// insert allocations
+		for _, allocatedUid := range item.Allocations {
+			if err := database_io.InsertExpenditureItemAllocationTx(tx, database.ExpenditureItemAllocationEntity{
+				ExpenditureItemId: itemId,
+				UserId:            allocatedUid,
+			}); err != nil {
+				_ = tx.Rollback()
+				log.Error(err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
+			}
 		}
 	}
 
@@ -556,6 +633,9 @@ func UploadReceipt(c *gin.Context) {
 	log.Debugf("Found %d items", len(items))
 	subItems := make([]ExpenditureReceiptUploadResponseItem, 0)
 	for _, item := range items {
+		if item.Name == "" && item.Price == 0 {
+			continue
+		}
 		subItems = append(subItems, ExpenditureReceiptUploadResponseItem{
 			Label: item.Name,
 			Price: item.Price,

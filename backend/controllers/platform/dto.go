@@ -425,6 +425,12 @@ type ExpenditureGetResponseDistributionItem struct {
 	Amount Fraction `json:"amount"`
 }
 
+type ExpenditureGetResponseItem struct {
+	Label       string   `json:"label" binding:"required"`
+	Price       float64 `json:"price" binding:"required"`
+	Allocations []string `json:"allocations" binding:"required"`
+}
+
 type ExpenditureGetResponseDto struct {
 	Name         string                                   `json:"name"`
 	TotalPrice   float64                                  `json:"total_price"`
@@ -432,6 +438,7 @@ type ExpenditureGetResponseDto struct {
 	Category     string                                   `json:"category"`
 	PayersId     []string                                 `json:"payers_id"`
 	Distribution []ExpenditureGetResponseDistributionItem `json:"distribution"`
+	Items        []ExpenditureGetResponseItem             `json:"items"`
 	PayedAt      time.Time                                `json:"payed_at"`
 }
 
