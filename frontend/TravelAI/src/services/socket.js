@@ -43,6 +43,18 @@ export const SocketManager = () => {
       initiateSocket(token);
       connectSocket();
 
+      socket.on('connect', () => {
+        reactotron.log('connected');
+      });
+    }
+
+    return () => {
+      disconnectSocket();
+    };
+  }, [token]);
+
+  React.useEffect(() => {
+    if (socket?.connected) {
       socket.on('session/memberInvited', () => {
         Toast.show({
           type: 'info',
@@ -58,18 +70,12 @@ export const SocketManager = () => {
           position: 'bottom',
         });
       });
-
-      socket.on('connect', () => {
-        reactotron.log('connected');
-      });
     }
-
     return () => {
-      disconnectSocket();
-      socket.off('session/memberInvited');
-      socket.off('session/memberJoinedRequest');
+      socket?.off('session/memberInvited');
+      socket?.off('session/memberJoinedRequest');
     };
-  }, [token]);
+  }, [socket?.connected]);
 
   return <React.Fragment />;
 };
