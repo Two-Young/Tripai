@@ -243,6 +243,12 @@ const ExpenditureItem = ({item}) => {
           )}
         </View>
       </View>
+      <Icon
+        style={STYLES.MARGIN_LEFT(10)}
+        name="chevron-right"
+        type="material-community"
+        size={20}
+      />
     </View>
   );
 };
@@ -402,16 +408,14 @@ const CurrentBudgetScreen = () => {
 
   React.useEffect(() => {
     if (socket?.connected && fetchData) {
-      socket.on('budget/created', async data => {
+      socket.on('budget/created', data => {
         reactotron.log('budget/created', data);
         fetchData();
       });
-      socket.on('expenditure/created', async data => {
-        reactotron.log('expenditure/created', data);
+      socket.on('expenditure/created', data => {
         fetchData();
       });
-      socket.on('expenditure/deleted', async data => {
-        reactotron.log('expenditure/deleted', data);
+      socket.on('expenditure/deleted', data => {
         fetchData();
       });
     }
@@ -473,6 +477,7 @@ const CurrentBudgetScreen = () => {
         </View>
         <FlatList
           style={[STYLES.FLEX(1)]}
+          contentContainerStyle={[STYLES.MARGIN_LEFT(10)]}
           data={filteredExpenditures}
           keyExtractor={item => item.expenditure_id}
           renderItem={({item}) => (
@@ -592,7 +597,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 14,
-    paddingLeft: 20,
+    paddingLeft: 14,
+    borderRadius: 10,
+    borderWidth: 1,
   },
   expenditurePrice: {
     fontSize: 18,

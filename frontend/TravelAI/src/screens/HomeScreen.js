@@ -155,9 +155,9 @@ const HomeScreen = () => {
 
   React.useEffect(() => {
     // if (currentSessionID && socket?.connected) {
-    socket.on('location/created', async data => {
+    socket.on('location/created', data => {
       // setPlaces(prev => [...prev, data.data]);
-      await fetchPlaces();
+      fetchPlaces();
     });
     socket.on('location/deleted', data => {
       setPlaces(prev => prev.filter(place => place.location_id !== data.data));

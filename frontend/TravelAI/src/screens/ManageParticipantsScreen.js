@@ -107,7 +107,7 @@ const ManageParticipantsScreen = () => {
     async (friendID, accept) => {
       try {
         await confirmSessionJoinRequest(sessionID, friendID, accept);
-        Promise.all([fetchInviting(), fetchRequeted()]);
+        Promise.all([fetchJoined(), fetchInviting(), fetchRequeted()]);
       } catch (err) {
         showErrorToast(err);
       }
@@ -186,7 +186,7 @@ const ManageParticipantsScreen = () => {
       data: inviting,
     };
     const requestedSection = {
-      title: 'Requeted',
+      title: 'Requested',
       data: requested,
     };
     const notInvitedSection = {
@@ -251,15 +251,20 @@ const ManageParticipantsScreen = () => {
   React.useEffect(() => {
     socket.on('session/memberJoined', () => {
       fetchJoined();
+      fetchInviting();
+      fetchRequeted();
     });
     socket.on('session/memberLeft', () => {
       fetchJoined();
     });
-    // }
+    socket.on('session/memberJoinRequested', data => {
+      fetchRequeted();
+    });
     return () => {
       if (socket) {
         socket.off('session/memberJoined');
         socket.off('session/memberLeft');
+        socket.off('session/memberJoinRequested');
       }
     };
   }, [socket]);

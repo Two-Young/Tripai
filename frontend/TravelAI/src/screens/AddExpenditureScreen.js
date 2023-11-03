@@ -37,6 +37,7 @@ import _ from 'lodash';
 import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
 import LoadingModal from '../component/atoms/LoadingModal';
 import infoIcon from '../assets/images/information-circle-sharp.png';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
 
 const FlatListRenderItem = ({data}) => {
   const {
@@ -102,6 +103,7 @@ const FlatListRenderItem = ({data}) => {
         placeholderTextColor={colors.white}
         textAlign="right"
         keyboardType="numeric"
+        editable={detail.length === 0}
         value={item.item?.amount?.string}
         onChangeText={text => {
           const newData = [...distribution];
@@ -440,11 +442,13 @@ const SecondSection = ({data}) => {
           </Text>
         </View>
       </View>
-      <BottomSheetFlatList
-        data={detail.filter(el => el.label.length > 0 && el.price.length > 0)}
-        keyExtractor={item => item.id}
-        renderItem={({item}) => <SecondSectionFlatListRenderItem data={{...data, item}} />}
-      />
+      <AvoidSoftInputView style={STYLES.FLEX(1)}>
+        <BottomSheetFlatList
+          data={detail.filter(el => el.label.length > 0 && el.price.length > 0)}
+          keyExtractor={item => item.id}
+          renderItem={({item}) => <SecondSectionFlatListRenderItem data={{...data, item}} />}
+        />
+      </AvoidSoftInputView>
       <Text style={styles.infoTxt}>select items that you occupied.</Text>
     </View>
   );
@@ -454,7 +458,7 @@ const ExpenditureBottomSheet = ({data}) => {
   const [isFirstSectionVisible, setIsFirstSectionVisible] = React.useState(true);
   const [selectedUser, setSelectedUser] = React.useState(null); // 선택한 멤버
 
-  const {total, setTotal, currencyCode, setCurrencyCode, currencySelectData} = data;
+  const {total, setTotal, detail, currencyCode, setCurrencyCode, currencySelectData} = data;
 
   // ref
   const bottomSheetRef = React.useRef(null);
@@ -520,6 +524,7 @@ const ExpenditureBottomSheet = ({data}) => {
               ref={totalInputRef}
               style={[styles.bottomSheetText, styles.totalInput]}
               value={total}
+              editable={detail.length === 0}
               placeholder="0"
               placeholderTextColor={colors.white}
               onChangeText={text => setTotal(text)}
@@ -884,6 +889,7 @@ const AddExpenditureScreen = () => {
         items: items.map(el => ({
           label: el.label,
           price: Number(el.price.replace(/,/g, '')),
+          allocations: el.allocations,
         })),
         payed_at: Date.parse(time + 'Z'),
         session_id: currentSessionID,
@@ -988,12 +994,14 @@ const AddExpenditureScreen = () => {
 
   const onFocusEffect = React.useCallback(() => {
     // This should be run when screen gains focus - enable the module where it's needed
-    AvoidSoftInput.setShouldMimicIOSBehavior(true);
-    return () => {
-      // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
-      AvoidSoftInput.setShouldMimicIOSBehavior(false);
-    };
-  }, []);
+    if (items.length > 0) {
+      AvoidSoftInput.setShouldMimicIOSBehavior(true);
+      return () => {
+        // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
+        AvoidSoftInput.setShouldMimicIOSBehavior(false);
+      };
+    }
+  }, [items]);
 
   useFocusEffect(onFocusEffect); // register callback to focus events
 
@@ -1022,35 +1030,37 @@ const AddExpenditureScreen = () => {
         },
       }}>
       <LoadingModal isVisible={loading} />
-      <CustomHeader
-        title={route.params?.expenditure_id ? 'Edit Expenditure' : 'Add Expenditure'}
-        theme={CUSTOM_HEADER_THEME.WHITE}
-        rightComponent={
-          <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
-            {route.params?.expenditure_id && (
+      <DismissKeyboard>
+        <CustomHeader
+          title={route.params?.expenditure_id ? 'Edit Expenditure' : 'Add Expenditure'}
+          theme={CUSTOM_HEADER_THEME.WHITE}
+          rightComponent={
+            <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
+              {route.params?.expenditure_id && (
+                <TouchableOpacity
+                  onPress={onPressDelete}
+                  disabled={fetching}
+                  style={STYLES.MARGIN_RIGHT(10)}>
+                  <Icon
+                    name="delete"
+                    type="material-community"
+                    color={addButtonDisabled || fetching ? '#808080' : colors.red}
+                  />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
-                onPress={onPressDelete}
-                disabled={fetching}
-                style={STYLES.MARGIN_RIGHT(10)}>
+                onPress={route.params?.expenditure_id ? onPressEdit : onPressAdd}
+                disabled={addButtonDisabled || fetching}>
                 <Icon
-                  name="delete"
+                  name="pencil"
                   type="material-community"
-                  color={addButtonDisabled || fetching ? '#808080' : colors.red}
+                  color={addButtonDisabled || fetching ? '#808080' : colors.primary}
                 />
               </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              onPress={route.params?.expenditure_id ? onPressEdit : onPressAdd}
-              disabled={addButtonDisabled || fetching}>
-              <Icon
-                name="pencil"
-                type="material-community"
-                color={addButtonDisabled || fetching ? '#808080' : colors.primary}
-              />
-            </TouchableOpacity>
-          </View>
-        }
-      />
+            </View>
+          }
+        />
+      </DismissKeyboard>
       {fetching ? (
         <View
           style={[
@@ -1110,24 +1120,30 @@ const AddExpenditureScreen = () => {
             }}
             type="date"
           />
-          <View
-            style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>
-            <Text style={styles.label}>Receipt</Text>
-            <Tooltip
-              visible={tooltipVisible}
-              onClose={() => setTooltipVisible(false)}
-              onOpen={() => setTooltipVisible(true)}
-              popover={
-                <Text style={{color: colors.white, fontSize: 12}}>
-                  You can upload receipt image to automatically fill out the details.
-                </Text>
-              }
-              backgroundColor={colors.primary}
-              height={50}
-              width={200}>
-              <Image source={infoIcon} style={[styles.infoIcon]} />
-            </Tooltip>
-          </View>
+          <DismissKeyboard>
+            <View
+              style={[
+                STYLES.FLEX_ROW_ALIGN_CENTER,
+                STYLES.MARGIN_BOTTOM(5),
+                STYLES.MARGIN_TOP(15),
+              ]}>
+              <Text style={styles.label}>Receipt</Text>
+              <Tooltip
+                visible={tooltipVisible}
+                onClose={() => setTooltipVisible(false)}
+                onOpen={() => setTooltipVisible(true)}
+                popover={
+                  <Text style={{color: colors.white, fontSize: 12}}>
+                    You can upload receipt image to automatically fill out the details.
+                  </Text>
+                }
+                backgroundColor={colors.primary}
+                height={50}
+                width={200}>
+                <Image source={infoIcon} style={[styles.infoIcon]} />
+              </Tooltip>
+            </View>
+          </DismissKeyboard>
           {items.length === 0 ? (
             <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
               <Text style={styles.receiptText}>Upload Receipt</Text>

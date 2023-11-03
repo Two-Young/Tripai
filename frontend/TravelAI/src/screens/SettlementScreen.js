@@ -126,12 +126,18 @@ const SettlementScreen = () => {
 
   React.useEffect(() => {
     if (socket?.connected) {
-      socket?.on('settlement/changed', async () => {
+      socket?.on('settlement/changed', () => {
+        fetchSettlements();
+      });
+      socket.on('budget/created', data => {
         fetchSettlements();
       });
     }
     return () => {
-      socket?.off('settlement/changed');
+      if (socket) {
+        socket?.off('budget/created');
+        socket?.off('settlement/changed');
+      }
     };
   }, [socket?.connected]);
 

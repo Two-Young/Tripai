@@ -42,7 +42,7 @@ const SettlementSummary = ({title, settlements, total}) => {
             <View style={[styles.propertyDot, {backgroundColor: item.color}]} />
             <Text style={[styles.propertyCategoryText, {color: item.color}]}>
               {item.category}{' '}
-              {item.amount / total !== 1 && `(${((item.amount / total) * 100).toFixed(2)}%)`}
+              {item.amount / total !== 1 && `(${((item.amount / (total || 1)) * 100).toFixed(2)}%)`}
             </Text>
           </View>
           <Text style={[styles.propertyAmountText, {color: item.color}]}>

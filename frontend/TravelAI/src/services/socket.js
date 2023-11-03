@@ -46,38 +46,28 @@ export const SocketManager = () => {
       socket.on('connect', () => {
         reactotron.log('connected');
       });
+
+      socket.on('session/memberInvited', data => {
+        Toast.show({
+          type: 'info',
+          text1: 'Invitation',
+          text2: 'You have been invited to a session',
+        });
+      });
+
+      socket.on('session/memberJoinRequested', data => {
+        Toast.show({
+          type: 'info',
+          text1: 'Join request',
+          text2: 'You have received a request to join a session',
+        });
+      });
     }
 
     return () => {
       disconnectSocket();
     };
   }, [token]);
-
-  React.useEffect(() => {
-    if (socket?.connected) {
-      socket.on('session/memberInvited', data => {
-        reactotron.log(data);
-        Toast.show({
-          type: 'info',
-          text: 'You have been invited to a session',
-          position: 'bottom',
-        });
-      });
-
-      socket.on('session/memberJoinedRequest', data => {
-        reactotron.log(data);
-        Toast.show({
-          type: 'info',
-          text: 'You have received a request to join a session',
-          position: 'bottom',
-        });
-      });
-    }
-    return () => {
-      socket?.off('session/memberInvited');
-      socket?.off('session/memberJoinedRequest');
-    };
-  }, [socket?.connected]);
 
   return <React.Fragment />;
 };
