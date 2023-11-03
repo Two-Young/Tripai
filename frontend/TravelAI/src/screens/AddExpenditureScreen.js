@@ -4,7 +4,11 @@ import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import CustomInput from '../component/molecules/CustomInput';
 import colors from '../theme/colors';
-import BottomSheet, {BottomSheetFlatList} from '@gorhom/bottom-sheet';
+import BottomSheet, {
+  BottomSheetFlatList,
+  BottomSheetTextInput,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet';
 import {STYLES} from '../styles/Stylesheets';
 import {
   deleteExpenditure,
@@ -70,7 +74,7 @@ const FlatListRenderItem = ({data}) => {
       style={styles.individualWrapper}
       disabled={detail.length === 0}
       onPress={onPressItem}>
-      <View style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.FLEX(1)]}>
+      <BottomSheetView style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.FLEX(1)]}>
         {detail.length > 0 && (
           <Tooltip
             width={200}
@@ -95,8 +99,8 @@ const FlatListRenderItem = ({data}) => {
           </Tooltip>
         )}
         <Text style={[styles.bottomSheetText, styles.individualText]}>{userName}</Text>
-      </View>
-      <TextInput
+      </BottomSheetView>
+      <BottomSheetTextInput
         ref={inputRef}
         style={[styles.bottomSheetText, styles.individualInput, styles.individualText]}
         placeholder="0"
@@ -477,21 +481,35 @@ const ExpenditureBottomSheet = ({data}) => {
     }
   };
 
+  const [snapIndex, setSnapIndex] = React.useState(0);
+
+  // if keyboard dismiss, bottom sheet to default
+  React.useEffect(() => {
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      if (snapIndex === 1) {
+        bottomSheetRef?.current?.snapToIndex(1);
+      }
+    });
+    return () => {
+      keyboardDidHideListener.remove();
+    };
+  }, [snapIndex]);
+
   return (
     <BottomSheet
       ref={bottomSheetRef}
       index={0}
       snapPoints={snapPoints}
       onChange={index => {
-        Keyboard.dismiss();
+        setSnapIndex(index);
       }}
       backgroundStyle={styles.bottomSheet}
       handleIndicatorStyle={styles.bottomSheetIndicator}>
-      <View style={STYLES.FLEX(1)}>
+      <BottomSheetView style={STYLES.FLEX(1)}>
         <DismissKeyboard>
-          <View style={styles.totalWrapper}>
+          <BottomSheetView style={styles.totalWrapper}>
             <Text style={[styles.bottomSheetText, styles.totalText]}>Total</Text>
-            <View style={[STYLES.FLEX_ROW, STYLES.FLEX_END]}>
+            <BottomSheetView style={[STYLES.FLEX_ROW, STYLES.FLEX_END]}>
               <SelectDropdown
                 data={currencySelectData}
                 onSelect={(selectedItem, index) => {
@@ -524,7 +542,7 @@ const ExpenditureBottomSheet = ({data}) => {
                   <Icon name="magnify" type="material-community" size={20} />
                 )}
               />
-              <TextInput
+              <BottomSheetTextInput
                 ref={totalInputRef}
                 style={[styles.bottomSheetText, styles.totalInput]}
                 value={total}
@@ -546,10 +564,10 @@ const ExpenditureBottomSheet = ({data}) => {
                   });
                 }}
               />
-            </View>
-          </View>
+            </BottomSheetView>
+          </BottomSheetView>
         </DismissKeyboard>
-        <View style={styles.bottomSheetHide}>
+        <BottomSheetView style={styles.bottomSheetHide}>
           {isFirstSectionVisible ? (
             <FirstSection
               data={{
@@ -568,8 +586,8 @@ const ExpenditureBottomSheet = ({data}) => {
               }}
             />
           )}
-        </View>
-      </View>
+        </BottomSheetView>
+      </BottomSheetView>
     </BottomSheet>
   );
 };
@@ -1007,8 +1025,6 @@ const AddExpenditureScreen = () => {
       };
     }
   }, [items]);
-
-  useFocusEffect(onFocusEffect); // register callback to focus events
 
   React.useEffect(() => {
     if (items.length >= 0) {
