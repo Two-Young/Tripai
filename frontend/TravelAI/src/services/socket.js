@@ -55,7 +55,8 @@ export const SocketManager = () => {
 
   React.useEffect(() => {
     if (socket?.connected) {
-      socket.on('session/memberInvited', () => {
+      socket.on('session/memberInvited', data => {
+        reactotron.log(data);
         Toast.show({
           type: 'info',
           text: 'You have been invited to a session',
@@ -63,7 +64,8 @@ export const SocketManager = () => {
         });
       });
 
-      socket.on('session/memberJoinedRequest', () => {
+      socket.on('session/memberJoinedRequest', data => {
+        reactotron.log(data);
         Toast.show({
           type: 'info',
           text: 'You have received a request to join a session',

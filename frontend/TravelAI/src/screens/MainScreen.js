@@ -18,6 +18,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {sessionsAtom} from '../recoil/session/sessions';
 import {showErrorToast} from '../utils/utils';
 import {socket} from '../services/socket';
+import reactotron from 'reactotron-react-native';
 
 const MainScreen = () => {
   /* states */
@@ -62,7 +63,8 @@ const MainScreen = () => {
   const fetchCountries = async () => {
     try {
       const res = await locateCountries();
-      setCountries(res);
+      const sortedData = [...res].sort((a, b) => a.country_code.localeCompare(b.country_code));
+      setCountries(sortedData);
     } catch (err) {
       console.error(err);
     }
@@ -128,11 +130,14 @@ const MainScreen = () => {
   React.useEffect(() => {
     if (socket?.connected) {
       socket.on('session/deleted', data => {
+        reactotron.log(data);
         setSessions(prev => prev.filter(session => session.session_id !== data.data));
       });
     }
     return () => {
-      socket.off('session/deleted');
+      if (socket) {
+        socket.off('session/deleted');
+      }
     };
   }, [socket?.connected]);
 
