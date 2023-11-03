@@ -488,65 +488,67 @@ const ExpenditureBottomSheet = ({data}) => {
       backgroundStyle={styles.bottomSheet}
       handleIndicatorStyle={styles.bottomSheetIndicator}>
       <View style={STYLES.FLEX(1)}>
-        <View style={styles.totalWrapper}>
-          <Text style={[styles.bottomSheetText, styles.totalText]}>Total</Text>
-          <View style={[STYLES.FLEX_ROW, STYLES.FLEX_END]}>
-            <SelectDropdown
-              data={currencySelectData}
-              onSelect={(selectedItem, index) => {
-                setCurrencyCode(selectedItem);
-              }}
-              defaultValue={currencyCode}
-              buttonStyle={styles.dropdownBtnStyle}
-              buttonTextStyle={{
-                ...styles.bottomSheetText,
-                ...styles.totalText,
-              }}
-              renderDropdownIcon={isOpen => {
-                return (
-                  <Icon
-                    name={isOpen ? 'chevron-up' : 'chevron-down'}
-                    type="material-community"
-                    color={colors.white}
-                  />
-                );
-              }}
-              dropdownIconPosition="right"
-              dropdownStyle={styles.dropdownDropdownStyle}
-              rowStyle={styles.dropdownRowStyle}
-              rowTextStyle={styles.dropdownRowTxt}
-              search
-              searchPlaceHolder="Search..."
-              searchInputStyle={styles.dropdownsearchInputStyleStyle}
-              searchPlaceHolderColor={'#888888'}
-              renderSearchInputLeftIcon={() => (
-                <Icon name="magnify" type="material-community" size={20} />
-              )}
-            />
-            <TextInput
-              ref={totalInputRef}
-              style={[styles.bottomSheetText, styles.totalInput]}
-              value={total}
-              editable={detail.length === 0}
-              placeholder="0"
-              placeholderTextColor={colors.white}
-              onChangeText={text => setTotal(text)}
-              onEndEditing={handleEndEditing}
-              textAlign="right"
-              keyboardType="numeric"
-              onFocus={() => {
-                totalInputRef.current.setNativeProps({
-                  style: {...styles.totalInput, backgroundColor: '#00000020'},
-                });
-              }}
-              onBlur={() => {
-                totalInputRef.current.setNativeProps({
-                  style: {...styles.totalInput, backgroundColor: 'transparent'},
-                });
-              }}
-            />
+        <DismissKeyboard>
+          <View style={styles.totalWrapper}>
+            <Text style={[styles.bottomSheetText, styles.totalText]}>Total</Text>
+            <View style={[STYLES.FLEX_ROW, STYLES.FLEX_END]}>
+              <SelectDropdown
+                data={currencySelectData}
+                onSelect={(selectedItem, index) => {
+                  setCurrencyCode(selectedItem);
+                }}
+                defaultValue={currencyCode}
+                buttonStyle={styles.dropdownBtnStyle}
+                buttonTextStyle={{
+                  ...styles.bottomSheetText,
+                  ...styles.totalText,
+                }}
+                renderDropdownIcon={isOpen => {
+                  return (
+                    <Icon
+                      name={isOpen ? 'chevron-up' : 'chevron-down'}
+                      type="material-community"
+                      color={colors.white}
+                    />
+                  );
+                }}
+                dropdownIconPosition="right"
+                dropdownStyle={styles.dropdownDropdownStyle}
+                rowStyle={styles.dropdownRowStyle}
+                rowTextStyle={styles.dropdownRowTxt}
+                search
+                searchPlaceHolder="Search..."
+                searchInputStyle={styles.dropdownsearchInputStyleStyle}
+                searchPlaceHolderColor={'#888888'}
+                renderSearchInputLeftIcon={() => (
+                  <Icon name="magnify" type="material-community" size={20} />
+                )}
+              />
+              <TextInput
+                ref={totalInputRef}
+                style={[styles.bottomSheetText, styles.totalInput]}
+                value={total}
+                editable={detail.length === 0}
+                placeholder="0"
+                placeholderTextColor={colors.white}
+                onChangeText={text => setTotal(text)}
+                onEndEditing={handleEndEditing}
+                textAlign="right"
+                keyboardType="numeric"
+                onFocus={() => {
+                  totalInputRef.current.setNativeProps({
+                    style: {...styles.totalInput, backgroundColor: '#00000020'},
+                  });
+                }}
+                onBlur={() => {
+                  totalInputRef.current.setNativeProps({
+                    style: {...styles.totalInput, backgroundColor: 'transparent'},
+                  });
+                }}
+              />
+            </View>
           </View>
-        </View>
+        </DismissKeyboard>
         <View style={styles.bottomSheetHide}>
           {isFirstSectionVisible ? (
             <FirstSection
