@@ -785,6 +785,7 @@ const AddExpenditureScreen = () => {
           label: el.label,
           price: el.price.toLocaleString(),
           id: 'id' + Math.random().toString(16).slice(2),
+          allocations: [],
         })),
       );
       setTotal(res.items.reduce((acc, cur) => acc + cur.price, 0).toLocaleString());

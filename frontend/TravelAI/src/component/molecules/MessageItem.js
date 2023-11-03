@@ -10,7 +10,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import {TripAIIcon} from '../../assets/images';
 
 const MessageItem = props => {
-  const {senderUserId, senderUsername, senderProfileImage, content, timestamp, type} = props;
+  const {senderUserId, senderUsername, senderProfileImage, content, timestamp, type, isError} =
+    props;
 
   const user = useRecoilValue(userAtom);
   const userInfo = React.useMemo(() => user?.user_info, [user]);
@@ -35,6 +36,9 @@ const MessageItem = props => {
   }, [content]);
 
   const messageContentStyle = React.useMemo(() => {
+    if (isError) {
+      return styles.errorContent;
+    }
     switch (type) {
       case 'chat_message':
         if (isMine) {
@@ -168,6 +172,9 @@ const styles = StyleSheet.create({
   },
   gptContent: {
     color: colors.white,
+  },
+  errorContent: {
+    color: '#FF6666',
   },
   profileImage: {
     width: 32,

@@ -3,11 +3,18 @@ import {View, StyleSheet, Text} from 'react-native';
 import {STYLES} from '../../styles/Stylesheets';
 import {Regular, Medium} from '../../theme/fonts';
 import colors from '../../theme/colors';
+import {useRecoilValue} from 'recoil';
+import userAtom from '../../recoil/user/user';
+import {formatWithCommas} from '../../utils/number';
 
 const CATEGORY_LIST = ['activity', 'meal', 'lodgment', 'transport', 'shopping', 'etc'];
 const COLOR_LIST = ['#FF8181', '#FFAB48', '#6FED42', '#79D7FF', '#CB89FF', '#B5B5B5'];
 
-const SettlementSummary = ({title, settlements}) => {
+const SettlementSummary = ({title, settlements, total}) => {
+  const user = useRecoilValue(userAtom);
+
+  console.log(settlements);
+
   const data = useMemo(() => {
     if (!settlements) {
       return [];
@@ -18,8 +25,7 @@ const SettlementSummary = ({title, settlements}) => {
       .sort((a, b) => b.amount - a.amount);
   }, [settlements]);
 
-  const total = useMemo(() => {
-    console.log(data);
+  const sum = useMemo(() => {
     if (!data) {
       return 1;
     }
@@ -35,16 +41,17 @@ const SettlementSummary = ({title, settlements}) => {
           <View style={[STYLES.FLEX_ROW_ALIGN_CENTER]}>
             <View style={[styles.propertyDot, {backgroundColor: item.color}]} />
             <Text style={[styles.propertyCategoryText, {color: item.color}]}>
-              {item.category} ({((item.amount / total) * 100).toFixed(2)}%)
+              {item.category}{' '}
+              {item.amount / total !== 1 && `(${((item.amount / total) * 100).toFixed(2)}%)`}
             </Text>
           </View>
           <Text style={[styles.propertyAmountText, {color: item.color}]}>
-            {item.amount.toFixed(2)}
+            {formatWithCommas(item?.amount)} {user?.user_info?.default_currency_code}
           </Text>
         </View>
       );
     },
-    [total],
+    [user, total],
   );
 
   return (
@@ -55,7 +62,7 @@ const SettlementSummary = ({title, settlements}) => {
           return (
             <View
               key={`v_${index}`}
-              style={[STYLES.FLEX(item.amount), {backgroundColor: item.color}]}
+              style={[{backgroundColor: item.color, width: `${(item.amount / total) * 100}%`}]}
             />
           );
         })}
@@ -67,7 +74,15 @@ const SettlementSummary = ({title, settlements}) => {
         ))}
         <CategoryRow
           item={{
-            category: 'Total',
+            category: 'Total Usage',
+            amount: sum,
+            color: 'black',
+          }}
+          index={settlements?.length}
+        />
+        <CategoryRow
+          item={{
+            category: 'Total Budget',
             amount: total,
             color: 'black',
           }}
@@ -89,7 +104,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 20,
     borderRadius: 4,
-    backgroundColor: 'gray',
+    backgroundColor: '#F0F0F0',
     overflow: 'hidden',
   },
   properties: {
