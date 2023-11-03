@@ -16,6 +16,7 @@ import {
   getExpenditureCategories,
   getSessionCurrencies,
   getSessionMembers,
+  postExpenditure,
   postExpenditureReceipt,
   putExpenditure,
 } from '../services/api';
@@ -71,7 +72,7 @@ const FlatListRenderItem = ({data}) => {
 
   return (
     <TouchableOpacity
-      style={styles.individualWrapper}
+      style={[styles.individualWrapper, detail.length > 0 && styles.individualWrapperClickable]}
       disabled={detail.length === 0}
       onPress={onPressItem}>
       <BottomSheetView style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.FLEX(1)]}>
@@ -255,6 +256,7 @@ const FirstSection = ({data}) => {
             }}
           />
         )}
+        ItemSeparatorComponent={() => <View style={{height: 5}} />}
       />
       <TouchableOpacity
         style={styles.dropdown2BtnStyle}
@@ -976,10 +978,11 @@ const AddExpenditureScreen = () => {
         },
       })),
     );
-    if (res?.item) {
+    if (res?.items) {
       setItems(
-        res.item.map(el => ({
+        res.items.map(el => ({
           ...el,
+          price: el.price.toLocaleString(),
           id: 'id' + Math.random().toString(16).slice(2),
         })),
       );
@@ -987,7 +990,35 @@ const AddExpenditureScreen = () => {
     setTime(dayjs(res.payed_at).format('YYYY-MM-DD HH:mm'));
   };
 
-  const onPressEdit = async () => {};
+  const onPressEdit = async () => {
+    try {
+      await postExpenditure({
+        name: name,
+        category: category,
+        currency_code: currencyCode,
+        total_price: Number(total.replace(/,/g, '')),
+        payers_id: paid,
+        distribution: distribution.map(el => ({
+          user_id: el.user_id,
+          amount: {
+            num: el.amount.num,
+            denom: el.amount.denom,
+          },
+        })),
+        items: items.map(el => ({
+          label: el.label,
+          price: Number(el.price.replace(/,/g, '')),
+          allocations: el.allocations,
+        })),
+        payed_at: Date.parse(time + 'Z'),
+        session_id: currentSessionID,
+        expenditure_id: route.params?.expenditure_id,
+      });
+      navigation.goBack();
+    } catch (err) {
+      showErrorToast(err);
+    }
+  };
 
   const requestDelete = async () => {
     try {
@@ -1025,6 +1056,8 @@ const AddExpenditureScreen = () => {
       };
     }
   }, [items]);
+
+  useFocusEffect(onFocusEffect);
 
   React.useEffect(() => {
     if (items.length >= 0) {
@@ -1285,7 +1318,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 5,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+  },
+  individualWrapperClickable: {
+    backgroundColor: '#ffffff10',
   },
   individualText: {
     fontSize: 14,
