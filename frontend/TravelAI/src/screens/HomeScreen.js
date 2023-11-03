@@ -154,23 +154,21 @@ const HomeScreen = () => {
   }, [route.params?.place, currentSessionID]);
 
   React.useEffect(() => {
-    if (currentSessionID && socket?.connected) {
-      socket.on('location/created', async data => {
-        // setPlaces(prev => [...prev, data.data]);
-        await fetchPlaces();
-      });
-      socket.on('location/deleted', data => {
-        setPlaces(prev => prev.filter(place => place.location_id !== data.data));
-      });
-      socket.on('session/memberJoined', data => async () => {
-        reactotron.log('memberJoined', data);
-        await fetchJoined();
-      });
-      socket.on('session/memberLeft', data => async () => {
-        reactotron.log('memberLeft', data);
-        await fetchJoined();
-      });
-    }
+    // if (currentSessionID && socket?.connected) {
+    socket.on('location/created', async data => {
+      // setPlaces(prev => [...prev, data.data]);
+      await fetchPlaces();
+    });
+    socket.on('location/deleted', data => {
+      setPlaces(prev => prev.filter(place => place.location_id !== data.data));
+    });
+    socket.on('session/memberJoined', () => {
+      fetchJoined();
+    });
+    socket.on('session/memberLeft', () => {
+      fetchJoined();
+    });
+    // }
     return () => {
       socket.off('location/created');
       socket.off('location/deleted');

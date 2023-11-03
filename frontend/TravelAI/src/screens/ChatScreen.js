@@ -85,7 +85,6 @@ const ChatScreen = () => {
   }, []);
 
   const assistantMessageStartCallback = React.useCallback(async res => {
-    console.log('assistantMessageStartCallback ::', res);
     if (res.success) {
       setMessages(prev => [...prev, {...res.data, type: 'assistant_response', content: ''}]);
     }
@@ -108,7 +107,6 @@ const ChatScreen = () => {
   }, []);
 
   const assistantMessageEndCallback = React.useCallback(async res => {
-    console.log('assistantMessageEndCallback ::', res);
     if (res.success) {
       setMessages(prev =>
         prev.map(item => {
@@ -126,7 +124,6 @@ const ChatScreen = () => {
   }, []);
 
   const assistantMessageErrorCallback = React.useCallback(async res => {
-    console.log('assistantMessageErrorCallback ::', res);
     if (res.success) {
       setMessages(prev =>
         prev.map(item => {
@@ -195,8 +192,6 @@ const ChatScreen = () => {
     };
   }, []);
 
-  // console.log('messages ::', messages);
-
   return (
     <KeyboardAvoidingView
       style={STYLES.FLEX(1)}
@@ -244,23 +239,6 @@ const ChatScreen = () => {
             onPress={sendMessage}
           />
         </LinearGradient>
-        {/* <View
-          style={[styles.inputComponent, {backgroundColor: useChatGPT ? colors.gpt : '#E5E5EA'}]}>
-          <TouchableOpacity
-            style={[STYLES.MARGIN_RIGHT(12)]}
-            onPress={() => setUseChatGPT(prev => !prev)}>
-            <Image source={TripAIIcon} style={[styles.gptIcon]} />
-          </TouchableOpacity>
-          <TextInput style={styles.input} value={inputContent} onChangeText={setInputContent} />
-          <IconButton
-            icon="send"
-            iconColor={useChatGPT ? '#74AA9C' : colors.white}
-            containerColor={useChatGPT ? colors.white : colors.primary}
-            size={20}
-            style={STYLES.MARGIN(0)}
-            onPress={sendMessage}
-          />
-        </View> */}
       </View>
     </KeyboardAvoidingView>
   );

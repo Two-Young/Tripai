@@ -22,6 +22,7 @@ import {Medium} from '../theme/fonts';
 import UserItem from '../component/molecules/UserItem';
 import {showErrorToast} from '../utils/utils';
 import {getFriends} from '../services/api';
+import {socket} from '../services/socket';
 
 const ManageParticipantsScreen = () => {
   // hooks
@@ -246,6 +247,20 @@ const ManageParticipantsScreen = () => {
     },
     [getJoinStatus],
   );
+
+  React.useEffect(() => {
+    socket.on('session/memberJoined', () => {
+      fetchJoined();
+    });
+    socket.on('session/memberLeft', () => {
+      fetchJoined();
+    });
+    // }
+    return () => {
+      socket.off('session/memberJoined');
+      socket.off('session/memberLeft');
+    };
+  }, [socket]);
 
   return (
     <SafeArea top={{style: {backgroundColor: colors.primary}, barStyle: 'light-content'}}>

@@ -1,11 +1,11 @@
-import {StyleSheet, View, Keyboard, Pressable, Image} from 'react-native';
+import {StyleSheet, View, Keyboard, Pressable, Image, TouchableOpacity} from 'react-native';
 import React from 'react';
 import {Avatar, Button, IconButton, List, Switch, Text, TextInput} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import {useRecoilState, useRecoilValue} from 'recoil';
 import userAtom from '../recoil/user/user';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {getProfile, updateProfile} from '../services/api';
+import {getProfile, updateProfile, deleteUser} from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {STYLES} from '../styles/Stylesheets';
 import SafeArea from './../component/molecules/SafeArea';
@@ -21,6 +21,8 @@ import reactotron from 'reactotron-react-native';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import colors from '../theme/colors';
 import {showErrorToast} from '../utils/utils';
+import {Regular} from '../theme/fonts';
+import {requestAlert} from '../utils/utils';
 
 const ProfileScreen = () => {
   // hooks
@@ -141,6 +143,22 @@ const ProfileScreen = () => {
     }
   };
 
+  const onDeleteUser = async () => {
+    try {
+      requestAlert(
+        'Delete profile',
+        'Are you sure you want to delete your profile information?',
+        () =>
+          deleteUser().then(async () => {
+            await AsyncStorage.removeItem('user');
+            setUser(null);
+          }),
+      );
+    } catch (err) {
+      showErrorToast(err);
+    }
+  };
+
   // effects
   React.useEffect(() => {
     fetchProfile();
@@ -239,6 +257,9 @@ const ProfileScreen = () => {
         <View style={[STYLES.PADDING_VERTICAL(10), STYLES.PADDING_HORIZONTAL(20)]}>
           <MainButton text="Save" onPress={onPressSave} disabled={!isEditing || !isUsernameValid} />
         </View>
+        <TouchableOpacity style={[STYLES.MARGIN_BOTTOM(10)]} onPress={onDeleteUser}>
+          <Text style={[styles.deleteUserButtonText]}>Do you want to delete profile?</Text>
+        </TouchableOpacity>
       </SafeArea>
     </DismissKeyboard>
   );
@@ -329,5 +350,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'slategray',
     borderBottomWidth: 1,
     borderBottomColor: '#FFF',
+  },
+  deleteUserButtonText: {
+    ...Regular(12),
+    textDecorationLine: 'underline',
+    textAlign: 'center',
+    color: colors.gray,
   },
 });
