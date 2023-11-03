@@ -8,7 +8,6 @@ import BottomSheet, {BottomSheetFlatList} from '@gorhom/bottom-sheet';
 import {STYLES} from '../styles/Stylesheets';
 import {
   deleteExpenditure,
-  getBudget,
   getExpenditure,
   getExpenditureCategories,
   getSessionCurrencies,
@@ -26,6 +25,7 @@ import Checkbox from '../component/atoms/Checkbox';
 import SelectDropdown from 'react-native-select-dropdown';
 import Modal from 'react-native-modal';
 import userAtom from '../recoil/user/user';
+import {Tooltip} from '@rneui/themed';
 import {ActivityIndicator, Searchbar} from 'react-native-paper';
 import {FlatList} from 'react-native';
 import {AvoidSoftInput, AvoidSoftInputView} from 'react-native-avoid-softinput';
@@ -36,6 +36,7 @@ import currenciesAtom from '../recoil/currencies/currencies';
 import _ from 'lodash';
 import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
 import LoadingModal from '../component/atoms/LoadingModal';
+import infoIcon from '../assets/images/information-circle-sharp.png';
 
 const FlatListRenderItem = ({data}) => {
   const {
@@ -44,6 +45,7 @@ const FlatListRenderItem = ({data}) => {
     setDistribution,
     members,
     detail,
+    setDetail,
     setIsFirstSectionVisible,
     setSelectedUser,
   } = data;
@@ -60,15 +62,37 @@ const FlatListRenderItem = ({data}) => {
     return members[index].username;
   }, [data]);
 
+  const [tooltipVisible, setTooltipVisible] = React.useState(false);
+
   return (
     <TouchableOpacity
       style={styles.individualWrapper}
       disabled={detail.length === 0}
       onPress={onPressItem}>
       <View style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.FLEX(1)]}>
-        {/* <TouchableOpacity style={styles.minusButton}>
-          <Icon name="remove" size={12} color={colors.white} />
-        </TouchableOpacity> */}
+        {detail.length > 0 && (
+          <Tooltip
+            width={200}
+            height={60}
+            backgroundColor={colors.primary}
+            visible={tooltipVisible}
+            onOpen={() => setTooltipVisible(true)}
+            onClose={() => setTooltipVisible(false)}
+            popover={
+              <Text
+                style={{
+                  color: colors.white,
+                  fontSize: 12,
+                }}>
+                Press the row to edit the items that the user occupied
+              </Text>
+            }>
+            <Image
+              source={infoIcon}
+              style={[styles.infoIcon, STYLES.MARGIN_LEFT(0), STYLES.MARGIN_RIGHT(5)]}
+            />
+          </Tooltip>
+        )}
         <Text style={[styles.bottomSheetText, styles.individualText]}>{userName}</Text>
       </View>
       <TextInput
@@ -86,6 +110,14 @@ const FlatListRenderItem = ({data}) => {
           newData[item.index].amount.num = f1.n;
           newData[item.index].amount.denom = f1.d;
           setDistribution(newData);
+          if (detail) {
+            setDetail(prev => {
+              return prev.map(el => ({
+                ...el,
+                allocations: [],
+              }));
+            });
+          }
         }}
         onEndEditing={() => {
           const newData = [...distribution];
@@ -135,6 +167,7 @@ const FirstSection = ({data}) => {
     setIsFirstSectionVisible,
     setSelectedUser,
     detail,
+    setDetail,
     members,
   } = data;
 
@@ -154,6 +187,14 @@ const FirstSection = ({data}) => {
         },
       }));
     });
+    if (detail) {
+      setDetail(prev => {
+        return prev.map(el => ({
+          ...el,
+          allocations: distribution.map(dt => dt.user_id),
+        }));
+      });
+    }
   };
 
   const paidButtonText = React.useMemo(() => {
@@ -201,6 +242,7 @@ const FirstSection = ({data}) => {
               distribution: distribution,
               setDistribution: setDistribution,
               detail: detail,
+              setDetail: setDetail,
               setIsFirstSectionVisible: setIsFirstSectionVisible,
               setSelectedUser: setSelectedUser,
               members: members,
@@ -274,6 +316,7 @@ const SecondSection = ({data}) => {
     user,
     members,
     distribution,
+    setDistribution,
     detail,
     setDetail,
     selectedUser,
@@ -316,6 +359,31 @@ const SecondSection = ({data}) => {
       }, 0)
       .toLocaleString();
   }, [data]);
+
+  React.useEffect(() => {
+    setDistribution(prev => {
+      const target = prev.find(el => el.user_id === selectedUser);
+      if (target) {
+        var f1 = new Fraction(Number(selectedUserTotal.replace(/,/g, '')));
+        return prev.map(el => {
+          if (el.user_id === selectedUser) {
+            return {
+              ...el,
+              amount: {
+                num: f1.n,
+                denom: f1.d,
+                string: selectedUserTotal,
+              },
+            };
+          } else {
+            return el;
+          }
+        });
+      } else {
+        return prev;
+      }
+    });
+  }, [selectedUser, selectedUserTotal]);
 
   return (
     <View style={styles.bottomSheetHideSection}>
@@ -779,12 +847,15 @@ const AddExpenditureScreen = () => {
       });
       setLoading(true);
       const res = await postExpenditureReceipt(formData);
-      setCurrencyCode(res.currency_code);
+      if (res?.currency_code) {
+        setCurrencyCode(res.currency_code);
+      }
       setItems(
         res.items.map(el => ({
+          id: 'id' + Math.random().toString(16).slice(2),
           label: el.label,
           price: el.price.toLocaleString(),
-          id: 'id' + Math.random().toString(16).slice(2),
+          allocations: [],
         })),
       );
       setTotal(res.items.reduce((acc, cur) => acc + cur.price, 0).toLocaleString());
@@ -845,8 +916,15 @@ const AddExpenditureScreen = () => {
     if (paid.length === 0) {
       return true;
     }
+    if (currencyCode.length === 0) {
+      return true;
+    }
+    if (items.length > 0 && items.some(el => el.label.length === 0 || el.price.length === 0)) {
+      return true;
+    }
+
     return false;
-  }, [name, category, total, distribution, paid]);
+  }, [name, category, currencyCode, items, total, distribution, paid]);
 
   // edit
   const [expenditure, setExpenditure] = React.useState(null);
@@ -932,6 +1010,8 @@ const AddExpenditureScreen = () => {
   }, [items]);
 
   const [loading, setLoading] = React.useState(false);
+
+  const [tooltipVisible, setTooltipVisible] = React.useState(false);
 
   return (
     <SafeArea
@@ -1030,9 +1110,24 @@ const AddExpenditureScreen = () => {
             }}
             type="date"
           />
-          <Text style={[styles.label, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>
-            Receipt
-          </Text>
+          <View
+            style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>
+            <Text style={styles.label}>Receipt</Text>
+            <Tooltip
+              visible={tooltipVisible}
+              onClose={() => setTooltipVisible(false)}
+              onOpen={() => setTooltipVisible(true)}
+              popover={
+                <Text style={{color: colors.white, fontSize: 12}}>
+                  You can upload receipt image to automatically fill out the details.
+                </Text>
+              }
+              backgroundColor={colors.primary}
+              height={50}
+              width={200}>
+              <Image source={infoIcon} style={[styles.infoIcon]} />
+            </Tooltip>
+          </View>
           {items.length === 0 ? (
             <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
               <Text style={styles.receiptText}>Upload Receipt</Text>
@@ -1309,5 +1404,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#EFEFEF',
     borderBottomColor: '#C5C5C5',
     height: 30,
+  },
+  infoIcon: {
+    width: 12,
+    height: 12,
+    marginLeft: 4,
   },
 });
