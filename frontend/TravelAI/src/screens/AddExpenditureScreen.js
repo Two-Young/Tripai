@@ -1,4 +1,13 @@
-import {StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Keyboard} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Image,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import React from 'react';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
@@ -101,7 +110,7 @@ const FlatListRenderItem = ({data}) => {
         )}
         <Text style={[styles.bottomSheetText, styles.individualText]}>{userName}</Text>
       </BottomSheetView>
-      <BottomSheetTextInput
+      <TextInput
         ref={inputRef}
         style={[styles.bottomSheetText, styles.individualInput, styles.individualText]}
         placeholder="0"
@@ -216,28 +225,30 @@ const FirstSection = ({data}) => {
 
   return (
     <View style={styles.bottomSheetHideSection}>
-      <View style={styles.quickButtonWrap}>
-        <TouchableOpacity
-          style={[styles.distributeButton, STYLES.MARGIN_RIGHT(5)]}
-          onPress={() => setIsModalVisible(true)}>
-          <Icon
-            name="format-list-bulleted"
-            type="material-community"
-            size={12}
-            color={colors.white}
-          />
-          <Text style={styles.distributeText}>Edit Members</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.distributeButton} onPress={onPressDistribute}>
-          <Icon
-            name="format-list-bulleted"
-            type="material-community"
-            size={12}
-            color={colors.white}
-          />
-          <Text style={styles.distributeText}>Distribute</Text>
-        </TouchableOpacity>
-      </View>
+      <DismissKeyboard>
+        <View style={styles.quickButtonWrap}>
+          <TouchableOpacity
+            style={[styles.distributeButton, STYLES.MARGIN_RIGHT(5)]}
+            onPress={() => setIsModalVisible(true)}>
+            <Icon
+              name="format-list-bulleted"
+              type="material-community"
+              size={12}
+              color={colors.white}
+            />
+            <Text style={styles.distributeText}>Edit Members</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.distributeButton} onPress={onPressDistribute}>
+            <Icon
+              name="format-list-bulleted"
+              type="material-community"
+              size={12}
+              color={colors.white}
+            />
+            <Text style={styles.distributeText}>Distribute</Text>
+          </TouchableOpacity>
+        </View>
+      </DismissKeyboard>
       <BottomSheetFlatList
         contentContainerStyle={styles.bottomSheetFlatList}
         data={distribution}
@@ -544,7 +555,7 @@ const ExpenditureBottomSheet = ({data}) => {
                   <Icon name="magnify" type="material-community" size={20} />
                 )}
               />
-              <BottomSheetTextInput
+              <TextInput
                 ref={totalInputRef}
                 style={[styles.bottomSheetText, styles.totalInput]}
                 value={total}
@@ -1211,9 +1222,16 @@ const AddExpenditureScreen = () => {
             </View>
           </DismissKeyboard>
           {items.length === 0 ? (
-            <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
-              <Text style={styles.receiptText}>Upload Receipt</Text>
-            </TouchableOpacity>
+            <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
+              <TouchableOpacity
+                style={[styles.receiptButton, STYLES.MARGIN_RIGHT(5)]}
+                onPress={onPressUploadReceipt}>
+                <Text style={styles.receiptText}>Add Custom Items</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
+                <Text style={styles.receiptText}>Upload Receipt</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             <AvoidSoftInputView style={STYLES.FLEX(1)}>
               <DismissKeyboard>
@@ -1345,7 +1363,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   receiptButton: {
-    width: '100%',
+    flex: 1,
     height: 40,
     backgroundColor: colors.primary,
     borderRadius: 10,

@@ -81,7 +81,6 @@ const AddCustomPlaceScreen = () => {
 
   const onPressListItem = async item => {
     try {
-      console.log(item);
       setLoadingModalVisible(true);
       Keyboard.dismiss();
       const res = await locateLocation(item.place_id);
@@ -117,7 +116,6 @@ const AddCustomPlaceScreen = () => {
       const res = await locateAutoComplete(keyword);
       setSearchResult(res);
       setIsZeroResult(false);
-      console.log('res', res);
     } catch (error) {
       setSearchResult([]);
       setIsZeroResult(true);
