@@ -2,7 +2,7 @@ import {StyleSheet, View, Keyboard, Pressable, Image, TouchableOpacity} from 're
 import React from 'react';
 import {Avatar, Button, IconButton, List, Switch, Text, TextInput} from 'react-native-paper';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {useRecoilState, useRecoilValue} from 'recoil';
+import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
 import userAtom from '../recoil/user/user';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {getProfile, updateProfile, deleteUser} from '../services/api';
@@ -23,11 +23,20 @@ import {showErrorToast} from '../utils/utils';
 import {Regular} from '../theme/fonts';
 import {requestAlert} from '../utils/utils';
 import {AvoidSoftInput} from 'react-native-avoid-softinput';
+import {friendsAtom} from '../recoil/friends/friends';
+import {sessionsAtom} from '../recoil/session/sessions';
+import sessionAtom from '../recoil/session/session';
 
 const ProfileScreen = () => {
   // hooks
   const currencies = useRecoilValue(currenciesAtom);
   const countries = useRecoilValue(countriesAtom);
+
+  const setFriends = useSetRecoilState(friendsAtom);
+  const setSessions = useSetRecoilState(sessionsAtom);
+  const setSession = useSetRecoilState(sessionAtom);
+  const setCurrencies = useSetRecoilState(currenciesAtom);
+  const setCountries = useSetRecoilState(countriesAtom);
 
   // states
   const [user, setUser] = useRecoilState(userAtom);
@@ -151,6 +160,11 @@ const ProfileScreen = () => {
           deleteUser().then(async () => {
             await AsyncStorage.removeItem('user');
             setUser(null);
+            setFriends([]);
+            setSessions([]);
+            setSession(null);
+            setCurrencies([]);
+            setCountries([]);
           }),
       );
     } catch (err) {
