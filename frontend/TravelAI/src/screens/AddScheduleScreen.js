@@ -1,6 +1,11 @@
 import {StyleSheet, View} from 'react-native';
 import React from 'react';
-import {CommonActions, useNavigation, useNavigationState} from '@react-navigation/native';
+import {
+  CommonActions,
+  useFocusEffect,
+  useNavigation,
+  useNavigationState,
+} from '@react-navigation/native';
 import colors from '../theme/colors';
 import {createSchedule} from '../services/api';
 import {useRecoilValue} from 'recoil';
@@ -13,6 +18,7 @@ import MainButton from '../component/atoms/MainButton';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import {STYLES} from '../styles/Stylesheets';
 import {showErrorToast} from '../utils/utils';
+import {AvoidSoftInput, AvoidSoftInputView} from 'react-native-avoid-softinput';
 
 const AddScheduleScreen = () => {
   // states
@@ -63,6 +69,17 @@ const AddScheduleScreen = () => {
     return name.length === 0;
   }, [name]);
 
+  const onFocusEffect = React.useCallback(() => {
+    // This should be run when screen gains focus - enable the module where it's needed
+    AvoidSoftInput.setShouldMimicIOSBehavior(true);
+    return () => {
+      // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
+      AvoidSoftInput.setShouldMimicIOSBehavior(false);
+    };
+  }, []);
+
+  useFocusEffect(onFocusEffect); // register callback to focus events
+
   return (
     <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
       <View style={STYLES.FLEX(1)}>
@@ -70,24 +87,32 @@ const AddScheduleScreen = () => {
           <CustomHeader title="Add Schedule" theme={CUSTOM_HEADER_THEME.WHITE} useMenu={false} />
         </DismissKeyboard>
         <View style={styles.container}>
-          <View style={styles.contentContainer}>
-            <CustomInput label={'Name'} value={name} setValue={setName} />
-            <CustomInput label={'Address'} value={place} setValue={setPlace} type="place" />
-            <CustomInput
-              label={'Date'}
-              value={startAt}
-              setValue={value => {
-                setStartAt(
-                  dayjs(day)
-                    .set('hour', dayjs(value).hour())
-                    .set('minute', dayjs(value).minute())
-                    .format('YYYY-MM-DD HH:mm'),
-                );
-              }}
-              type="time"
-            />
-            <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
-          </View>
+          <AvoidSoftInputView style={styles.contentContainer}>
+            <DismissKeyboard>
+              <CustomInput label={'Name'} value={name} setValue={setName} />
+            </DismissKeyboard>
+            <DismissKeyboard>
+              <CustomInput label={'Address'} value={place} setValue={setPlace} type="place" />
+            </DismissKeyboard>
+            <DismissKeyboard>
+              <CustomInput
+                label={'Date'}
+                value={startAt}
+                setValue={value => {
+                  setStartAt(
+                    dayjs(day)
+                      .set('hour', dayjs(value).hour())
+                      .set('minute', dayjs(value).minute())
+                      .format('YYYY-MM-DD HH:mm'),
+                  );
+                }}
+                type="time"
+              />
+            </DismissKeyboard>
+            <DismissKeyboard>
+              <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
+            </DismissKeyboard>
+          </AvoidSoftInputView>
           <MainButton
             icon={loading ? 'loading' : 'calendar-month'}
             text={loading ? 'Adding...' : 'Add Schedule'}

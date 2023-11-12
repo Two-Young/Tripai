@@ -1,7 +1,13 @@
 import {StyleSheet, View, Alert} from 'react-native';
 import React from 'react';
 import {IconButton} from 'react-native-paper';
-import {CommonActions, useNavigation, useRoute, useNavigationState} from '@react-navigation/native';
+import {
+  CommonActions,
+  useNavigation,
+  useRoute,
+  useNavigationState,
+  useFocusEffect,
+} from '@react-navigation/native';
 import colors from '../theme/colors';
 import {deleteSchedule, updateSchedule} from '../services/api';
 import _ from 'lodash';
@@ -13,6 +19,7 @@ import dayjs from 'dayjs';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import {STYLES} from '../styles/Stylesheets';
 import {showErrorToast} from '../utils/utils';
+import {AvoidSoftInput, AvoidSoftInputView} from 'react-native-avoid-softinput';
 
 const EditScheduleScreen = () => {
   // states
@@ -108,10 +115,21 @@ const EditScheduleScreen = () => {
     }
   }, [route.params?.schedule]);
 
+  const onFocusEffect = React.useCallback(() => {
+    // This should be run when screen gains focus - enable the module where it's needed
+    AvoidSoftInput.setShouldMimicIOSBehavior(true);
+    return () => {
+      // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
+      AvoidSoftInput.setShouldMimicIOSBehavior(false);
+    };
+  }, []);
+
+  useFocusEffect(onFocusEffect); // register callback to focus events
+
   return (
     <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>
-      <DismissKeyboard>
-        <View style={STYLES.FLEX(1)}>
+      <View style={STYLES.FLEX(1)}>
+        <DismissKeyboard>
           <CustomHeader
             title="Edit Schedule"
             theme={CUSTOM_HEADER_THEME.WHITE}
@@ -119,10 +137,16 @@ const EditScheduleScreen = () => {
               <IconButton icon="delete" iconColor={'red'} onPress={onPressDeleteSchedule} />
             }
           />
-          <View style={styles.container}>
-            <View style={styles.contentContainer}>
+        </DismissKeyboard>
+        <View style={styles.container}>
+          <AvoidSoftInputView style={styles.contentContainer}>
+            <DismissKeyboard>
               <CustomInput label={'Name'} value={name} setValue={setName} />
+            </DismissKeyboard>
+            <DismissKeyboard>
               <CustomInput label={'Address'} value={place} setValue={setPlace} type="place" />
+            </DismissKeyboard>
+            <DismissKeyboard>
               <CustomInput
                 label={'Date'}
                 value={startAt}
@@ -136,16 +160,18 @@ const EditScheduleScreen = () => {
                 }}
                 type="time"
               />
+            </DismissKeyboard>
+            <DismissKeyboard>
               <CustomInput label={'Note'} value={note} setValue={setNote} type={'multiline'} />
-            </View>
-            <MainButton
-              text={loading ? 'Editing...' : 'Edit'}
-              onPress={onPressEdit}
-              disabled={addDisabled}
-            />
-          </View>
+            </DismissKeyboard>
+          </AvoidSoftInputView>
+          <MainButton
+            text={loading ? 'Editing...' : 'Edit'}
+            onPress={onPressEdit}
+            disabled={addDisabled}
+          />
         </View>
-      </DismissKeyboard>
+      </View>
     </SafeArea>
   );
 };
