@@ -76,16 +76,25 @@ const MyRequest = () => {
     }
   }, [refreshing]);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      if (socket && socket.connected) {
+        console.log('SessionRequest screen :: socket on');
+        socket.on('session/memberJoined', fetchRequest);
+      }
+    }, []),
+  );
+
   React.useEffect(() => {
-    if (socket?.connected) {
-      socket.on('session/memberJoined', fetchRequest);
-    }
-    return () => {
+    const unsubscribe = navigation.addListener('blur', () => {
       if (socket) {
+        console.log('SessionRequest screen :: socket off');
         socket.off('session/memberJoined', fetchRequest);
       }
-    };
-  }, [socket?.connected]);
+    });
+
+    return () => unsubscribe();
+  }, [navigation]);
 
   return (
     <FlatList

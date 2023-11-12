@@ -50,7 +50,6 @@ const AddScheduleScreen = () => {
   const handleAdd = async () => {
     try {
       setLoading(true);
-      // await createLocation(currentSessionID, place?.place_id);
       await createSchedule({
         session_id: currentSessionID,
         name,

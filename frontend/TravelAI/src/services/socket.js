@@ -4,7 +4,6 @@ import {API_URL_DEBUG, API_URL_PROD} from './api';
 import {useRecoilValue} from 'recoil';
 import userAtom from '../recoil/user/user';
 import reactotron from 'reactotron-react-native';
-import {showSuccessToast} from '../utils/utils';
 import Toast from 'react-native-toast-message';
 
 export let socket;
@@ -61,10 +60,6 @@ export const SocketManager = () => {
           text1: 'Join request',
           text2: 'You have received a request to join a session',
         });
-      });
-
-      socket.on('session/memberJoined', data => {
-        console.log(data);
       });
     }
 

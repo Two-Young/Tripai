@@ -15,10 +15,12 @@ import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import {socket} from '../services/socket';
 import {formatWithCommas} from '../utils/number';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 const SettlementScreen = () => {
   const currentSession = useRecoilValue(sessionAtom);
+
+  const navigation = useNavigation();
 
   // state
   const [sessionUsers, setSessionUsers] = React.useState([]);
@@ -124,22 +126,27 @@ const SettlementScreen = () => {
     }, []),
   );
 
-  React.useEffect(() => {
-    if (socket?.connected) {
-      socket?.on('settlement/changed', () => {
-        fetchSettlements();
-      });
-      socket.on('budget/created', data => {
-        fetchSettlements();
-      });
-    }
-    return () => {
-      if (socket) {
-        socket?.off('budget/created');
-        socket?.off('settlement/changed');
+  useFocusEffect(
+    useCallback(() => {
+      if (socket && socket.connected) {
+        console.log('Settlement screen :: socket on');
+        socket.on('settlement/changed', fetchSettlements);
+        socket.on('budget/created', fetchSettlements);
       }
-    };
-  }, [socket?.connected]);
+    }, []),
+  );
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      if (socket) {
+        console.log('Settlement screen :: socket off');
+        socket.off('budget/created', fetchSettlements);
+        socket.off('settlement/changed', fetchSettlements);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigation]);
 
   return (
     <View style={styles.container}>

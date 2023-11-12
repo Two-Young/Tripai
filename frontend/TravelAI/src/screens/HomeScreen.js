@@ -153,26 +153,35 @@ const HomeScreen = () => {
     }
   }, [route.params?.place, currentSessionID]);
 
-  React.useEffect(() => {
-    // if (currentSessionID && socket?.connected) {
-    const locationDeletedCallback = data => {
-      setPlaces(prev => prev.filter(place => place.location_id !== data.data));
-    };
+  const locationDeletedCallback = data => {
+    setPlaces(prev => prev.filter(place => place.location_id !== data.data));
+  };
 
-    socket.on('location/created', fetchPlaces);
-    socket.on('location/deleted', locationDeletedCallback);
-    socket.on('session/memberJoined', fetchJoined);
-    socket.on('session/memberLeft', fetchJoined);
-    // }
-    return () => {
+  useFocusEffect(
+    React.useCallback(() => {
+      if (socket && socket.connected) {
+        console.log('Home screen :: socket on');
+        socket.on('location/created', fetchPlaces);
+        socket.on('location/deleted', locationDeletedCallback);
+        socket.on('session/memberJoined', fetchJoined);
+        socket.on('session/memberLeft', fetchJoined);
+      }
+    }, []),
+  );
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
       if (socket) {
+        console.log('Home screen :: socket off');
         socket.off('location/created', fetchPlaces);
         socket.off('location/deleted', locationDeletedCallback);
         socket.off('session/memberJoined', fetchJoined);
         socket.off('session/memberLeft', fetchJoined);
       }
-    };
-  }, [socket, currentSessionID]);
+    });
+
+    return () => unsubscribe();
+  }, [navigation]);
 
   useFocusEffect(
     React.useCallback(() => {

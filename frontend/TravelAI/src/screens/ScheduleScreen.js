@@ -1,7 +1,7 @@
 import {Dimensions, FlatList, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import MapView, {Marker, PROVIDER_GOOGLE, Polyline} from 'react-native-maps';
-import {useNavigation, useRoute, CommonActions} from '@react-navigation/native';
+import {useNavigation, useRoute, CommonActions, useFocusEffect} from '@react-navigation/native';
 import {getSchedules, locateDirection} from '../services/api';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
@@ -205,34 +205,35 @@ const ScheduleScreen = () => {
     [currentIndex, setSchedules],
   );
 
-  // socket
-  React.useEffect(() => {
-    if (socket?.connected) {
-      socket.on('schedule/created', data => {
-        reactotron.log('schedule/created', data);
-        fetchScheduleEvent(data);
-      });
+  const scheduleDeletedCallback = data => {
+    if (data?.data?.day === currentIndex) {
+      setSchedules(schedules.filter(item => item.schedule_id !== data.data));
     }
-    return () => {
-      if (socket) {
-        socket.off('schedule/created');
+  };
+
+  // socket
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (socket && socket.connected) {
+        console.log('Schedule screen :: socket on');
+        socket.on('schedule/created', fetchScheduleEvent);
+        socket.on('schedule/deleted', scheduleDeletedCallback);
       }
-    };
-  }, [socket, fetchScheduleEvent]);
+    }, []),
+  );
 
   React.useEffect(() => {
-    if (socket?.connected) {
-      socket.on('schedule/deleted', data => {
-        reactotron.log('schedule/deleted', data);
-        setSchedules(schedules.filter(item => item.schedule_id !== data.data));
-      });
-    }
-    return () => {
+    const unsubscribe = navigation.addListener('blur', () => {
       if (socket) {
-        socket.off('schedule/deleted');
+        console.log('Schedule screen :: socket off');
+        socket.off('schedule/created', fetchScheduleEvent);
+        socket.off('schedule/deleted', scheduleDeletedCallback);
       }
-    };
-  }, [socket, schedules]);
+    });
+
+    return () => unsubscribe();
+  }, [navigation]);
 
   return (
     <View style={[STYLES.FLEX(1), {backgroundColor: colors.white}]}>

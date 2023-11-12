@@ -120,26 +120,31 @@ const MainScreen = () => {
     }
   }, [route.params?.refresh]);
 
-  useFocusEffect(
-    useCallback(() => {
-      const filterDeletedSession = data => {
-        setSessions(prev => prev.filter(session => session.session_id !== data.data));
-      };
+  const filterDeletedSession = data => {
+    setSessions(prev => prev.filter(session => session.session_id !== data.data));
+  };
 
-      if (socket?.connected) {
-        console.log('socket connected');
+  useFocusEffect(
+    React.useCallback(() => {
+      if (socket && socket.connected) {
+        console.log('Main screen :: socket on');
         socket.on('session/memberJoined', fetchSessions);
         socket.on('session/deleted', filterDeletedSession);
       }
-      return () => {
-        if (socket) {
-          console.log('socket disconnected');
-          socket.off('session/memberJoined', fetchSessions);
-          socket.off('session/deleted', filterDeletedSession);
-        }
-      };
-    }, [socket?.connected]),
+    }, []),
   );
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      if (socket) {
+        console.log('Main screen :: socket off');
+        socket.off('session/memberJoined', fetchSessions);
+        socket.off('session/deleted', filterDeletedSession);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigation]);
 
   // 포커스 되면 새로고침을 합니다.
   useFocusEffect(

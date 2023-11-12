@@ -406,27 +406,29 @@ const CurrentBudgetScreen = () => {
     }, []),
   );
 
-  React.useEffect(() => {
-    if (socket?.connected && fetchData) {
-      socket.on('budget/created', data => {
-        reactotron.log('budget/created', data);
-        fetchData();
-      });
-      socket.on('expenditure/created', data => {
-        fetchData();
-      });
-      socket.on('expenditure/deleted', data => {
-        fetchData();
-      });
-    }
-    return () => {
-      if (socket) {
-        socket.off('budget/created');
-        socket.off('expenditure/created');
-        socket.off('expenditure/deleted');
+  useFocusEffect(
+    React.useCallback(() => {
+      if (socket && socket.connected) {
+        console.log('Current Budget screen :: socket on');
+        socket.on('budget/created', fetchData);
+        socket.on('expenditure/created', fetchData);
+        socket.on('expenditure/deleted', fetchData);
       }
-    };
-  }, [socket, fetchData]);
+    }, []),
+  );
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      if (socket) {
+        console.log('Current Budget screen :: socket off');
+        socket.off('budget/created', fetchData);
+        socket.off('expenditure/created', fetchData);
+        socket.off('expenditure/deleted', fetchData);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigation]);
 
   return (
     <View style={styles.container}>

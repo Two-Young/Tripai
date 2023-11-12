@@ -9,8 +9,8 @@ import {
   Keyboard,
   KeyboardAvoidingView,
 } from 'react-native';
-import React, {useEffect} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import React, {useCallback, useEffect} from 'react';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import CustomHeader from '../component/molecules/CustomHeader';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
@@ -58,7 +58,8 @@ const ChatScreen = () => {
 
   const messageCallback = React.useCallback(
     async res => {
-      if (res.success) {
+      console.log(res);
+      if (res.success && res.data.sessionId === currentSessionID) {
         setMessages(prev => [...prev, res.data]);
       }
     },
@@ -141,20 +142,27 @@ const ChatScreen = () => {
 
   // TODO:: Chat GPT의 경우, Box 하나에 메시지가 추가되는 형태로 구현 (byte 단위로 와서 그럼)
 
-  useEffect(() => {
-    if (socket?.connected) {
-      socket.on('sessionChat/getMessages', getMessagesCallback);
-      socket.on('sessionChat/message', messageCallback);
-      socket.on('sessionChat/assistantMessage', assistantMessageCallback);
-      socket.on('sessionChat/userJoined', userJoinedCallback);
-      socket.on('sessionChat/assistantMessageStart', assistantMessageStartCallback);
-      socket.on('sessionChat/assistantMessageStream', assistantMessageStreamCallback);
-      socket.on('sessionChat/assistantMessageEnd', assistantMessageEndCallback);
-      socket.on('sessionChat/assistantMessageError', assistantMessageErrorCallback);
-    }
+  useFocusEffect(
+    useCallback(() => {
+      if (socket && socket.connected) {
+        console.log('Chat screen :: socket on');
+        socket.emit('sessionChat/getMessages', currentSessionID);
+        socket.on('sessionChat/getMessages', getMessagesCallback);
+        socket.on('sessionChat/message', messageCallback);
+        socket.on('sessionChat/assistantMessage', assistantMessageCallback);
+        socket.on('sessionChat/userJoined', userJoinedCallback);
+        socket.on('sessionChat/assistantMessageStart', assistantMessageStartCallback);
+        socket.on('sessionChat/assistantMessageStream', assistantMessageStreamCallback);
+        socket.on('sessionChat/assistantMessageEnd', assistantMessageEndCallback);
+        socket.on('sessionChat/assistantMessageError', assistantMessageErrorCallback);
+      }
+    }, []),
+  );
 
-    () => {
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
       if (socket) {
+        console.log('Chat screen :: socket off');
         socket.off('sessionChat/getMessages', getMessagesCallback);
         socket.off('sessionChat/message', messageCallback);
         socket.off('sessionChat/assistantMessage', assistantMessageCallback);
@@ -164,17 +172,10 @@ const ChatScreen = () => {
         socket.off('sessionChat/assistantMessageEnd', assistantMessageEndCallback);
         socket.off('sessionChat/assistantMessageError', assistantMessageErrorCallback);
       }
-    };
-  }, [socket]);
-
-  useEffect(() => {
-    navigation.addListener('focus', async () => {
-      socket.emit('sessionChat/getMessages', currentSessionID);
     });
-    () => {
-      navigation.removeListener('focus');
-    };
-  }, [currentSession]);
+
+    return () => unsubscribe();
+  }, [navigation]);
 
   useEffect(() => {
     if (messages.length) {
