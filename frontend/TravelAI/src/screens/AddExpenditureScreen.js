@@ -624,6 +624,12 @@ const ManageDistributionModal = ({data}) => {
     }
   }, [data]);
 
+  React.useEffect(() => {
+    if (!isVisible) {
+      setSearch('');
+    }
+  }, [isVisible]);
+
   return (
     <Modal
       isVisible={isVisible}
@@ -705,6 +711,12 @@ const ManagePaidModal = ({data}) => {
       setPaid(members.map(el => el.user_id));
     }
   }, [data]);
+
+  React.useEffect(() => {
+    if (!isVisible) {
+      setSearch('');
+    }
+  }, [isVisible]);
 
   return (
     <Modal
@@ -1198,20 +1210,19 @@ const AddExpenditureScreen = () => {
               </Tooltip>
             </View>
           </DismissKeyboard>
-          <DismissKeyboard>
-            {items.length === 0 ? (
-              <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
-                <Text style={styles.receiptText}>Upload Receipt</Text>
-              </TouchableOpacity>
-            ) : (
-              <AvoidSoftInputView style={STYLES.FLEX(1)}>
+          {items.length === 0 ? (
+            <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
+              <Text style={styles.receiptText}>Upload Receipt</Text>
+            </TouchableOpacity>
+          ) : (
+            <AvoidSoftInputView style={STYLES.FLEX(1)}>
+              <DismissKeyboard>
                 <View style={STYLES.PADDING_BOTTOM(70)}>
                   <InputTable data={items} setData={setItems} />
                 </View>
-              </AvoidSoftInputView>
-            )}
-          </DismissKeyboard>
-
+              </DismissKeyboard>
+            </AvoidSoftInputView>
+          )}
           {isBottomSheetOpen && (
             <ExpenditureBottomSheet
               data={{

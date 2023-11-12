@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   input: {
     marginTop: 6,
     padding: 8,
-    paddingBottom: Platform.OS === 'ios' ? 8 : 4,
+    paddingBottom: Platform.OS === 'ios' ? 8 : 2,
     backgroundColor: '#76768012',
     borderRadius: 5,
     fontSize: 17,
