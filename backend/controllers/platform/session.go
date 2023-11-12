@@ -951,9 +951,6 @@ func ConfirmSessionJoin(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-
-		socket.SocketManager.Join(body.SessionId, uid)
-		socket.SocketManager.Multicast(body.SessionId, uid, socket.EventSessionMemberJoined, body.UserId)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -964,6 +961,9 @@ func ConfirmSessionJoin(c *gin.Context) {
 
 	// join user to session chatroom if possible
 	if *body.Accept {
+		socket.SocketManager.Join(body.SessionId, body.UserId)
+		socket.SocketManager.Multicast(body.SessionId, uid, socket.EventSessionMemberJoined, body.UserId)
+
 		go func() {
 			userEntity, err := database_io.GetUser(body.UserId)
 			if err != nil {
@@ -977,6 +977,7 @@ func ConfirmSessionJoin(c *gin.Context) {
 				socket.SocketManager.Io.BroadcastToRoom("/", socket.RoomKey(body.SessionId),
 					"sessionChat/userJoined", socket.NewChatMessage(
 						"", "", nil,
+						body.SessionId,
 						fmt.Sprintf("%s joined the session", userEntity.Username),
 						time.Now().UnixMilli(), socket.TypeSystemMessage),
 				)

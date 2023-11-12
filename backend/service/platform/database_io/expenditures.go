@@ -155,6 +155,18 @@ func GetExpenditureDistributionsBySessionIdAndUserId(sessionId string, userId st
 	return distributions, nil
 }
 
+func GetExpenditureDistributionsBySessionId(sessionId string) ([]UserExpenditureDistributionEntity, error) {
+	var distributions []UserExpenditureDistributionEntity
+	if err := database.DB.Select(&distributions,
+		`SELECT ed.*, expenditures.currency_code, expenditures.payed_at
+		FROM expenditure_distribution ed
+		INNER JOIN expenditures ON ed.eid = expenditures.eid
+		WHERE expenditures.sid = ?;`, sessionId); err != nil {
+		return nil, err
+	}
+	return distributions, nil
+}
+
 type ExpenditureDistributionsEntity struct {
 	database.ExpenditureEntity
 	UserId      string `db:"uid" json:"user_id"`

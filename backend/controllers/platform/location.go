@@ -122,7 +122,7 @@ func CreateLocation(c *gin.Context) {
 		PhotoReference: cache.PhotoReference,
 		SessionId:      body.SessionId,
 	}
-	if err := database_io.InsertLocationTx(tx, &locationEntity); err != nil {
+	if err := database_io.InsertLocationTx(tx, locationEntity); err != nil {
 		_ = tx.Rollback()
 		var mysqlErr *mysql.MySQLError
 		if ok := errors.As(err, &mysqlErr); ok && mysqlErr.Number == 1062 {

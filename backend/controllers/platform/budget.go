@@ -317,7 +317,7 @@ func BudgetSummary(c *gin.Context) {
 	}
 
 	// get expenditure distributions
-	dists, err := database_io.GetExpenditureDistributionsBySessionIdAndUserId(query.SessionId, uid)
+	dists, err := database_io.GetExpenditureDistributionsBySessionId(query.SessionId)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)

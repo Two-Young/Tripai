@@ -97,9 +97,15 @@ func (sm *Manager) GetUsers() map[string]UserSocket {
 
 // Broadcast broadcasts to all users in the session
 func (sm *Manager) Broadcast(sessionId string, event string, data interface{}) {
-	log.Debugf("[%s] broadcast to %s: %v", event, sessionId, data)
-	sm.Io.BroadcastToRoom("/", RoomKey(sessionId), "sessionChat/streamClosed",
-		NewSuccess(data))
+	sm.Io.ForEach("/", RoomKey(sessionId), func(conn socketio.Conn) {
+		userSocket, ok := sm.sockets[conn.ID()]
+		if !ok {
+			log.Warnf("Socket not found for connId %s", conn.ID())
+			return
+		}
+		log.Debugf("[%s] broadcast -> %s: %v", event, userSocket.User.Username, data)
+	})
+	sm.Io.BroadcastToRoom("/", RoomKey(sessionId), event, NewSuccess(data))
 }
 
 // Multicast broadcasts to all users in the session except the sender
@@ -107,6 +113,7 @@ func (sm *Manager) Multicast(sessionId string, senderUserId string, event string
 	// get sender's socket
 	senderSocket, ok := sm.GetUserByUserId(senderUserId)
 	if !ok {
+		log.Debugf("[%s] Socket not found for userId %s, so just broadcast", senderUserId)
 		sm.Broadcast(sessionId, event, NewSuccess(data))
 		return
 	}
@@ -118,7 +125,7 @@ func (sm *Manager) Multicast(sessionId string, senderUserId string, event string
 		}
 
 		if conn.ID() != senderSocket.Conn.ID() {
-			log.Debugf("[%s] multicast to %s: %v", event, userSocket.User.Username, data)
+			log.Debugf("[%s] multicast -> %s: %v", event, userSocket.User.Username, data)
 			conn.Emit(event, NewSuccess(data))
 		}
 	})
@@ -184,16 +191,18 @@ type ChatMessage struct {
 	SenderUserId       string  `json:"senderUserId"`
 	SenderUsername     string  `json:"senderUsername"`
 	SenderProfileImage *string `json:"senderProfileImage"`
+	SessionId          string  `json:"sessionId"`
 	Content            string  `json:"content"`
 	Timestamp          int64   `json:"timestamp"`
 	Type               string  `json:"type"`
 }
 
-func NewChatMessage(senderUserId string, senderUsername string, senderProfileImage *string, content string, timestamp int64, _type string) ChatMessage {
+func NewChatMessage(senderUserId string, senderUsername string, senderProfileImage *string, sessionId string, content string, timestamp int64, _type string) ChatMessage {
 	return ChatMessage{
 		SenderUserId:       senderUserId,
 		SenderUsername:     senderUsername,
 		SenderProfileImage: senderProfileImage,
+		SessionId:          sessionId,
 		Content:            content,
 		Timestamp:          timestamp,
 		Type:               _type,

@@ -1,6 +1,7 @@
 package platform
 
 import (
+	"database/sql"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
@@ -129,6 +130,7 @@ func CreateSchedule(c *gin.Context) {
 	}
 
 	// get place detail
+	var cache *database.PlaceDetailCacheEntity
 	var placeName *string
 	var photoReference *string
 	var address *string
@@ -136,7 +138,7 @@ func CreateSchedule(c *gin.Context) {
 	var lat *float64
 	var lng *float64
 	if body.PlaceId != "" {
-		cache, err := database_io.GetPlaceDetailCache(c, body.PlaceId)
+		cache, err = database_io.GetPlaceDetailCache(c, body.PlaceId)
 		if err != nil {
 			log.Error(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
@@ -156,6 +158,20 @@ func CreateSchedule(c *gin.Context) {
 		placeId = nil
 	} else {
 		placeId = &body.PlaceId
+	}
+
+	// check if session has this place as location
+	sessionHasLocation := true
+	if body.PlaceId != "" {
+		_, err = database_io.GetLocationByPlaceId(body.PlaceId, body.SessionId)
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				log.Error(err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
+			}
+			sessionHasLocation = false
+		}
 	}
 
 	tx, err := database.DB.BeginTx(c, nil)
@@ -190,6 +206,34 @@ func CreateSchedule(c *gin.Context) {
 		log.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
+	}
+
+	// add location if session does not have this place as location
+	if !sessionHasLocation && cache != nil {
+		locationId := uuid.New().String()
+		locationEntity := database.LocationEntity{
+			LocationId:     locationId,
+			PlaceId:        &cache.PlaceId,
+			Name:           cache.Name,
+			Latitude:       cache.Latitude,
+			Longitude:      cache.Longitude,
+			Address:        cache.Address,
+			PhotoReference: cache.PhotoReference,
+			SessionId:      body.SessionId,
+		}
+		if err := database_io.InsertLocationTx(tx, locationEntity); err != nil {
+			var mysqlErr *mysql.MySQLError
+			if ok := errors.As(err, &mysqlErr); ok && mysqlErr.Number == 1062 {
+				log.Warnf("location already exists: %s", body.PlaceId)
+			} else {
+				_ = tx.Rollback()
+				log.Error(err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
+			}
+		} else {
+			socket.SocketManager.Broadcast(body.SessionId, socket.EventLocationCreated, locationEntity)
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
