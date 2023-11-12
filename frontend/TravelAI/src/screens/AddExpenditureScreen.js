@@ -52,6 +52,7 @@ import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
 import LoadingModal from '../component/atoms/LoadingModal';
 import infoIcon from '../assets/images/information-circle-sharp.png';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
+import {Platform} from 'react-native';
 
 const FlatListRenderItem = ({data}) => {
   const {
@@ -110,62 +111,121 @@ const FlatListRenderItem = ({data}) => {
         )}
         <Text style={[styles.bottomSheetText, styles.individualText]}>{userName}</Text>
       </BottomSheetView>
-      <TextInput
-        ref={inputRef}
-        style={[styles.bottomSheetText, styles.individualInput, styles.individualText]}
-        placeholder="0"
-        placeholderTextColor={colors.white}
-        textAlign="right"
-        keyboardType="numeric"
-        editable={detail.length === 0}
-        value={item.item?.amount?.string}
-        onChangeText={text => {
-          const newData = [...distribution];
-          newData[item.index].amount.string = text;
-          var f1 = new Fraction(Number(text.replace(/,/g, '')));
-          newData[item.index].amount.num = f1.n;
-          newData[item.index].amount.denom = f1.d;
-          setDistribution(newData);
-          if (detail) {
-            setDetail(prev => {
-              return prev.map(el => ({
-                ...el,
-                allocations: [],
-              }));
+      {Platform.OS === 'android' ? (
+        <TextInput
+          ref={inputRef}
+          style={[styles.bottomSheetText, styles.individualInput, styles.individualText]}
+          placeholder="0"
+          placeholderTextColor={colors.white}
+          textAlign="right"
+          keyboardType="numeric"
+          editable={detail.length === 0}
+          value={item.item?.amount?.string}
+          onChangeText={text => {
+            const newData = [...distribution];
+            newData[item.index].amount.string = text;
+            var f1 = new Fraction(Number(text.replace(/,/g, '')));
+            newData[item.index].amount.num = f1.n;
+            newData[item.index].amount.denom = f1.d;
+            setDistribution(newData);
+            if (detail) {
+              setDetail(prev => {
+                return prev.map(el => ({
+                  ...el,
+                  allocations: [],
+                }));
+              });
+            }
+          }}
+          onEndEditing={() => {
+            const newData = [...distribution];
+            const target = newData[item.index].amount.string;
+            if (Number(target.replace(/,/g, ''))) {
+              newData[item.index].amount.string = Number(target.replace(/,/g, '')).toLocaleString();
+            } else {
+              newData[item.index].amount.string = '';
+            }
+            setDistribution(newData);
+          }}
+          onFocus={() => {
+            inputRef.current.setNativeProps({
+              style: {
+                ...styles.bottomSheetText,
+                ...styles.individualInput,
+                ...styles.individualText,
+                backgroundColor: '#00000020',
+              },
             });
-          }
-        }}
-        onEndEditing={() => {
-          const newData = [...distribution];
-          const target = newData[item.index].amount.string;
-          if (Number(target.replace(/,/g, ''))) {
-            newData[item.index].amount.string = Number(target.replace(/,/g, '')).toLocaleString();
-          } else {
-            newData[item.index].amount.string = '';
-          }
-          setDistribution(newData);
-        }}
-        onFocus={() => {
-          inputRef.current.setNativeProps({
-            style: {
-              ...styles.bottomSheetText,
-              ...styles.individualInput,
-              ...styles.individualText,
-              backgroundColor: '#00000020',
-            },
-          });
-        }}
-        onBlur={() => {
-          inputRef.current.setNativeProps({
-            style: {
-              ...styles.bottomSheetText,
-              ...styles.individualInput,
-              ...styles.individualText,
-              backgroundColor: 'transparent',
-            },
-          });
-        }}
-      />
+          }}
+          onBlur={() => {
+            inputRef.current.setNativeProps({
+              style: {
+                ...styles.bottomSheetText,
+                ...styles.individualInput,
+                ...styles.individualText,
+                backgroundColor: 'transparent',
+              },
+            });
+          }}
+        />
+      ) : (
+        <BottomSheetTextInput
+          ref={inputRef}
+          style={[styles.bottomSheetText, styles.individualInput, styles.individualText]}
+          placeholder="0"
+          placeholderTextColor={colors.white}
+          textAlign="right"
+          keyboardType="numeric"
+          editable={detail.length === 0}
+          value={item.item?.amount?.string}
+          onChangeText={text => {
+            const newData = [...distribution];
+            newData[item.index].amount.string = text;
+            var f1 = new Fraction(Number(text.replace(/,/g, '')));
+            newData[item.index].amount.num = f1.n;
+            newData[item.index].amount.denom = f1.d;
+            setDistribution(newData);
+            if (detail) {
+              setDetail(prev => {
+                return prev.map(el => ({
+                  ...el,
+                  allocations: [],
+                }));
+              });
+            }
+          }}
+          onEndEditing={() => {
+            const newData = [...distribution];
+            const target = newData[item.index].amount.string;
+            if (Number(target.replace(/,/g, ''))) {
+              newData[item.index].amount.string = Number(target.replace(/,/g, '')).toLocaleString();
+            } else {
+              newData[item.index].amount.string = '';
+            }
+            setDistribution(newData);
+          }}
+          onFocus={() => {
+            inputRef.current.setNativeProps({
+              style: {
+                ...styles.bottomSheetText,
+                ...styles.individualInput,
+                ...styles.individualText,
+                backgroundColor: '#00000020',
+              },
+            });
+          }}
+          onBlur={() => {
+            inputRef.current.setNativeProps({
+              style: {
+                ...styles.bottomSheetText,
+                ...styles.individualInput,
+                ...styles.individualText,
+                backgroundColor: 'transparent',
+              },
+            });
+          }}
+        />
+      )}
     </TouchableOpacity>
   );
 };
@@ -555,28 +615,53 @@ const ExpenditureBottomSheet = ({data}) => {
                   <Icon name="magnify" type="material-community" size={20} />
                 )}
               />
-              <TextInput
-                ref={totalInputRef}
-                style={[styles.bottomSheetText, styles.totalInput]}
-                value={total}
-                editable={detail.length === 0}
-                placeholder="0"
-                placeholderTextColor={colors.white}
-                onChangeText={text => setTotal(text)}
-                onEndEditing={handleEndEditing}
-                textAlign="right"
-                keyboardType="numeric"
-                onFocus={() => {
-                  totalInputRef.current.setNativeProps({
-                    style: {...styles.totalInput, backgroundColor: '#00000020'},
-                  });
-                }}
-                onBlur={() => {
-                  totalInputRef.current.setNativeProps({
-                    style: {...styles.totalInput, backgroundColor: 'transparent'},
-                  });
-                }}
-              />
+              {Platform.OS === 'android' ? (
+                <TextInput
+                  ref={totalInputRef}
+                  style={[styles.bottomSheetText, styles.totalInput]}
+                  value={total}
+                  editable={detail.length === 0}
+                  placeholder="0"
+                  placeholderTextColor={colors.white}
+                  onChangeText={text => setTotal(text)}
+                  onEndEditing={handleEndEditing}
+                  textAlign="right"
+                  keyboardType="numeric"
+                  onFocus={() => {
+                    totalInputRef.current.setNativeProps({
+                      style: {...styles.totalInput, backgroundColor: '#00000020'},
+                    });
+                  }}
+                  onBlur={() => {
+                    totalInputRef.current.setNativeProps({
+                      style: {...styles.totalInput, backgroundColor: 'transparent'},
+                    });
+                  }}
+                />
+              ) : (
+                <BottomSheetTextInput
+                  ref={totalInputRef}
+                  style={[styles.bottomSheetText, styles.totalInput]}
+                  value={total}
+                  editable={detail.length === 0}
+                  placeholder="0"
+                  placeholderTextColor={colors.white}
+                  onChangeText={text => setTotal(text)}
+                  onEndEditing={handleEndEditing}
+                  textAlign="right"
+                  keyboardType="numeric"
+                  onFocus={() => {
+                    totalInputRef.current.setNativeProps({
+                      style: {...styles.totalInput, backgroundColor: '#00000020'},
+                    });
+                  }}
+                  onBlur={() => {
+                    totalInputRef.current.setNativeProps({
+                      style: {...styles.totalInput, backgroundColor: 'transparent'},
+                    });
+                  }}
+                />
+              )}
             </BottomSheetView>
           </BottomSheetView>
         </DismissKeyboard>
