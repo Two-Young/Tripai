@@ -1066,6 +1066,17 @@ const AddExpenditureScreen = () => {
     return false;
   }, [name, category, currencyCode, items, total, distribution, paid]);
 
+  const onPressAddCustomItem = () => {
+    setItems(prev => [
+      ...prev,
+      {
+        id: 'id' + Math.random().toString(16).slice(2),
+        label: '',
+        price: '',
+        allocations: [],
+      },
+    ]);
+  };
   // edit
   const [expenditure, setExpenditure] = React.useState(null);
 
@@ -1278,6 +1289,8 @@ const AddExpenditureScreen = () => {
                 setTime(dayjs(value).format('YYYY-MM-DD HH:mm'));
               }}
               type="date"
+              onFocus={() => setIsBottomSheetOpen(false)}
+              onBlur={() => setIsBottomSheetOpen(true)}
             />
             <DismissKeyboard>
               <View
@@ -1286,7 +1299,7 @@ const AddExpenditureScreen = () => {
                   STYLES.MARGIN_BOTTOM(5),
                   STYLES.MARGIN_TOP(15),
                 ]}>
-                <Text style={styles.label}>Receipt</Text>
+                <Text style={styles.label}>Items</Text>
                 <Tooltip
                   visible={tooltipVisible}
                   onClose={() => setTooltipVisible(false)}
@@ -1307,7 +1320,7 @@ const AddExpenditureScreen = () => {
               <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
                 <TouchableOpacity
                   style={[styles.receiptButton, STYLES.MARGIN_RIGHT(5)]}
-                  onPress={onPressUploadReceipt}>
+                  onPress={onPressAddCustomItem}>
                   <Text style={styles.receiptText}>Add Custom Items</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
