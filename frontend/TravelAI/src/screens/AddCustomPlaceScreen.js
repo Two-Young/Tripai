@@ -1,17 +1,25 @@
-import {Dimensions, StyleSheet, Text, TextInput, View} from 'react-native';
+import {Dimensions, Keyboard, StyleSheet, Text, TextInput, View} from 'react-native';
 import React, {useMemo} from 'react';
 import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
 import {useNavigation, CommonActions, useNavigationState} from '@react-navigation/native';
-import {createLocation, locateDetail, locatePin} from '../services/api';
+import {
+  createLocation,
+  locateAutoComplete,
+  locateDetail,
+  locateLocation,
+  locatePin,
+} from '../services/api';
 import {useRecoilValue} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import colors from '../theme/colors';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
-import {FAB, IconButton} from 'react-native-paper';
+import {FAB, IconButton, Searchbar} from 'react-native-paper';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import {showErrorToast} from '../utils/utils';
+import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
+import SelectDropdown from 'react-native-select-dropdown';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -28,15 +36,14 @@ const AddCustomPlaceScreen = () => {
   const currentSessionID = useMemo(() => currentSession?.session_id, [currentSession]);
 
   // states
-  const [marker, setMarker] = React.useState({
-    coordinate: {
-      latitude: 37.5779,
-      longitude: 126.9768,
-    },
-  });
+  const [searchKeyword, setSearchKeyword] = React.useState('');
+  const [searchResult, setSearchResult] = React.useState([]);
+  const [isZeroResult, setIsZeroResult] = React.useState(false);
+  const [dupSnackBarVisible, setDupSnackbarVisible] = React.useState(false); // snackbar visible 여부
+  const [loadingModalVisible, setLoadingModalVisible] = React.useState(false); // loading modal visible 여부
 
-  const [latitude, setLatitude] = React.useState('0');
-  const [longitude, setLongitude] = React.useState('0');
+  const [marker, setMarker] = React.useState(null);
+
   const [place, setPlace] = React.useState(null);
   const [needSearch, setNeedSearch] = React.useState(true);
   const [needAnimation, setNeedAnimation] = React.useState(false);
@@ -55,21 +62,6 @@ const AddCustomPlaceScreen = () => {
   }, [place]);
 
   // functions
-  const onPressSearch = async () => {
-    try {
-      const result = await locatePin(latitude * 1, longitude * 1);
-      setPlace(result[0]);
-      setMarker({
-        coordinate: {
-          latitude: result[0].latitude,
-          longitude: result[0].longitude,
-        },
-      });
-      setNeedAnimation(true);
-    } catch (err) {
-      showErrorToast(err);
-    }
-  };
 
   const onPressAddPlace = async () => {
     try {
@@ -87,13 +79,71 @@ const AddCustomPlaceScreen = () => {
     }
   };
 
+  const onPressListItem = async item => {
+    try {
+      setLoadingModalVisible(true);
+      Keyboard.dismiss();
+      const res = await locateLocation(item.place_id);
+      setMarker({
+        coordinate: {
+          latitude: res.latitude,
+          longitude: res.longitude,
+        },
+      });
+      setPlace(res);
+      if (marker && marker.coordinate) {
+        mapRef.current.animateToRegion({
+          latitude: res.latitude,
+          longitude: res.longitude,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA,
+        });
+      }
+    } catch (error) {
+      if (error?.response?.status === 409) {
+        setDupSnackbarVisible(true);
+        return;
+      }
+      throw error;
+    } finally {
+      setLoadingModalVisible(false);
+      setSearchKeyword('');
+    }
+  };
+
+  const autoCompletePlace = async keyword => {
+    try {
+      const res = await locateAutoComplete(keyword);
+      setSearchResult(res);
+      setIsZeroResult(false);
+    } catch (error) {
+      setSearchResult([]);
+      setIsZeroResult(true);
+      throw error;
+    }
+  };
+
+  const onEndEditing = async () => {
+    if (searchKeyword.length > 0) {
+      autoCompletePlace(searchKeyword);
+    } else {
+      setSearchResult([]);
+    }
+  };
+
   // effects
+  React.useEffect(() => {
+    if (searchKeyword.length > 0) {
+      autoCompletePlace(searchKeyword);
+    } else {
+      setSearchResult([]);
+    }
+  }, [searchKeyword]);
+
   React.useEffect(() => {
     if (marker && marker.coordinate && needSearch) {
       locatePin(marker.coordinate.latitude, marker.coordinate.longitude).then(result => {
         setPlace(result[0]);
-        setLatitude(result[0].latitude?.toFixed(FIXED).toString());
-        setLongitude(result[0].longitude?.toFixed(FIXED).toString());
       });
       setNeedSearch(false);
     }
@@ -111,77 +161,82 @@ const AddCustomPlaceScreen = () => {
     }
   }, [needAnimation]);
 
-  React.useEffect(() => {
-    if (place) {
-      setLatitude(place.latitude?.toFixed(FIXED).toString());
-      setLongitude(place.longitude?.toFixed(FIXED).toString());
-    }
-  }, [place]);
-
   return (
-    <DismissKeyboard>
-      <SafeArea
-        top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
-        bottom={{inactive: true}}>
+    <SafeArea
+      top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
+      bottom={{inactive: true}}>
+      <DismissKeyboard>
         <CustomHeader title="Add Custom Place" theme={CUSTOM_HEADER_THEME.WHITE} useMenu={false} />
+      </DismissKeyboard>
+      <View style={styles.container}>
         <View style={styles.locationSearchRow}>
-          <View style={styles.locationSearchBarContainer}>
-            <Text style={styles.labelText}>latitude</Text>
-            <TextInput
-              style={styles.locationSearchBar}
-              value={latitude}
-              keyboardType="numeric"
-              onChangeText={setLatitude}
-            />
-          </View>
-          <View style={styles.locationSearchBarContainer}>
-            <Text style={styles.labelText}>longitude</Text>
-            <TextInput
-              style={styles.locationSearchBar}
-              value={longitude}
-              keyboardType="numeric"
-              onChangeText={setLongitude}
-            />
-          </View>
-          <IconButton icon="search-web" mode="contained" onPress={onPressSearch} />
-        </View>
-        <Text style={styles.addressText}>{locationInfo ?? ''}</Text>
-        <View style={STYLES.FLEX(1)}>
-          <View style={STYLES.FLEX(1)}>
-            <MapView
-              ref={mapRef}
-              style={styles.map}
-              provider={PROVIDER_GOOGLE}
-              initialRegion={{
-                latitude: 37.5779,
-                longitude: 126.9768,
-                latitudeDelta: LATITUDE_DELTA,
-                longitudeDelta: LONGITUDE_DELTA,
+          <DismissKeyboard>
+            <Searchbar
+              value={searchKeyword}
+              onChangeText={setSearchKeyword}
+              placeholder="Search a place"
+              placeholderTextColor={colors.gray}
+              onClear={() => {
+                setSearchKeyword('');
               }}
-              onRegionChangeComplete={region => {
-                setMarker({
-                  coordinate: {
-                    latitude: region.latitude,
-                    longitude: region.longitude,
-                  },
-                });
-                setNeedSearch(true);
-              }}>
-              {marker && marker.coordinate && <Marker coordinate={marker?.coordinate} />}
-            </MapView>
-          </View>
-          <View style={styles.addCustomPlaceButtonContainer}>
-            <FAB
-              style={styles.addCustomPlaceButton}
-              icon={'map-marker-plus'}
-              label="Add Place"
-              color={colors.white}
-              onPress={onPressAddPlace}
+              onEndEditing={onEndEditing}
+              style={styles.searchBar}
             />
+          </DismissKeyboard>
+          <View style={styles.placeSearchResultContainer}>
+            <SearchResultFlatList {...{isZeroResult, searchResult, onPressListItem}} />
           </View>
         </View>
-      </SafeArea>
-    </DismissKeyboard>
+        {marker ? (
+          <>
+            <View style={STYLES.FLEX(1)}>
+              <DismissKeyboard>
+                <Text style={styles.addressText}>{locationInfo}</Text>
+              </DismissKeyboard>
+              <View style={STYLES.FLEX(1)}>
+                <MapView
+                  ref={mapRef}
+                  style={styles.map}
+                  provider={PROVIDER_GOOGLE}
+                  onPress={() => Keyboard.dismiss()}
+                  initialRegion={{
+                    latitude: marker.coordinate.latitude,
+                    longitude: marker.coordinate.longitude,
+                    latitudeDelta: LATITUDE_DELTA,
+                    longitudeDelta: LONGITUDE_DELTA,
+                  }}
+                  onRegionChangeComplete={region => {
+                    setMarker({
+                      coordinate: {
+                        latitude: region.latitude,
+                        longitude: region.longitude,
+                      },
+                    });
+                    setNeedSearch(true);
+                  }}>
+                  {marker && marker.coordinate && <Marker coordinate={marker?.coordinate} />}
+                </MapView>
+              </View>
+              <View style={styles.addCustomPlaceButtonContainer}>
+                <FAB
+                  style={styles.addCustomPlaceButton}
+                  icon={'map-marker-plus'}
+                  label="Add Place"
+                  color={colors.white}
+                  onPress={onPressAddPlace}
+                />
+              </View>
+            </View>
+          </>
+        ) : (
+          <View style={STYLES.FLEX(1)}>
+            <Text style={styles.description}>
+              Search a place and tap the marker to add a custom place.
+            </Text>
+          </View>
+        )}
+      </View>
+    </SafeArea>
   );
 };
 
@@ -190,33 +245,32 @@ export default AddCustomPlaceScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.white,
   },
   map: {
     ...StyleSheet.absoluteFillObject,
   },
   locationSearchRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 10,
-    alignItems: 'flex-end',
-  },
-  locationSearchBarContainer: {
-    flex: 1,
-    backgroundColor: colors.white,
-    marginRight: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
   labelText: {
     fontSize: 14,
     color: colors.gray_text,
     marginBottom: 1,
   },
-  locationSearchBar: {
-    backgroundColor: colors.white,
-    paddingHorizontal: 10,
-    fontSize: 16,
-    color: colors.black,
-    borderWidth: 1,
-    paddingVertical: 2,
+  searchBar: {
+    borderRadius: 16,
+    backgroundColor: colors.searchBar,
+    marginBottom: 10,
+  },
+  description: {
+    paddingTop: 80,
+    paddingHorizontal: 40,
+    fontSize: 15,
+    textAlign: 'center',
+    color: '#808080',
+    marginBottom: 10,
   },
   addressText: {
     padding: 10,
@@ -233,5 +287,13 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     marginHorizontal: 20,
     backgroundColor: colors.primary,
+  },
+  placeSearchResultContainer: {
+    position: 'absolute',
+    top: 70,
+    left: 20,
+    width: '100%',
+    backgroundColor: colors.white,
+    zIndex: 100,
   },
 });

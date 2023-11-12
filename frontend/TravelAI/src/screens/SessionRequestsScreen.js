@@ -15,6 +15,7 @@ import CustomHeader from '../component/molecules/CustomHeader';
 import {showErrorToast, showSuccessToast} from '../utils/utils';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {socket} from '../services/socket';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
 
 const MyRequestTab = createMaterialTopTabNavigator();
 
@@ -74,6 +75,17 @@ const MyRequest = () => {
       setRefreshing(false);
     }
   }, [refreshing]);
+
+  React.useEffect(() => {
+    if (socket?.connected) {
+      socket.on('session/memberJoined', fetchRequest);
+    }
+    return () => {
+      if (socket) {
+        socket.off('session/memberJoined', fetchRequest);
+      }
+    };
+  }, [socket?.connected]);
 
   return (
     <FlatList
@@ -190,6 +202,7 @@ const MyRequestScreen = () => {
   // functions
   const onRequestSessionJoin = async () => {
     try {
+      Keyboard.dismiss();
       if (sessionCode.length === 0) {
         return;
       }
@@ -206,20 +219,25 @@ const MyRequestScreen = () => {
   return (
     <SafeArea>
       <RefreshContext.Provider value={{refreshing, setRefreshing}}>
-        <CustomHeader title="Session Requests" rightComponent={<React.Fragment />} />
-        <Pressable onPress={Keyboard.dismiss} style={STYLES.PADDING(16)}>
-          <View style={styles.searchBarWrapper}>
-            <TextInput
-              style={[STYLES.FLEX(1), STYLES.PADDING(8)]}
-              placeholder="Type session code here"
-              value={sessionCode}
-              onChangeText={setSessionCode}
-              keyboardType="numeric"
-              returnKeyType="search"
-              onSubmitEditing={onRequestSessionJoin}
-            />
+        <DismissKeyboard>
+          <CustomHeader title="Session Requests" rightComponent={<React.Fragment />} />
+        </DismissKeyboard>
+        <DismissKeyboard>
+          <View style={[STYLES.FLEX_ROW_ALIGN_CENTER, STYLES.PADDING(16)]}>
+            <View style={styles.searchBarWrapper}>
+              <TextInput
+                style={[STYLES.FLEX(1), STYLES.PADDING(8)]}
+                placeholder="Type session code here"
+                value={sessionCode}
+                onChangeText={setSessionCode}
+                keyboardType="numeric"
+                returnKeyType="search"
+                onSubmitEditing={onRequestSessionJoin}
+              />
+            </View>
+            <IconButton icon="send" onPress={onRequestSessionJoin} />
           </View>
-        </Pressable>
+        </DismissKeyboard>
         <MyRequestTabNavigator />
       </RefreshContext.Provider>
     </SafeArea>
@@ -234,7 +252,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   searchBarWrapper: {
-    ...STYLES.FLEX_ROW_ALIGN_CENTER,
+    ...STYLES.FLEX(1),
     backgroundColor: colors.searchBar,
     borderRadius: 8,
     paddingHorizontal: 12,

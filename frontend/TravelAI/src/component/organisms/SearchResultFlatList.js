@@ -2,11 +2,12 @@ import React from 'react';
 import {FlatList} from 'react-native';
 import SearchResultItemList from '../molecules/SearchResultItemList';
 import {PropTypes} from 'prop-types';
+import {STYLES} from '../../styles/Stylesheets';
 
 const SearchResultFlatList = ({isZeroResult, searchResult, onPressListItem}) => {
   return (
     <FlatList
-      style={{flex: 1}}
+      style={STYLES.FLEX(1)}
       data={isZeroResult ? [] : searchResult}
       renderItem={({item}) => (
         <SearchResultItemList item={item} onPress={() => onPressListItem(item)} />

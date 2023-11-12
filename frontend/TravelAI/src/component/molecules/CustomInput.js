@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {StyleSheet, Text, View, TextInput} from 'react-native';
+import {StyleSheet, Text, View, TextInput, Platform} from 'react-native';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import DatePicker from 'react-native-date-picker';
 import dayjs from 'dayjs';
@@ -75,7 +75,7 @@ const CustomInput = ({label, value, setValue, type = 'text', onFocus, onBlur}) =
           value={showValue}
           {...(type !== 'date' && {onChangeText: setValue})}
           {...(type === 'multiline' && {multiline: true})}
-          showSoftInputOnFocus={type === 'text'}
+          showSoftInputOnFocus={type === 'text' || Platform.OS === 'android'}
         />
       </View>
       {(type === 'date' || type === 'time') && value.length > 0 && (
@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
   input: {
     marginTop: 6,
     padding: 8,
+    paddingBottom: Platform.OS === 'ios' ? 8 : 2,
     backgroundColor: '#76768012',
     borderRadius: 5,
     fontSize: 17,

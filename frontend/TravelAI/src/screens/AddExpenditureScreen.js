@@ -1,4 +1,13 @@
-import {StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Keyboard} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Image,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import React from 'react';
 import SafeArea from '../component/molecules/SafeArea';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
@@ -43,6 +52,7 @@ import {requestAlert, showErrorToast, showSuccessToast} from '../utils/utils';
 import LoadingModal from '../component/atoms/LoadingModal';
 import infoIcon from '../assets/images/information-circle-sharp.png';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
+import {Platform} from 'react-native';
 
 const FlatListRenderItem = ({data}) => {
   const {
@@ -101,62 +111,121 @@ const FlatListRenderItem = ({data}) => {
         )}
         <Text style={[styles.bottomSheetText, styles.individualText]}>{userName}</Text>
       </BottomSheetView>
-      <BottomSheetTextInput
-        ref={inputRef}
-        style={[styles.bottomSheetText, styles.individualInput, styles.individualText]}
-        placeholder="0"
-        placeholderTextColor={colors.white}
-        textAlign="right"
-        keyboardType="numeric"
-        editable={detail.length === 0}
-        value={item.item?.amount?.string}
-        onChangeText={text => {
-          const newData = [...distribution];
-          newData[item.index].amount.string = text;
-          var f1 = new Fraction(Number(text.replace(/,/g, '')));
-          newData[item.index].amount.num = f1.n;
-          newData[item.index].amount.denom = f1.d;
-          setDistribution(newData);
-          if (detail) {
-            setDetail(prev => {
-              return prev.map(el => ({
-                ...el,
-                allocations: [],
-              }));
+      {Platform.OS === 'android' ? (
+        <TextInput
+          ref={inputRef}
+          style={[styles.bottomSheetText, styles.individualInput, styles.individualText]}
+          placeholder="0"
+          placeholderTextColor={colors.white}
+          textAlign="right"
+          keyboardType="numeric"
+          editable={detail.length === 0}
+          value={item.item?.amount?.string}
+          onChangeText={text => {
+            const newData = [...distribution];
+            newData[item.index].amount.string = text;
+            var f1 = new Fraction(Number(text.replace(/,/g, '')));
+            newData[item.index].amount.num = f1.n;
+            newData[item.index].amount.denom = f1.d;
+            setDistribution(newData);
+            if (detail) {
+              setDetail(prev => {
+                return prev.map(el => ({
+                  ...el,
+                  allocations: [],
+                }));
+              });
+            }
+          }}
+          onEndEditing={() => {
+            const newData = [...distribution];
+            const target = newData[item.index].amount.string;
+            if (Number(target.replace(/,/g, ''))) {
+              newData[item.index].amount.string = Number(target.replace(/,/g, '')).toLocaleString();
+            } else {
+              newData[item.index].amount.string = '';
+            }
+            setDistribution(newData);
+          }}
+          onFocus={() => {
+            inputRef.current.setNativeProps({
+              style: {
+                ...styles.bottomSheetText,
+                ...styles.individualInput,
+                ...styles.individualText,
+                backgroundColor: '#00000020',
+              },
             });
-          }
-        }}
-        onEndEditing={() => {
-          const newData = [...distribution];
-          const target = newData[item.index].amount.string;
-          if (Number(target.replace(/,/g, ''))) {
-            newData[item.index].amount.string = Number(target.replace(/,/g, '')).toLocaleString();
-          } else {
-            newData[item.index].amount.string = '';
-          }
-          setDistribution(newData);
-        }}
-        onFocus={() => {
-          inputRef.current.setNativeProps({
-            style: {
-              ...styles.bottomSheetText,
-              ...styles.individualInput,
-              ...styles.individualText,
-              backgroundColor: '#00000020',
-            },
-          });
-        }}
-        onBlur={() => {
-          inputRef.current.setNativeProps({
-            style: {
-              ...styles.bottomSheetText,
-              ...styles.individualInput,
-              ...styles.individualText,
-              backgroundColor: 'transparent',
-            },
-          });
-        }}
-      />
+          }}
+          onBlur={() => {
+            inputRef.current.setNativeProps({
+              style: {
+                ...styles.bottomSheetText,
+                ...styles.individualInput,
+                ...styles.individualText,
+                backgroundColor: 'transparent',
+              },
+            });
+          }}
+        />
+      ) : (
+        <BottomSheetTextInput
+          ref={inputRef}
+          style={[styles.bottomSheetText, styles.individualInput, styles.individualText]}
+          placeholder="0"
+          placeholderTextColor={colors.white}
+          textAlign="right"
+          keyboardType="numeric"
+          editable={detail.length === 0}
+          value={item.item?.amount?.string}
+          onChangeText={text => {
+            const newData = [...distribution];
+            newData[item.index].amount.string = text;
+            var f1 = new Fraction(Number(text.replace(/,/g, '')));
+            newData[item.index].amount.num = f1.n;
+            newData[item.index].amount.denom = f1.d;
+            setDistribution(newData);
+            if (detail) {
+              setDetail(prev => {
+                return prev.map(el => ({
+                  ...el,
+                  allocations: [],
+                }));
+              });
+            }
+          }}
+          onEndEditing={() => {
+            const newData = [...distribution];
+            const target = newData[item.index].amount.string;
+            if (Number(target.replace(/,/g, ''))) {
+              newData[item.index].amount.string = Number(target.replace(/,/g, '')).toLocaleString();
+            } else {
+              newData[item.index].amount.string = '';
+            }
+            setDistribution(newData);
+          }}
+          onFocus={() => {
+            inputRef.current.setNativeProps({
+              style: {
+                ...styles.bottomSheetText,
+                ...styles.individualInput,
+                ...styles.individualText,
+                backgroundColor: '#00000020',
+              },
+            });
+          }}
+          onBlur={() => {
+            inputRef.current.setNativeProps({
+              style: {
+                ...styles.bottomSheetText,
+                ...styles.individualInput,
+                ...styles.individualText,
+                backgroundColor: 'transparent',
+              },
+            });
+          }}
+        />
+      )}
     </TouchableOpacity>
   );
 };
@@ -216,28 +285,30 @@ const FirstSection = ({data}) => {
 
   return (
     <View style={styles.bottomSheetHideSection}>
-      <View style={styles.quickButtonWrap}>
-        <TouchableOpacity
-          style={[styles.distributeButton, STYLES.MARGIN_RIGHT(5)]}
-          onPress={() => setIsModalVisible(true)}>
-          <Icon
-            name="format-list-bulleted"
-            type="material-community"
-            size={12}
-            color={colors.white}
-          />
-          <Text style={styles.distributeText}>Edit Members</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.distributeButton} onPress={onPressDistribute}>
-          <Icon
-            name="format-list-bulleted"
-            type="material-community"
-            size={12}
-            color={colors.white}
-          />
-          <Text style={styles.distributeText}>Distribute</Text>
-        </TouchableOpacity>
-      </View>
+      <DismissKeyboard>
+        <View style={styles.quickButtonWrap}>
+          <TouchableOpacity
+            style={[styles.distributeButton, STYLES.MARGIN_RIGHT(5)]}
+            onPress={() => setIsModalVisible(true)}>
+            <Icon
+              name="format-list-bulleted"
+              type="material-community"
+              size={12}
+              color={colors.white}
+            />
+            <Text style={styles.distributeText}>Edit Members</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.distributeButton} onPress={onPressDistribute}>
+            <Icon
+              name="format-list-bulleted"
+              type="material-community"
+              size={12}
+              color={colors.white}
+            />
+            <Text style={styles.distributeText}>Distribute</Text>
+          </TouchableOpacity>
+        </View>
+      </DismissKeyboard>
       <BottomSheetFlatList
         contentContainerStyle={styles.bottomSheetFlatList}
         data={distribution}
@@ -544,28 +615,53 @@ const ExpenditureBottomSheet = ({data}) => {
                   <Icon name="magnify" type="material-community" size={20} />
                 )}
               />
-              <BottomSheetTextInput
-                ref={totalInputRef}
-                style={[styles.bottomSheetText, styles.totalInput]}
-                value={total}
-                editable={detail.length === 0}
-                placeholder="0"
-                placeholderTextColor={colors.white}
-                onChangeText={text => setTotal(text)}
-                onEndEditing={handleEndEditing}
-                textAlign="right"
-                keyboardType="numeric"
-                onFocus={() => {
-                  totalInputRef.current.setNativeProps({
-                    style: {...styles.totalInput, backgroundColor: '#00000020'},
-                  });
-                }}
-                onBlur={() => {
-                  totalInputRef.current.setNativeProps({
-                    style: {...styles.totalInput, backgroundColor: 'transparent'},
-                  });
-                }}
-              />
+              {Platform.OS === 'android' ? (
+                <TextInput
+                  ref={totalInputRef}
+                  style={[styles.bottomSheetText, styles.totalInput]}
+                  value={total}
+                  editable={detail.length === 0}
+                  placeholder="0"
+                  placeholderTextColor={colors.white}
+                  onChangeText={text => setTotal(text)}
+                  onEndEditing={handleEndEditing}
+                  textAlign="right"
+                  keyboardType="numeric"
+                  onFocus={() => {
+                    totalInputRef.current.setNativeProps({
+                      style: {...styles.totalInput, backgroundColor: '#00000020'},
+                    });
+                  }}
+                  onBlur={() => {
+                    totalInputRef.current.setNativeProps({
+                      style: {...styles.totalInput, backgroundColor: 'transparent'},
+                    });
+                  }}
+                />
+              ) : (
+                <BottomSheetTextInput
+                  ref={totalInputRef}
+                  style={[styles.bottomSheetText, styles.totalInput]}
+                  value={total}
+                  editable={detail.length === 0}
+                  placeholder="0"
+                  placeholderTextColor={colors.white}
+                  onChangeText={text => setTotal(text)}
+                  onEndEditing={handleEndEditing}
+                  textAlign="right"
+                  keyboardType="numeric"
+                  onFocus={() => {
+                    totalInputRef.current.setNativeProps({
+                      style: {...styles.totalInput, backgroundColor: '#00000020'},
+                    });
+                  }}
+                  onBlur={() => {
+                    totalInputRef.current.setNativeProps({
+                      style: {...styles.totalInput, backgroundColor: 'transparent'},
+                    });
+                  }}
+                />
+              )}
             </BottomSheetView>
           </BottomSheetView>
         </DismissKeyboard>
@@ -623,6 +719,12 @@ const ManageDistributionModal = ({data}) => {
       );
     }
   }, [data]);
+
+  React.useEffect(() => {
+    if (!isVisible) {
+      setSearch('');
+    }
+  }, [isVisible]);
 
   return (
     <Modal
@@ -706,6 +808,12 @@ const ManagePaidModal = ({data}) => {
     }
   }, [data]);
 
+  React.useEffect(() => {
+    if (!isVisible) {
+      setSearch('');
+    }
+  }, [isVisible]);
+
   return (
     <Modal
       isVisible={isVisible}
@@ -785,6 +893,7 @@ const AddExpenditureScreen = () => {
   const [currencyCode, setCurrencyCode] = React.useState(userDefaultCurrency);
 
   const [time, setTime] = React.useState(dayjs().format('YYYY-MM-DD HH:mm'));
+
   const [total, setTotal] = React.useState('');
 
   const [members, setMembers] = React.useState([]); // 현재 세션 멤버
@@ -957,6 +1066,17 @@ const AddExpenditureScreen = () => {
     return false;
   }, [name, category, currencyCode, items, total, distribution, paid]);
 
+  const onPressAddCustomItem = () => {
+    setItems(prev => [
+      ...prev,
+      {
+        id: 'id' + Math.random().toString(16).slice(2),
+        label: '',
+        price: '',
+        allocations: [],
+      },
+    ]);
+  };
   // edit
   const [expenditure, setExpenditure] = React.useState(null);
 
@@ -1127,130 +1247,135 @@ const AddExpenditureScreen = () => {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
-        <View style={styles.container}>
-          <Text style={[styles.label, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>
-            Category
-          </Text>
-          <SelectDropdown
-            data={categories}
-            onSelect={(selectedItem, index) => {
-              setCategory(selectedItem);
-            }}
-            defaultValue={category}
-            defaultButtonText="Select Category"
-            buttonStyle={styles.dropdown1BtnStyle}
-            buttonTextStyle={styles.dropdown1BtnTxtStyle}
-            renderDropdownIcon={isOpen => {
-              return (
-                <Icon
-                  name={isOpen ? 'chevron-up' : 'chevron-down'}
-                  type="material-community"
-                  color={colors.black}
-                />
-              );
-            }}
-            dropdownIconPosition="right"
-            dropdownStyle={styles.dropdown1DropdownStyle}
-            rowStyle={styles.dropdown1RowStyle}
-            rowTextStyle={styles.dropdown1RowTxtStyle}
-          />
-          <CustomInput
-            label={'Name'}
-            value={name}
-            setValue={setName}
-            onFocus={() => setIsBottomSheetOpen(false)}
-            onBlur={() => setIsBottomSheetOpen(true)}
-          />
-          <CustomInput
-            label={'Date'}
-            value={time}
-            setValue={value => {
-              setTime(
-                dayjs(time)
-                  .set('hour', dayjs(value).hour())
-                  .set('minute', dayjs(value).minute())
-                  .format('YYYY-MM-DD HH:mm'),
-              );
-            }}
-            type="date"
-          />
-          <DismissKeyboard>
-            <View
-              style={[
-                STYLES.FLEX_ROW_ALIGN_CENTER,
-                STYLES.MARGIN_BOTTOM(5),
-                STYLES.MARGIN_TOP(15),
-              ]}>
-              <Text style={styles.label}>Receipt</Text>
-              <Tooltip
-                visible={tooltipVisible}
-                onClose={() => setTooltipVisible(false)}
-                onOpen={() => setTooltipVisible(true)}
-                popover={
-                  <Text style={{color: colors.white, fontSize: 12}}>
-                    You can upload receipt image to automatically fill out the details.
-                  </Text>
-                }
-                backgroundColor={colors.primary}
-                height={50}
-                width={200}>
-                <Image source={infoIcon} style={[styles.infoIcon]} />
-              </Tooltip>
-            </View>
-          </DismissKeyboard>
-          <DismissKeyboard>
+        <DismissKeyboard>
+          <View style={styles.container}>
+            <Text style={[styles.label, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>
+              Category
+            </Text>
+            <SelectDropdown
+              data={categories}
+              onSelect={(selectedItem, index) => {
+                setCategory(selectedItem);
+              }}
+              defaultValue={category}
+              defaultButtonText="Select Category"
+              buttonStyle={styles.dropdown1BtnStyle}
+              buttonTextStyle={styles.dropdown1BtnTxtStyle}
+              renderDropdownIcon={isOpen => {
+                return (
+                  <Icon
+                    name={isOpen ? 'chevron-up' : 'chevron-down'}
+                    type="material-community"
+                    color={colors.black}
+                  />
+                );
+              }}
+              dropdownIconPosition="right"
+              dropdownStyle={styles.dropdown1DropdownStyle}
+              rowStyle={styles.dropdown1RowStyle}
+              rowTextStyle={styles.dropdown1RowTxtStyle}
+            />
+            <CustomInput
+              label={'Name'}
+              value={name}
+              setValue={setName}
+              onFocus={() => setIsBottomSheetOpen(false)}
+              onBlur={() => setIsBottomSheetOpen(true)}
+            />
+            <CustomInput
+              label={'Date'}
+              value={time}
+              setValue={value => {
+                setTime(dayjs(value).format('YYYY-MM-DD HH:mm'));
+              }}
+              type="date"
+              onFocus={() => setIsBottomSheetOpen(false)}
+              onBlur={() => setIsBottomSheetOpen(true)}
+            />
+            <DismissKeyboard>
+              <View
+                style={[
+                  STYLES.FLEX_ROW_ALIGN_CENTER,
+                  STYLES.MARGIN_BOTTOM(5),
+                  STYLES.MARGIN_TOP(15),
+                ]}>
+                <Text style={styles.label}>Items</Text>
+                <Tooltip
+                  visible={tooltipVisible}
+                  onClose={() => setTooltipVisible(false)}
+                  onOpen={() => setTooltipVisible(true)}
+                  popover={
+                    <Text style={{color: colors.white, fontSize: 12}}>
+                      You can upload receipt image to automatically fill out the details.
+                    </Text>
+                  }
+                  backgroundColor={colors.primary}
+                  height={50}
+                  width={200}>
+                  <Image source={infoIcon} style={[styles.infoIcon]} />
+                </Tooltip>
+              </View>
+            </DismissKeyboard>
             {items.length === 0 ? (
-              <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
-                <Text style={styles.receiptText}>Upload Receipt</Text>
-              </TouchableOpacity>
+              <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
+                <TouchableOpacity
+                  style={[styles.receiptButton, STYLES.MARGIN_RIGHT(5)]}
+                  onPress={onPressAddCustomItem}>
+                  <Text style={styles.receiptText}>Add Custom Items</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
+                  <Text style={styles.receiptText}>Upload Receipt</Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <AvoidSoftInputView style={STYLES.FLEX(1)}>
-                <View style={STYLES.PADDING_BOTTOM(70)}>
-                  <InputTable data={items} setData={setItems} />
-                </View>
+                <DismissKeyboard>
+                  <View style={STYLES.PADDING_BOTTOM(70)}>
+                    <InputTable data={items} setData={setItems} />
+                  </View>
+                </DismissKeyboard>
               </AvoidSoftInputView>
             )}
-          </DismissKeyboard>
-
-          {isBottomSheetOpen && (
-            <ExpenditureBottomSheet
+            {isBottomSheetOpen && (
+              <ExpenditureBottomSheet
+                data={{
+                  total: total,
+                  setTotal: setTotal,
+                  members: members,
+                  distribution: distribution,
+                  setDistribution: setDistribution,
+                  detail: items,
+                  setDetail: setItems,
+                  setIsModalVisible: setIsDMVisible,
+                  setIsPMVisible: setIsPMVisible,
+                  paid: paid,
+                  setPaid: setPaid,
+                  currencyCode: currencyCode,
+                  setCurrencyCode: setCurrencyCode,
+                  currencySelectData: currencySelectData,
+                }}
+              />
+            )}
+            <ManageDistributionModal
               data={{
-                total: total,
-                setTotal: setTotal,
-                members: members,
+                isVisible: isDMVisible,
+                setIsVisible: setIsDMVisible,
                 distribution: distribution,
                 setDistribution: setDistribution,
-                detail: items,
-                setDetail: setItems,
-                setIsModalVisible: setIsDMVisible,
-                setIsPMVisible: setIsPMVisible,
-                paid: paid,
-                setPaid: setPaid,
-                currencyCode: currencyCode,
-                setCurrencyCode: setCurrencyCode,
-                currencySelectData: currencySelectData,
+                members: members,
               }}
             />
-          )}
-          <ManageDistributionModal
-            data={{
-              isVisible: isDMVisible,
-              setIsVisible: setIsDMVisible,
-              distribution: distribution,
-              setDistribution: setDistribution,
-              members: members,
-            }}
-          />
-          <ManagePaidModal
-            data={{
-              isVisible: isPMVisible,
-              setIsVisible: setIsPMVisible,
-              paid: paid,
-              setPaid: setPaid,
-              members: members,
-            }}
-          />
-        </View>
+            <ManagePaidModal
+              data={{
+                isVisible: isPMVisible,
+                setIsVisible: setIsPMVisible,
+                paid: paid,
+                setPaid: setPaid,
+                members: members,
+              }}
+            />
+          </View>
+        </DismissKeyboard>
       )}
     </SafeArea>
   );
@@ -1334,7 +1459,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   receiptButton: {
-    width: '100%',
+    flex: 1,
     height: 40,
     backgroundColor: colors.primary,
     borderRadius: 10,

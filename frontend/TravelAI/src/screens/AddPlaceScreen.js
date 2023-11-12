@@ -69,7 +69,16 @@ const AddPlaceScreen = () => {
     navigation.navigate('AddCustomPlace');
   };
 
+  const onEndEditing = async () => {
+    if (searchKeyword.length > 0) {
+      autoCompletePlace(searchKeyword);
+    } else {
+      setSearchResult([]);
+    }
+  };
+
   // effects
+
   React.useEffect(() => {
     if (searchKeyword.length > 0) {
       autoCompletePlace(searchKeyword);
@@ -91,6 +100,7 @@ const AddPlaceScreen = () => {
             <Searchbar
               value={searchKeyword}
               onChangeText={setSearchKeyword}
+              onEndEditing={onEndEditing}
               placeholder="Search a place"
               placeholderTextColor={colors.gray}
               onClear={() => {

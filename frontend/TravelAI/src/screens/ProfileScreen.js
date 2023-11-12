@@ -1,8 +1,8 @@
 import {StyleSheet, View, Keyboard, Pressable, Image, TouchableOpacity} from 'react-native';
 import React from 'react';
 import {Avatar, Button, IconButton, List, Switch, Text, TextInput} from 'react-native-paper';
-import {useNavigation} from '@react-navigation/native';
-import {useRecoilState, useRecoilValue} from 'recoil';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
 import userAtom from '../recoil/user/user';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {getProfile, updateProfile, deleteUser} from '../services/api';
@@ -17,18 +17,26 @@ import currenciesAtom from '../recoil/currencies/currencies';
 import _ from 'lodash';
 import countriesAtom from '../recoil/countries/countries';
 import {Icon} from '@rneui/themed';
-import reactotron from 'reactotron-react-native';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import colors from '../theme/colors';
 import {showErrorToast} from '../utils/utils';
 import {Regular} from '../theme/fonts';
 import {requestAlert} from '../utils/utils';
+import {AvoidSoftInput} from 'react-native-avoid-softinput';
+import {friendsAtom} from '../recoil/friends/friends';
+import {sessionsAtom} from '../recoil/session/sessions';
+import sessionAtom from '../recoil/session/session';
 
 const ProfileScreen = () => {
   // hooks
-  const navigation = useNavigation();
   const currencies = useRecoilValue(currenciesAtom);
   const countries = useRecoilValue(countriesAtom);
+
+  const setFriends = useSetRecoilState(friendsAtom);
+  const setSessions = useSetRecoilState(sessionsAtom);
+  const setSession = useSetRecoilState(sessionAtom);
+  const setCurrencies = useSetRecoilState(currenciesAtom);
+  const setCountries = useSetRecoilState(countriesAtom);
 
   // states
   const [user, setUser] = useRecoilState(userAtom);
@@ -152,6 +160,11 @@ const ProfileScreen = () => {
           deleteUser().then(async () => {
             await AsyncStorage.removeItem('user');
             setUser(null);
+            setFriends([]);
+            setSessions([]);
+            setSession(null);
+            setCurrencies([]);
+            setCountries([]);
           }),
       );
     } catch (err) {
@@ -164,104 +177,123 @@ const ProfileScreen = () => {
     fetchProfile();
   }, []);
 
+  const onFocusEffect = React.useCallback(() => {
+    // This should be run when screen gains focus - enable the module where it's needed
+    AvoidSoftInput.setShouldMimicIOSBehavior(true);
+    return () => {
+      // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
+      AvoidSoftInput.setShouldMimicIOSBehavior(false);
+    };
+  }, []);
+
+  useFocusEffect(onFocusEffect); // register callback to focus events
+
   return (
-    <DismissKeyboard>
-      <SafeArea>
-        <LoadingModal isVisible={loading} />
+    <SafeArea>
+      <LoadingModal isVisible={loading} />
+      <DismissKeyboard>
         <CustomHeader title="Profile" rightComponent={<View />} />
-        {fetching ? (
-          <View style={STYLES.FLEX(1)} />
-        ) : (
+      </DismissKeyboard>
+      {fetching ? (
+        <View style={STYLES.FLEX(1)} />
+      ) : (
+        <DismissKeyboard>
           <View style={[STYLES.FLEX(1), STYLES.PADDING_HORIZONTAL(20)]}>
-            <View style={[STYLES.ALIGN_CENTER, STYLES.PADDING_VERTICAL(40)]}>
-              <Pressable onPress={onPressProfileImage}>
-                <Avatar.Image
-                  size={100}
-                  source={{
-                    uri: profileImage,
-                  }}
-                />
-                <IconButton mode="contained" icon="camera" size={20} style={styles.cameraIcon} />
-              </Pressable>
-            </View>
+            <DismissKeyboard>
+              <View style={[STYLES.ALIGN_CENTER, STYLES.PADDING_VERTICAL(40)]}>
+                <Pressable onPress={onPressProfileImage}>
+                  <Avatar.Image
+                    size={100}
+                    source={{
+                      uri: profileImage,
+                    }}
+                  />
+                  <IconButton mode="contained" icon="camera" size={20} style={styles.cameraIcon} />
+                </Pressable>
+              </View>
+            </DismissKeyboard>
             <TextInput
               mode="outlined"
               label="Username"
               value={username}
               onChangeText={setUsername}
             />
-            <View style={styles.rowContainer}>
-              <Text style={styles.label}>Allowing Search</Text>
-              <Switch value={nicknameSearch} onValueChange={onToggleSwitch} />
-            </View>
-            <View style={styles.rowContainer}>
-              <Text style={styles.label}>Default Currency</Text>
-              <SelectDropdown
-                data={currencySelectData}
-                onSelect={(selectedItem, index) => {
-                  setDefaultCurrencyCode(selectedItem.currency_code);
-                }}
-                defaultValue={currencySelectData.find(
-                  item => item.currency_code === defaultCurrencyCode,
-                )}
-                renderCustomizedButtonChild={(selectedItem, index) => {
-                  return (
-                    <View style={styles.dropdownBtnChildStyle}>
-                      <Image
-                        style={styles.dropdownBtnImage}
-                        source={{
-                          uri:
-                            selectedItem?.png ??
-                            currencySelectData.find(
-                              item => item.currency_code === defaultCurrencyCode,
-                            ).png,
-                        }}
-                      />
+            <DismissKeyboard>
+              <View style={styles.rowContainer}>
+                <Text style={styles.label}>Allowing Search</Text>
+                <Switch value={nicknameSearch} onValueChange={onToggleSwitch} />
+              </View>
+            </DismissKeyboard>
+            <DismissKeyboard>
+              <View style={styles.rowContainer}>
+                <Text style={styles.label}>Default Currency</Text>
+                <SelectDropdown
+                  data={currencySelectData}
+                  onSelect={(selectedItem, index) => {
+                    setDefaultCurrencyCode(selectedItem.currency_code);
+                  }}
+                  defaultValue={currencySelectData.find(
+                    item => item.currency_code === defaultCurrencyCode,
+                  )}
+                  renderCustomizedButtonChild={(selectedItem, index) => {
+                    return (
+                      <View style={styles.dropdownBtnChildStyle}>
+                        <Image
+                          style={styles.dropdownBtnImage}
+                          source={{
+                            uri:
+                              selectedItem?.png ??
+                              currencySelectData.find(
+                                item => item.currency_code === defaultCurrencyCode,
+                              ).png,
+                          }}
+                        />
 
-                      <Text style={styles.dropdownBtnTxt}>
-                        {selectedItem ? selectedItem.currency_code : defaultCurrencyCode}
-                      </Text>
-                      <Icon
-                        name="chevron-down"
-                        type="material-community"
-                        color={'#444'}
-                        size={18}
-                      />
-                    </View>
-                  );
-                }}
-                buttonStyle={styles.dropdownBtnStyle}
-                buttonTextStyle={styles.labelTxt}
-                dropdownStyle={styles.dropdownDropdownStyle}
-                rowStyle={styles.dropdownRowStyle}
-                rowTextStyle={styles.dropdownRowTxt}
-                renderCustomizedRowChild={(selectedItem, index) => {
-                  return (
-                    <View style={styles.dropdownRowChildStyle}>
-                      <Image style={styles.dropdownRowImage} source={{uri: selectedItem.png}} />
-                      <Text style={styles.dropdownRowTxt}>{selectedItem.currency_code}</Text>
-                    </View>
-                  );
-                }}
-                search
-                searchPlaceHolder="Search..."
-                searchInputStyle={styles.dropdownsearchInputStyleStyle}
-                searchPlaceHolderColor={'#F8F8F8'}
-                renderSearchInputLeftIcon={() => (
-                  <Icon name="magnify" type="material-community" size={20} />
-                )}
-              />
-            </View>
+                        <Text style={styles.dropdownBtnTxt}>
+                          {selectedItem ? selectedItem.currency_code : defaultCurrencyCode}
+                        </Text>
+                        <Icon
+                          name="chevron-down"
+                          type="material-community"
+                          color={'#444'}
+                          size={18}
+                        />
+                      </View>
+                    );
+                  }}
+                  buttonStyle={styles.dropdownBtnStyle}
+                  buttonTextStyle={styles.labelTxt}
+                  dropdownStyle={styles.dropdownDropdownStyle}
+                  rowStyle={styles.dropdownRowStyle}
+                  rowTextStyle={styles.dropdownRowTxt}
+                  renderCustomizedRowChild={(selectedItem, index) => {
+                    return (
+                      <View style={styles.dropdownRowChildStyle}>
+                        <Image style={styles.dropdownRowImage} source={{uri: selectedItem.png}} />
+                        <Text style={styles.dropdownRowTxt}>{selectedItem.currency_code}</Text>
+                      </View>
+                    );
+                  }}
+                  search
+                  searchPlaceHolder="Search..."
+                  searchInputStyle={styles.dropdownsearchInputStyleStyle}
+                  searchPlaceHolderColor={'#F8F8F8'}
+                  renderSearchInputLeftIcon={() => (
+                    <Icon name="magnify" type="material-community" size={20} />
+                  )}
+                />
+              </View>
+            </DismissKeyboard>
           </View>
-        )}
-        <View style={[STYLES.PADDING_VERTICAL(10), STYLES.PADDING_HORIZONTAL(20)]}>
-          <MainButton text="Save" onPress={onPressSave} disabled={!isEditing || !isUsernameValid} />
-        </View>
-        <TouchableOpacity style={[STYLES.MARGIN_BOTTOM(10)]} onPress={onDeleteUser}>
-          <Text style={[styles.deleteUserButtonText]}>Do you want to delete profile?</Text>
-        </TouchableOpacity>
-      </SafeArea>
-    </DismissKeyboard>
+        </DismissKeyboard>
+      )}
+      <View style={[STYLES.PADDING_VERTICAL(10), STYLES.PADDING_HORIZONTAL(20)]}>
+        <MainButton text="Save" onPress={onPressSave} disabled={!isEditing || !isUsernameValid} />
+      </View>
+      <TouchableOpacity style={[STYLES.MARGIN_BOTTOM(10)]} onPress={onDeleteUser}>
+        <Text style={[styles.deleteUserButtonText]}>Do you want to delete profile?</Text>
+      </TouchableOpacity>
+    </SafeArea>
   );
 };
 

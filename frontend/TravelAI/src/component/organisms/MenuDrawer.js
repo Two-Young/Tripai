@@ -6,13 +6,23 @@ import Modal from 'react-native-modal';
 import upperProfile from '../../assets/images/upper_profile.png';
 import {navigate} from '../../navigation/RootNavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useRecoilState} from 'recoil';
+import {useRecoilState, useSetRecoilState} from 'recoil';
 import userAtom from '../../recoil/user/user';
+import {friendsAtom} from '../../recoil/friends/friends';
+import {sessionsAtom} from '../../recoil/session/sessions';
+import sessionAtom from '../../recoil/session/session';
+import currenciesAtom from '../../recoil/currencies/currencies';
+import countriesAtom from '../../recoil/countries/countries';
 
 const MenuDrawer = props => {
   const {visible, setVisible} = props;
 
   const [user, setUser] = useRecoilState(userAtom);
+  const setFriends = useSetRecoilState(friendsAtom);
+  const setSessions = useSetRecoilState(sessionsAtom);
+  const setSession = useSetRecoilState(sessionAtom);
+  const setCurrencies = useSetRecoilState(currenciesAtom);
+  const setCountries = useSetRecoilState(countriesAtom);
 
   const userName = React.useMemo(() => user?.user_info?.username, [user]);
   const userImage = React.useMemo(() => user?.user_info?.profile_image, [user]);
@@ -35,6 +45,11 @@ const MenuDrawer = props => {
     onClose();
     AsyncStorage.clear();
     setUser(null);
+    setFriends([]);
+    setSessions([]);
+    setSession(null);
+    setCurrencies([]);
+    setCountries([]);
   };
 
   const navigateToMySessionRequest = () => {

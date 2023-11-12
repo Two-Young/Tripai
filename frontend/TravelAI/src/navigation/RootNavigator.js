@@ -22,7 +22,6 @@ import SessionRequestsScreen from '../screens/SessionRequestsScreen.js';
 import ManageParticipantsScreen from '../screens/ManageParticipantsScreen.js';
 import AddBudgetScreen from '../screens/AddBudgetScreen.js';
 import AddExpenditureScreen from './../screens/AddExpenditureScreen';
-import EditReceiptScreen from '../screens/EditReceiptScreen.js';
 import {socket} from '../services/socket.js';
 import reactotron from 'reactotron-react-native';
 import Toast from 'react-native-toast-message';
@@ -106,7 +105,6 @@ const RootNavigator = () => {
         <Stack.Screen name="Receipt" component={ReceiptScreen} />
         <Stack.Screen name="AddBudget" component={AddBudgetScreen} />
         <Stack.Screen name="AddExpenditure" component={AddExpenditureScreen} />
-        <Stack.Screen name="EditReceipt" component={EditReceiptScreen} />
       </Stack.Group>
       {/* OnBoard */}
       {/* Tab */}
