@@ -294,7 +294,7 @@ const ManageParticipantsScreen = () => {
           <Searchbar
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Serach the friend"
+            placeholder="Search the friend"
             placeholderTextColor={'gray'}
             style={{
               borderRadius: 16,

@@ -1,7 +1,7 @@
 import {StyleSheet, View, Keyboard, Pressable, Image, TouchableOpacity} from 'react-native';
 import React from 'react';
 import {Avatar, Button, IconButton, List, Switch, Text, TextInput} from 'react-native-paper';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useRecoilState, useRecoilValue} from 'recoil';
 import userAtom from '../recoil/user/user';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -17,16 +17,15 @@ import currenciesAtom from '../recoil/currencies/currencies';
 import _ from 'lodash';
 import countriesAtom from '../recoil/countries/countries';
 import {Icon} from '@rneui/themed';
-import reactotron from 'reactotron-react-native';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import colors from '../theme/colors';
 import {showErrorToast} from '../utils/utils';
 import {Regular} from '../theme/fonts';
 import {requestAlert} from '../utils/utils';
+import {AvoidSoftInput} from 'react-native-avoid-softinput';
 
 const ProfileScreen = () => {
   // hooks
-  const navigation = useNavigation();
   const currencies = useRecoilValue(currenciesAtom);
   const countries = useRecoilValue(countriesAtom);
 
@@ -163,6 +162,17 @@ const ProfileScreen = () => {
   React.useEffect(() => {
     fetchProfile();
   }, []);
+
+  const onFocusEffect = React.useCallback(() => {
+    // This should be run when screen gains focus - enable the module where it's needed
+    AvoidSoftInput.setShouldMimicIOSBehavior(true);
+    return () => {
+      // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
+      AvoidSoftInput.setShouldMimicIOSBehavior(false);
+    };
+  }, []);
+
+  useFocusEffect(onFocusEffect); // register callback to focus events
 
   return (
     <DismissKeyboard>
