@@ -1,5 +1,5 @@
 import {FlatList, StyleSheet, Text, View, Alert} from 'react-native';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {CommonActions, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {IconButton, Portal, Snackbar} from 'react-native-paper';
 import {getCurrencies, getSessions, locateCountries} from '../services/api';
@@ -120,26 +120,33 @@ const MainScreen = () => {
     }
   }, [route.params?.refresh]);
 
+  useFocusEffect(
+    useCallback(() => {
+      const filterDeletedSession = data => {
+        setSessions(prev => prev.filter(session => session.session_id !== data.data));
+      };
+
+      if (socket?.connected) {
+        console.log('socket connected');
+        socket.on('session/memberJoined', fetchSessions);
+        socket.on('session/deleted', filterDeletedSession);
+      }
+      return () => {
+        if (socket) {
+          console.log('socket disconnected');
+          socket.off('session/memberJoined', fetchSessions);
+          socket.off('session/deleted', filterDeletedSession);
+        }
+      };
+    }, [socket?.connected]),
+  );
+
   // 포커스 되면 새로고침을 합니다.
   useFocusEffect(
     React.useCallback(() => {
       fetchData();
     }, []),
   );
-
-  React.useEffect(() => {
-    if (socket?.connected) {
-      socket.on('session/deleted', data => {
-        reactotron.log(data);
-        setSessions(prev => prev.filter(session => session.session_id !== data.data));
-      });
-    }
-    return () => {
-      if (socket) {
-        socket.off('session/deleted');
-      }
-    };
-  }, [socket?.connected]);
 
   return (
     <SafeArea bottom={{inactive: true}}>

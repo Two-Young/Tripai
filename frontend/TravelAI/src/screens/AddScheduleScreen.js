@@ -20,6 +20,7 @@ const AddScheduleScreen = () => {
   const [place, setPlace] = React.useState({});
   const [note, setNote] = React.useState('');
   const [loading, setLoading] = React.useState(false);
+  const [places, setPlaces] = React.useState([]);
 
   // hooks
   const navigation = useNavigation();
@@ -35,9 +36,15 @@ const AddScheduleScreen = () => {
   const target = tab?.state?.routes[1];
 
   // functions
+  const fetchPlaces = async () => {
+    const res = await getLocations(currentSessionID);
+    setPlaces(res);
+  };
+
   const handleAdd = async () => {
     try {
       setLoading(true);
+      // await createLocation(currentSessionID, place?.place_id);
       await createSchedule({
         session_id: currentSessionID,
         name,
@@ -62,6 +69,10 @@ const AddScheduleScreen = () => {
   const addDisabled = React.useMemo(() => {
     return name.length === 0;
   }, [name]);
+
+  React.useEffect(() => {
+    fetchPlaces();
+  }, []);
 
   return (
     <SafeArea top={{style: {backgroundColor: 'white'}, barStyle: 'dark-content'}}>

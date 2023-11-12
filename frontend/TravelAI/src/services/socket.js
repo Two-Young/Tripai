@@ -62,6 +62,10 @@ export const SocketManager = () => {
           text2: 'You have received a request to join a session',
         });
       });
+
+      socket.on('session/memberJoined', data => {
+        console.log(data);
+      });
     }
 
     return () => {

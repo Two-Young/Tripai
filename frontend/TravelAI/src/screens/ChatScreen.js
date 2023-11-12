@@ -43,7 +43,6 @@ const ChatScreen = () => {
       return;
     }
     if (useChatGPT) {
-      console.log('sendAssistantMessage ::', inputContent);
       socket.emit('sessionChat/sendAssistantMessage', currentSessionID, inputContent);
     } else {
       socket.emit('sessionChat/sendMessage', currentSessionID, inputContent);

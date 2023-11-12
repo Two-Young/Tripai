@@ -249,20 +249,20 @@ const ManageParticipantsScreen = () => {
   );
 
   React.useEffect(() => {
-    socket.on('session/memberJoined', () => {
+    const memberJoinedCallback = () => {
       fetchJoined();
       fetchInviting();
       fetchRequeted();
-    });
-    socket.on('session/memberLeft', () => {
-      fetchJoined();
-    });
+    };
+
+    socket.on('session/memberJoined', memberJoinedCallback);
+    socket.on('session/memberLeft', fetchJoined);
     socket.on('session/memberJoinRequested', data => {
       fetchRequeted();
     });
     return () => {
       if (socket) {
-        socket.off('session/memberJoined');
+        socket.off('session/memberJoined', memberJoinedCallback);
         socket.off('session/memberLeft');
         socket.off('session/memberJoinRequested');
       }

@@ -155,26 +155,21 @@ const HomeScreen = () => {
 
   React.useEffect(() => {
     // if (currentSessionID && socket?.connected) {
-    socket.on('location/created', data => {
-      // setPlaces(prev => [...prev, data.data]);
-      fetchPlaces();
-    });
-    socket.on('location/deleted', data => {
+    const locationDeletedCallback = data => {
       setPlaces(prev => prev.filter(place => place.location_id !== data.data));
-    });
-    socket.on('session/memberJoined', () => {
-      fetchJoined();
-    });
-    socket.on('session/memberLeft', () => {
-      fetchJoined();
-    });
+    };
+
+    socket.on('location/created', fetchPlaces);
+    socket.on('location/deleted', locationDeletedCallback);
+    socket.on('session/memberJoined', fetchJoined);
+    socket.on('session/memberLeft', fetchJoined);
     // }
     return () => {
       if (socket) {
-        socket.off('location/created');
-        socket.off('location/deleted');
-        socket.off('session/memberJoined');
-        socket.off('session/memberLeft');
+        socket.off('location/created', fetchPlaces);
+        socket.off('location/deleted', locationDeletedCallback);
+        socket.off('session/memberJoined', fetchJoined);
+        socket.off('session/memberLeft', fetchJoined);
       }
     };
   }, [socket, currentSessionID]);

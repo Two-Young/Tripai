@@ -76,6 +76,17 @@ const MyRequest = () => {
     }
   }, [refreshing]);
 
+  React.useEffect(() => {
+    if (socket?.connected) {
+      socket.on('session/memberJoined', fetchRequest);
+    }
+    return () => {
+      if (socket) {
+        socket.off('session/memberJoined', fetchRequest);
+      }
+    };
+  }, [socket?.connected]);
+
   return (
     <FlatList
       style={styles.container}

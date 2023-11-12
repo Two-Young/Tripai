@@ -13,8 +13,6 @@ const COLOR_LIST = ['#FF8181', '#FFAB48', '#6FED42', '#79D7FF', '#CB89FF', '#B5B
 const SettlementSummary = ({title, settlements, total}) => {
   const user = useRecoilValue(userAtom);
 
-  console.log(settlements);
-
   const data = useMemo(() => {
     if (!settlements) {
       return [];
