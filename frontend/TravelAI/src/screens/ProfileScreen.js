@@ -197,88 +197,95 @@ const ProfileScreen = () => {
       {fetching ? (
         <View style={STYLES.FLEX(1)} />
       ) : (
-        <View style={[STYLES.FLEX(1), STYLES.PADDING_HORIZONTAL(20)]}>
-          <DismissKeyboard>
-            <View style={[STYLES.ALIGN_CENTER, STYLES.PADDING_VERTICAL(40)]}>
-              <Pressable onPress={onPressProfileImage}>
-                <Avatar.Image
-                  size={100}
-                  source={{
-                    uri: profileImage,
+        <DismissKeyboard>
+          <View style={[STYLES.FLEX(1), STYLES.PADDING_HORIZONTAL(20)]}>
+            <DismissKeyboard>
+              <View style={[STYLES.ALIGN_CENTER, STYLES.PADDING_VERTICAL(40)]}>
+                <Pressable onPress={onPressProfileImage}>
+                  <Avatar.Image
+                    size={100}
+                    source={{
+                      uri: profileImage,
+                    }}
+                  />
+                  <IconButton mode="contained" icon="camera" size={20} style={styles.cameraIcon} />
+                </Pressable>
+              </View>
+            </DismissKeyboard>
+            <TextInput
+              mode="outlined"
+              label="Username"
+              value={username}
+              onChangeText={setUsername}
+            />
+            <DismissKeyboard>
+              <View style={styles.rowContainer}>
+                <Text style={styles.label}>Allowing Search</Text>
+                <Switch value={nicknameSearch} onValueChange={onToggleSwitch} />
+              </View>
+            </DismissKeyboard>
+            <DismissKeyboard>
+              <View style={styles.rowContainer}>
+                <Text style={styles.label}>Default Currency</Text>
+                <SelectDropdown
+                  data={currencySelectData}
+                  onSelect={(selectedItem, index) => {
+                    setDefaultCurrencyCode(selectedItem.currency_code);
                   }}
-                />
-                <IconButton mode="contained" icon="camera" size={20} style={styles.cameraIcon} />
-              </Pressable>
-            </View>
-          </DismissKeyboard>
-          <TextInput mode="outlined" label="Username" value={username} onChangeText={setUsername} />
-          <DismissKeyboard>
-            <View style={styles.rowContainer}>
-              <Text style={styles.label}>Allowing Search</Text>
-              <Switch value={nicknameSearch} onValueChange={onToggleSwitch} />
-            </View>
-          </DismissKeyboard>
-          <DismissKeyboard>
-            <View style={styles.rowContainer}>
-              <Text style={styles.label}>Default Currency</Text>
-              <SelectDropdown
-                data={currencySelectData}
-                onSelect={(selectedItem, index) => {
-                  setDefaultCurrencyCode(selectedItem.currency_code);
-                }}
-                defaultValue={currencySelectData.find(
-                  item => item.currency_code === defaultCurrencyCode,
-                )}
-                renderCustomizedButtonChild={(selectedItem, index) => {
-                  return (
-                    <View style={styles.dropdownBtnChildStyle}>
-                      <Image
-                        style={styles.dropdownBtnImage}
-                        source={{
-                          uri:
-                            selectedItem?.png ??
-                            currencySelectData.find(
-                              item => item.currency_code === defaultCurrencyCode,
-                            ).png,
-                        }}
-                      />
+                  defaultValue={currencySelectData.find(
+                    item => item.currency_code === defaultCurrencyCode,
+                  )}
+                  renderCustomizedButtonChild={(selectedItem, index) => {
+                    return (
+                      <View style={styles.dropdownBtnChildStyle}>
+                        <Image
+                          style={styles.dropdownBtnImage}
+                          source={{
+                            uri:
+                              selectedItem?.png ??
+                              currencySelectData.find(
+                                item => item.currency_code === defaultCurrencyCode,
+                              ).png,
+                          }}
+                        />
 
-                      <Text style={styles.dropdownBtnTxt}>
-                        {selectedItem ? selectedItem.currency_code : defaultCurrencyCode}
-                      </Text>
-                      <Icon
-                        name="chevron-down"
-                        type="material-community"
-                        color={'#444'}
-                        size={18}
-                      />
-                    </View>
-                  );
-                }}
-                buttonStyle={styles.dropdownBtnStyle}
-                buttonTextStyle={styles.labelTxt}
-                dropdownStyle={styles.dropdownDropdownStyle}
-                rowStyle={styles.dropdownRowStyle}
-                rowTextStyle={styles.dropdownRowTxt}
-                renderCustomizedRowChild={(selectedItem, index) => {
-                  return (
-                    <View style={styles.dropdownRowChildStyle}>
-                      <Image style={styles.dropdownRowImage} source={{uri: selectedItem.png}} />
-                      <Text style={styles.dropdownRowTxt}>{selectedItem.currency_code}</Text>
-                    </View>
-                  );
-                }}
-                search
-                searchPlaceHolder="Search..."
-                searchInputStyle={styles.dropdownsearchInputStyleStyle}
-                searchPlaceHolderColor={'#F8F8F8'}
-                renderSearchInputLeftIcon={() => (
-                  <Icon name="magnify" type="material-community" size={20} />
-                )}
-              />
-            </View>
-          </DismissKeyboard>
-        </View>
+                        <Text style={styles.dropdownBtnTxt}>
+                          {selectedItem ? selectedItem.currency_code : defaultCurrencyCode}
+                        </Text>
+                        <Icon
+                          name="chevron-down"
+                          type="material-community"
+                          color={'#444'}
+                          size={18}
+                        />
+                      </View>
+                    );
+                  }}
+                  buttonStyle={styles.dropdownBtnStyle}
+                  buttonTextStyle={styles.labelTxt}
+                  dropdownStyle={styles.dropdownDropdownStyle}
+                  rowStyle={styles.dropdownRowStyle}
+                  rowTextStyle={styles.dropdownRowTxt}
+                  renderCustomizedRowChild={(selectedItem, index) => {
+                    return (
+                      <View style={styles.dropdownRowChildStyle}>
+                        <Image style={styles.dropdownRowImage} source={{uri: selectedItem.png}} />
+                        <Text style={styles.dropdownRowTxt}>{selectedItem.currency_code}</Text>
+                      </View>
+                    );
+                  }}
+                  search
+                  searchPlaceHolder="Search..."
+                  searchInputStyle={styles.dropdownsearchInputStyleStyle}
+                  searchPlaceHolderColor={'#F8F8F8'}
+                  renderSearchInputLeftIcon={() => (
+                    <Icon name="magnify" type="material-community" size={20} />
+                  )}
+                />
+              </View>
+            </DismissKeyboard>
+          </View>
+        </DismissKeyboard>
       )}
       <View style={[STYLES.PADDING_VERTICAL(10), STYLES.PADDING_HORIZONTAL(20)]}>
         <MainButton text="Save" onPress={onPressSave} disabled={!isEditing || !isUsernameValid} />
