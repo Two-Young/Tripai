@@ -808,6 +808,7 @@ const AddExpenditureScreen = () => {
   const [currencyCode, setCurrencyCode] = React.useState(userDefaultCurrency);
 
   const [time, setTime] = React.useState(dayjs().format('YYYY-MM-DD HH:mm'));
+
   const [total, setTotal] = React.useState('');
 
   const [members, setMembers] = React.useState([]); // 현재 세션 멤버
@@ -1188,12 +1189,7 @@ const AddExpenditureScreen = () => {
             label={'Date'}
             value={time}
             setValue={value => {
-              setTime(
-                dayjs(time)
-                  .set('hour', dayjs(value).hour())
-                  .set('minute', dayjs(value).minute())
-                  .format('YYYY-MM-DD HH:mm'),
-              );
+              setTime(dayjs(value).format('YYYY-MM-DD HH:mm'));
             }}
             type="date"
           />
