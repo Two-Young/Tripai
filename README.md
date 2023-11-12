@@ -1,27 +1,36 @@
 # Tripai: Graduation Project - SKKU, 2023
-Original Project Name (Travel-AI) has been changed as Tripai (Trip + AI)
+
+AI-Based Travel Platform & Service
+
+## Preview
+
+![Preview](./assets/represents_img.png)
 
 ## Progress Plan
 
 - [x] Users can access Travel-AI in iOS.
 - [x] Users can access Travel-AI in Android.
-- [ ] Users can register to Travel-AI. (authentication)
 - [x] Users can sign in to Travel-AI.
   - [x] Users can sign in to Travel-AI with Google Oauth.
   - [x] Users can sign in to Travel-AI with Naver Oauth.
-  - [ ] Users can sign in to Travel-AI with Instagram Oauth.
-  - [ ] Users can sign in to Travel-AI with Facebook Oauth.
-- [ ] Users can sign out from Travel-AI.
-- [ ] Users can register receipt data manually to save and manage budget during travel.
-- [ ] Users can convert receipt image as data form to save and manage budget during travel.
-- [ ] Users can lookup previous conversion histories.
-- [ ] Users can check summary of transactions among the histories.
-- [ ] Users can make group each other to share single travel session.
-- [ ] Users in session can share conversion or other information each other, in real-time.
-- [ ] Users can add friend each other.
-- [ ] Users can interact with GPT as text input to resolve their troubles during travel.
-- [ ] Users can interact with GPT as voice input to resolve their troubles during travel.
-- [ ] Users can translate with foreigners in real-time.
+  - [x] Users can sign in to Travel-AI with Kakao Oauth.
+  - [x] Users can sign in to Travel-AI with Facebook Oauth.
+- [x] Users can sign out from Travel-AI.
+- [x] Users can register budget data manually to save and manage budget during travel.
+- [x] Users can convert receipt image as data form to save and manage budget during travel.
+- [x] Users can lookup previous conversion histories.
+- [x] Users can check summary of settlements and usage of budget with current state.
+- [x] Users can make group each other to share single travel session.
+- [x] Users in session can share conversion or other information each other, in real-time.
+- [x] Users in session can share GPT conversation each other, in real-time.
+- [x] Users can share their session data in real-time.
+  - [x] Users can share their budget data in real-time.
+  - [x] Users can share their settlement data in real-time.
+  - [x] Users can share their schedule data in real-time.
+  - [x] Users can share session members' data in real-time.
+- [x] Users can add friend each other.
+- [x] Users can invite other users to session.
+- [x] Users can interact with GPT as text input to resolve their troubles during travel.
 
 ## API Lists
 
@@ -29,8 +38,9 @@ Original Project Name (Travel-AI) has been changed as Tripai (Trip + AI)
 
 ## Members
 
-- 2017311067, software, YoungHoon Jo (Back-end)
-- 2016313532, computer science, HanYoung Lee (Front-end)
+- 2017311067, Software Dept, YoungHoon Jo (Back-end)
+- 2016313532, Computer Science & Engineering Dept, HanYoung Lee (Front-end)
+- 2015312774, Computer Science & Engineering Dept, DaeChung Yoo (Front-end)
 
 ## Subject
 
@@ -38,17 +48,32 @@ AI-based travel expense tracking and trouble guide service development
 
 ## Technical Stacks
 
+### Major Stacks
+
 - OCR (Optical Character Recognition)
-- NLP (Natural Language Processing)
-- ChatGPT (GPT-3.5/4)
+- OpenCV (Open Source Computer Vision Library)
+- ChatGPT (GPT-4)
+
+### Backend
+
+- Golang
+- MySQL
+- Redis
+- Websocket
+
+### Frontend
+
+- React Native
+- Websocket
+- OAuth 2.0 SDKs (Google, Naver, Kakao, Facebook)
 
 ## Budget
 
-|     Entry      |      Costs      |
-| :------------: | :-------------: |
-|  ChatGPT API   |    15~30 USD    |
-| Remote Hosting |  8.3~16.7 USD   |
-|     Total      | about 23~45 USD |
+|     Entry      |      Costs      | Real Costs |
+| :------------: | :-------------: | :--------: |
+|  ChatGPT API   |    15~30 USD    | 0.55 USD/M |
+| Remote Hosting |  8.3~16.7 USD   | 64.3 USD/M |
+|     Total      | about 23~45 USD | 64.9 USD/M |
 
 ## Reason of Project
 
