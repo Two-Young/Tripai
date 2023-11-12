@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
+    "android-asset": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
+    "android-bundle": "cd android && ./gradlew bundleRelease && ..",
+    "android-apk": "cd android && ./gradlew assembleRelease && ..",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "format": "prettier --check ./src",
