@@ -1236,131 +1236,133 @@ const AddExpenditureScreen = () => {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
-        <View style={styles.container}>
-          <Text style={[styles.label, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>
-            Category
-          </Text>
-          <SelectDropdown
-            data={categories}
-            onSelect={(selectedItem, index) => {
-              setCategory(selectedItem);
-            }}
-            defaultValue={category}
-            defaultButtonText="Select Category"
-            buttonStyle={styles.dropdown1BtnStyle}
-            buttonTextStyle={styles.dropdown1BtnTxtStyle}
-            renderDropdownIcon={isOpen => {
-              return (
-                <Icon
-                  name={isOpen ? 'chevron-up' : 'chevron-down'}
-                  type="material-community"
-                  color={colors.black}
-                />
-              );
-            }}
-            dropdownIconPosition="right"
-            dropdownStyle={styles.dropdown1DropdownStyle}
-            rowStyle={styles.dropdown1RowStyle}
-            rowTextStyle={styles.dropdown1RowTxtStyle}
-          />
-          <CustomInput
-            label={'Name'}
-            value={name}
-            setValue={setName}
-            onFocus={() => setIsBottomSheetOpen(false)}
-            onBlur={() => setIsBottomSheetOpen(true)}
-          />
-          <CustomInput
-            label={'Date'}
-            value={time}
-            setValue={value => {
-              setTime(dayjs(value).format('YYYY-MM-DD HH:mm'));
-            }}
-            type="date"
-          />
-          <DismissKeyboard>
-            <View
-              style={[
-                STYLES.FLEX_ROW_ALIGN_CENTER,
-                STYLES.MARGIN_BOTTOM(5),
-                STYLES.MARGIN_TOP(15),
-              ]}>
-              <Text style={styles.label}>Receipt</Text>
-              <Tooltip
-                visible={tooltipVisible}
-                onClose={() => setTooltipVisible(false)}
-                onOpen={() => setTooltipVisible(true)}
-                popover={
-                  <Text style={{color: colors.white, fontSize: 12}}>
-                    You can upload receipt image to automatically fill out the details.
-                  </Text>
-                }
-                backgroundColor={colors.primary}
-                height={50}
-                width={200}>
-                <Image source={infoIcon} style={[styles.infoIcon]} />
-              </Tooltip>
-            </View>
-          </DismissKeyboard>
-          {items.length === 0 ? (
-            <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
-              <TouchableOpacity
-                style={[styles.receiptButton, STYLES.MARGIN_RIGHT(5)]}
-                onPress={onPressUploadReceipt}>
-                <Text style={styles.receiptText}>Add Custom Items</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
-                <Text style={styles.receiptText}>Upload Receipt</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <AvoidSoftInputView style={STYLES.FLEX(1)}>
-              <DismissKeyboard>
-                <View style={STYLES.PADDING_BOTTOM(70)}>
-                  <InputTable data={items} setData={setItems} />
-                </View>
-              </DismissKeyboard>
-            </AvoidSoftInputView>
-          )}
-          {isBottomSheetOpen && (
-            <ExpenditureBottomSheet
+        <DismissKeyboard>
+          <View style={styles.container}>
+            <Text style={[styles.label, STYLES.MARGIN_BOTTOM(5), STYLES.MARGIN_TOP(15)]}>
+              Category
+            </Text>
+            <SelectDropdown
+              data={categories}
+              onSelect={(selectedItem, index) => {
+                setCategory(selectedItem);
+              }}
+              defaultValue={category}
+              defaultButtonText="Select Category"
+              buttonStyle={styles.dropdown1BtnStyle}
+              buttonTextStyle={styles.dropdown1BtnTxtStyle}
+              renderDropdownIcon={isOpen => {
+                return (
+                  <Icon
+                    name={isOpen ? 'chevron-up' : 'chevron-down'}
+                    type="material-community"
+                    color={colors.black}
+                  />
+                );
+              }}
+              dropdownIconPosition="right"
+              dropdownStyle={styles.dropdown1DropdownStyle}
+              rowStyle={styles.dropdown1RowStyle}
+              rowTextStyle={styles.dropdown1RowTxtStyle}
+            />
+            <CustomInput
+              label={'Name'}
+              value={name}
+              setValue={setName}
+              onFocus={() => setIsBottomSheetOpen(false)}
+              onBlur={() => setIsBottomSheetOpen(true)}
+            />
+            <CustomInput
+              label={'Date'}
+              value={time}
+              setValue={value => {
+                setTime(dayjs(value).format('YYYY-MM-DD HH:mm'));
+              }}
+              type="date"
+            />
+            <DismissKeyboard>
+              <View
+                style={[
+                  STYLES.FLEX_ROW_ALIGN_CENTER,
+                  STYLES.MARGIN_BOTTOM(5),
+                  STYLES.MARGIN_TOP(15),
+                ]}>
+                <Text style={styles.label}>Receipt</Text>
+                <Tooltip
+                  visible={tooltipVisible}
+                  onClose={() => setTooltipVisible(false)}
+                  onOpen={() => setTooltipVisible(true)}
+                  popover={
+                    <Text style={{color: colors.white, fontSize: 12}}>
+                      You can upload receipt image to automatically fill out the details.
+                    </Text>
+                  }
+                  backgroundColor={colors.primary}
+                  height={50}
+                  width={200}>
+                  <Image source={infoIcon} style={[styles.infoIcon]} />
+                </Tooltip>
+              </View>
+            </DismissKeyboard>
+            {items.length === 0 ? (
+              <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
+                <TouchableOpacity
+                  style={[styles.receiptButton, STYLES.MARGIN_RIGHT(5)]}
+                  onPress={onPressUploadReceipt}>
+                  <Text style={styles.receiptText}>Add Custom Items</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.receiptButton} onPress={onPressUploadReceipt}>
+                  <Text style={styles.receiptText}>Upload Receipt</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <AvoidSoftInputView style={STYLES.FLEX(1)}>
+                <DismissKeyboard>
+                  <View style={STYLES.PADDING_BOTTOM(70)}>
+                    <InputTable data={items} setData={setItems} />
+                  </View>
+                </DismissKeyboard>
+              </AvoidSoftInputView>
+            )}
+            {isBottomSheetOpen && (
+              <ExpenditureBottomSheet
+                data={{
+                  total: total,
+                  setTotal: setTotal,
+                  members: members,
+                  distribution: distribution,
+                  setDistribution: setDistribution,
+                  detail: items,
+                  setDetail: setItems,
+                  setIsModalVisible: setIsDMVisible,
+                  setIsPMVisible: setIsPMVisible,
+                  paid: paid,
+                  setPaid: setPaid,
+                  currencyCode: currencyCode,
+                  setCurrencyCode: setCurrencyCode,
+                  currencySelectData: currencySelectData,
+                }}
+              />
+            )}
+            <ManageDistributionModal
               data={{
-                total: total,
-                setTotal: setTotal,
-                members: members,
+                isVisible: isDMVisible,
+                setIsVisible: setIsDMVisible,
                 distribution: distribution,
                 setDistribution: setDistribution,
-                detail: items,
-                setDetail: setItems,
-                setIsModalVisible: setIsDMVisible,
-                setIsPMVisible: setIsPMVisible,
-                paid: paid,
-                setPaid: setPaid,
-                currencyCode: currencyCode,
-                setCurrencyCode: setCurrencyCode,
-                currencySelectData: currencySelectData,
+                members: members,
               }}
             />
-          )}
-          <ManageDistributionModal
-            data={{
-              isVisible: isDMVisible,
-              setIsVisible: setIsDMVisible,
-              distribution: distribution,
-              setDistribution: setDistribution,
-              members: members,
-            }}
-          />
-          <ManagePaidModal
-            data={{
-              isVisible: isPMVisible,
-              setIsVisible: setIsPMVisible,
-              paid: paid,
-              setPaid: setPaid,
-              members: members,
-            }}
-          />
-        </View>
+            <ManagePaidModal
+              data={{
+                isVisible: isPMVisible,
+                setIsVisible: setIsPMVisible,
+                paid: paid,
+                setPaid: setPaid,
+                members: members,
+              }}
+            />
+          </View>
+        </DismissKeyboard>
       )}
     </SafeArea>
   );
