@@ -175,14 +175,16 @@ const ProfileScreen = () => {
   useFocusEffect(onFocusEffect); // register callback to focus events
 
   return (
-    <DismissKeyboard>
-      <SafeArea>
-        <LoadingModal isVisible={loading} />
+    <SafeArea>
+      <LoadingModal isVisible={loading} />
+      <DismissKeyboard>
         <CustomHeader title="Profile" rightComponent={<View />} />
-        {fetching ? (
-          <View style={STYLES.FLEX(1)} />
-        ) : (
-          <View style={[STYLES.FLEX(1), STYLES.PADDING_HORIZONTAL(20)]}>
+      </DismissKeyboard>
+      {fetching ? (
+        <View style={STYLES.FLEX(1)} />
+      ) : (
+        <View style={[STYLES.FLEX(1), STYLES.PADDING_HORIZONTAL(20)]}>
+          <DismissKeyboard>
             <View style={[STYLES.ALIGN_CENTER, STYLES.PADDING_VERTICAL(40)]}>
               <Pressable onPress={onPressProfileImage}>
                 <Avatar.Image
@@ -194,16 +196,15 @@ const ProfileScreen = () => {
                 <IconButton mode="contained" icon="camera" size={20} style={styles.cameraIcon} />
               </Pressable>
             </View>
-            <TextInput
-              mode="outlined"
-              label="Username"
-              value={username}
-              onChangeText={setUsername}
-            />
+          </DismissKeyboard>
+          <TextInput mode="outlined" label="Username" value={username} onChangeText={setUsername} />
+          <DismissKeyboard>
             <View style={styles.rowContainer}>
               <Text style={styles.label}>Allowing Search</Text>
               <Switch value={nicknameSearch} onValueChange={onToggleSwitch} />
             </View>
+          </DismissKeyboard>
+          <DismissKeyboard>
             <View style={styles.rowContainer}>
               <Text style={styles.label}>Default Currency</Text>
               <SelectDropdown
@@ -262,16 +263,16 @@ const ProfileScreen = () => {
                 )}
               />
             </View>
-          </View>
-        )}
-        <View style={[STYLES.PADDING_VERTICAL(10), STYLES.PADDING_HORIZONTAL(20)]}>
-          <MainButton text="Save" onPress={onPressSave} disabled={!isEditing || !isUsernameValid} />
+          </DismissKeyboard>
         </View>
-        <TouchableOpacity style={[STYLES.MARGIN_BOTTOM(10)]} onPress={onDeleteUser}>
-          <Text style={[styles.deleteUserButtonText]}>Do you want to delete profile?</Text>
-        </TouchableOpacity>
-      </SafeArea>
-    </DismissKeyboard>
+      )}
+      <View style={[STYLES.PADDING_VERTICAL(10), STYLES.PADDING_HORIZONTAL(20)]}>
+        <MainButton text="Save" onPress={onPressSave} disabled={!isEditing || !isUsernameValid} />
+      </View>
+      <TouchableOpacity style={[STYLES.MARGIN_BOTTOM(10)]} onPress={onDeleteUser}>
+        <Text style={[styles.deleteUserButtonText]}>Do you want to delete profile?</Text>
+      </TouchableOpacity>
+    </SafeArea>
   );
 };
 
