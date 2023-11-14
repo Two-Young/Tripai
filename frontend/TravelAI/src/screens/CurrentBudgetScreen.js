@@ -23,6 +23,7 @@ import currenciesAtom from '../recoil/currencies/currencies';
 import {showErrorToast} from '../utils/utils';
 import {socket} from '../services/socket';
 import reactotron from 'reactotron-react-native';
+import {formatCurrency, formatWithCommas} from '../utils/number';
 
 const Card = ({myBudget, sessionBudget, currencyCode}) => {
   const currencies = useRecoilValue(currenciesAtom);
@@ -113,10 +114,10 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
               You spent {spentRatio.toFixed(3).replace(/\.00$/, '').replace(/\.0$/, '')}%
             </Text>
             <Text style={styles.boxBold}>
-              {symbol} {myBudget?.spent?.toLocaleString()}
+              {symbol} {formatWithCommas(myBudget?.spent)}
             </Text>
             <Text style={styles.boxText}>
-              of {symbol} {myBudget?.total?.toLocaleString()}
+              of {symbol} {formatWithCommas(myBudget?.total)}
             </Text>
           </View>
         </View>
@@ -125,7 +126,6 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
         <Text style={styles.cardTitle}>Session Budget</Text>
         <View style={STYLES.ALIGN_CENTER}>
           <AnimatedCircularProgress
-            style={{transform: [{rotateY: '180deg'}]}}
             size={250}
             rotation={265}
             arcSweepAngle={190}
@@ -139,10 +139,10 @@ const Card = ({myBudget, sessionBudget, currencyCode}) => {
               Members spent {sessionSpentRatio.toFixed(3).replace(/\.00$/, '').replace(/\.0$/, '')}%
             </Text>
             <Text style={styles.boxBold}>
-              {symbol} {sessionBudget?.spent?.toLocaleString()}
+              {symbol} {formatWithCommas(sessionBudget?.spent)}
             </Text>
             <Text style={styles.boxText}>
-              of {symbol} {sessionBudget?.total?.toLocaleString()}
+              of {symbol} {formatWithCommas(sessionBudget?.total)}
             </Text>
           </View>
         </View>
@@ -225,7 +225,7 @@ const ExpenditureItem = ({item}) => {
       <View style={STYLES.FLEX(1)}>
         <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
           <Text style={[styles.expenditurePrice, STYLES.FLEX(1)]}>
-            {total_price.toLocaleString()} {currency_code}
+            {formatWithCommas(total_price)} {currency_code}
           </Text>
           <Text style={[styles.expenditureTime, STYLES.MARGIN_LEFT(10)]}>
             {dayjs(payed_at).format('HH:mm')}
