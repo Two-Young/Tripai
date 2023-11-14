@@ -62,7 +62,7 @@
 	<key>FacebookClientToken</key>
 	<string>dc64e33d80fab5032678400b179f6199</string>
 	<key>FacebookDisplayName</key>
-	<string>TravelAI</string>
+	<string>Tripai</string>
 	<key>KAKAO_APP_KEY</key>
 	<string>11bcdee7a848476a8c56fe34ca68a9e0</string>
 	<key>LSApplicationQueriesSchemes</key>
@@ -93,7 +93,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Use Camera</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
+	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Use Photo Library</string>
 	<key>UIAppFonts</key>
@@ -126,8 +126,12 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>

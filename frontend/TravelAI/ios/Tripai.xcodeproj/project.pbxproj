@@ -49,21 +49,21 @@
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = "Tripai";
+			remoteInfo = Tripai;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		00E356EE1AD99517003FC87E /* TripaiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TripaiTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		00E356EE1AD99517003FC87E /* TripaiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TripaiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00E356F21AD99517003FC87E /* TripaiTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "TripaiTests.m"; sourceTree = "<group>"; };
+		00E356F21AD99517003FC87E /* TripaiTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TripaiTests.m; sourceTree = "<group>"; };
 		0E8A1C45EC3C444FAEA5BB31 /* Hind-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Hind-Bold.ttf"; path = "../src/assets/fonts/Hind-Bold.ttf"; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* Tripai.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tripai.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = "Tripai/AppDelegate.h"; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = "Tripai/AppDelegate.mm"; sourceTree = "<group>"; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = "Tripai/Images.xcassets"; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Tripai/Info.plist"; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = "Tripai/main.m"; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* Tripai.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tripai.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Tripai/AppDelegate.h; sourceTree = "<group>"; };
+		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = Tripai/AppDelegate.mm; sourceTree = "<group>"; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Tripai/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Tripai/Info.plist; sourceTree = "<group>"; };
+		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Tripai/main.m; sourceTree = "<group>"; };
 		19F6CBCC0A4E27FBF8BF4A61 /* libPods-Tripai-TripaiTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Tripai-TripaiTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		26E6C6D8CC9E4EAA8C067A49 /* Hind-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Hind-Light.ttf"; path = "../src/assets/fonts/Hind-Light.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-Tripai.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tripai.debug.xcconfig"; path = "Target Support Files/Pods-Tripai/Pods-Tripai.debug.xcconfig"; sourceTree = "<group>"; };
@@ -73,7 +73,7 @@
 		5709B34CF0A7D63546082F79 /* Pods-Tripai.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tripai.release.xcconfig"; path = "Target Support Files/Pods-Tripai/Pods-Tripai.release.xcconfig"; sourceTree = "<group>"; };
 		5B7EB9410499542E8C5724F5 /* Pods-Tripai-TripaiTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tripai-TripaiTests.debug.xcconfig"; path = "Target Support Files/Pods-Tripai-TripaiTests/Pods-Tripai-TripaiTests.debug.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-Tripai.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Tripai.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = "Tripai/LaunchScreen.storyboard"; sourceTree = "<group>"; };
+		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Tripai/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8421BCA82A4089310022B344 /* Tripai-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Tripai-Bridging-Header.h"; sourceTree = "<group>"; };
 		8421BCA92A4089320022B344 /* swift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = swift.swift; sourceTree = "<group>"; };
 		848FAEB4D51D4B9D90DEFD62 /* Poppins-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Light.ttf"; path = "../src/assets/fonts/Poppins-Light.ttf"; sourceTree = "<group>"; };
@@ -127,7 +127,7 @@
 				00E356F21AD99517003FC87E /* TripaiTests.m */,
 				00E356F01AD99517003FC87E /* Supporting Files */,
 			);
-			path = "TripaiTests";
+			path = TripaiTests;
 			sourceTree = "<group>";
 		};
 		00E356F01AD99517003FC87E /* Supporting Files */ = {
@@ -151,7 +151,7 @@
 				8421BCA82A4089310022B344 /* Tripai-Bridging-Header.h */,
 				84FE69A52A496541003872D8 /* Fonts */,
 			);
-			name = "Tripai";
+			name = Tripai;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -267,8 +267,8 @@
 			dependencies = (
 				00E356F51AD99517003FC87E /* PBXTargetDependency */,
 			);
-			name = "TripaiTests";
-			productname = "TripaiTests";
+			name = TripaiTests;
+			productName = TripaiTests;
 			productReference = 00E356EE1AD99517003FC87E /* TripaiTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -289,8 +289,8 @@
 			);
 			dependencies = (
 			);
-			name = "Tripai";
-			productName = "Tripai";
+			name = Tripai;
+			productName = Tripai;
 			productReference = 13B07F961A680F5B00A75B9A /* Tripai.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -566,7 +566,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = "TripaiTests/Info.plist";
+				INFOPLIST_FILE = TripaiTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -578,7 +578,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.twoyoung.tripai";
+				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.tripai;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tripai.app/Tripai";
 			};
@@ -591,7 +591,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
-				INFOPLIST_FILE = "TripaiTests/Info.plist";
+				INFOPLIST_FILE = TripaiTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -603,7 +603,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.twoyoung.tripai";
+				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.tripai;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tripai.app/Tripai";
 			};
@@ -616,10 +616,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = N6X66532LK;
+				DEVELOPMENT_TEAM = F4J828K9VT;
 				ENABLE_BITCODE = NO;
-				INFOPLIST_FILE = "Tripai/Info.plist";
-             INFOPLIST_KEY_CFBundleDisplayName = "Tripai";
+				INFOPLIST_FILE = Tripai/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tripai;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.travel";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -632,8 +631,8 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.twoyoung.tripai";
-				PRODUCT_NAME = "Tripai";
+				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.tripai;
+				PRODUCT_NAME = Tripai;
 				SWIFT_OBJC_BRIDGING_HEADER = "Tripai-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -648,9 +647,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = N6X66532LK;
-				INFOPLIST_FILE = "Tripai/Info.plist";
-             INFOPLIST_KEY_CFBundleDisplayName = "Tripai";
+				DEVELOPMENT_TEAM = F4J828K9VT;
+				INFOPLIST_FILE = Tripai/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tripai;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.travel";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -663,8 +661,8 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.twoyoung.tripai";
-				PRODUCT_NAME = "Tripai";
+				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.tripai;
+				PRODUCT_NAME = Tripai;
 				SWIFT_OBJC_BRIDGING_HEADER = "Tripai-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
