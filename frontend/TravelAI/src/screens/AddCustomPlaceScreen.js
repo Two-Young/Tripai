@@ -15,11 +15,10 @@ import colors from '../theme/colors';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import SafeArea from '../component/molecules/SafeArea';
 import {STYLES} from '../styles/Stylesheets';
-import {FAB, IconButton, Searchbar} from 'react-native-paper';
+import {FAB, Searchbar} from 'react-native-paper';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import {showErrorToast} from '../utils/utils';
 import SearchResultFlatList from '../component/organisms/SearchResultFlatList';
-import SelectDropdown from 'react-native-select-dropdown';
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -39,8 +38,7 @@ const AddCustomPlaceScreen = () => {
   const [searchKeyword, setSearchKeyword] = React.useState('');
   const [searchResult, setSearchResult] = React.useState([]);
   const [isZeroResult, setIsZeroResult] = React.useState(false);
-  const [dupSnackBarVisible, setDupSnackbarVisible] = React.useState(false); // snackbar visible 여부
-  const [loadingModalVisible, setLoadingModalVisible] = React.useState(false); // loading modal visible 여부
+  const [searchResultVisible, setSearchResultVisible] = React.useState(false); // snackbar visible 여부
 
   const [marker, setMarker] = React.useState(null);
 
@@ -81,7 +79,6 @@ const AddCustomPlaceScreen = () => {
 
   const onPressListItem = async item => {
     try {
-      setLoadingModalVisible(true);
       Keyboard.dismiss();
       const res = await locateLocation(item.place_id);
       setMarker({
@@ -100,13 +97,8 @@ const AddCustomPlaceScreen = () => {
         });
       }
     } catch (error) {
-      if (error?.response?.status === 409) {
-        setDupSnackbarVisible(true);
-        return;
-      }
-      throw error;
+      showErrorToast(error);
     } finally {
-      setLoadingModalVisible(false);
       setSearchKeyword('');
     }
   };
@@ -126,8 +118,10 @@ const AddCustomPlaceScreen = () => {
   const onEndEditing = async () => {
     if (searchKeyword.length > 0) {
       autoCompletePlace(searchKeyword);
+      setSearchResultVisible(true);
     } else {
       setSearchResult([]);
+      setSearchResultVisible(false);
     }
   };
 
@@ -135,8 +129,10 @@ const AddCustomPlaceScreen = () => {
   React.useEffect(() => {
     if (searchKeyword.length > 0) {
       autoCompletePlace(searchKeyword);
+      setSearchResultVisible(true);
     } else {
       setSearchResult([]);
+      setSearchResultVisible(false);
     }
   }, [searchKeyword]);
 
@@ -183,10 +179,12 @@ const AddCustomPlaceScreen = () => {
               style={styles.searchBar}
             />
           </DismissKeyboard>
+        </View>
+        {searchResultVisible && (
           <View style={styles.placeSearchResultContainer}>
             <SearchResultFlatList {...{isZeroResult, searchResult, onPressListItem}} />
           </View>
-        </View>
+        )}
         {marker ? (
           <>
             <View style={STYLES.FLEX(1)}>
@@ -292,7 +290,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 70,
     left: 20,
-    width: '100%',
+    width: Dimensions.get('window').width - 40,
     backgroundColor: colors.white,
     zIndex: 100,
   },
