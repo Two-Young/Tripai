@@ -170,7 +170,7 @@ const DayItem = ({item, selectedDay, onPress}) => {
   );
 };
 
-const ExpenditureItem = ({item}) => {
+const ExpenditureItem = ({item, mode}) => {
   const {name, total_price, currency_code, payed_at, category, has_receipt} = item;
 
   const renderIcon = React.useCallback(() => {
@@ -224,15 +224,9 @@ const ExpenditureItem = ({item}) => {
       </View>
       <View style={STYLES.FLEX(1)}>
         <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
-          <Text style={[styles.expenditurePrice, STYLES.FLEX(1)]}>
-            {formatWithCommas(total_price)} {currency_code}
+          <Text style={[styles.expenditureTime, STYLES.FLEX(1)]}>
+            {dayjs(payed_at).format(mode === 'day' ? 'HH:mm' : 'YY-MM-DD HH:mm')}
           </Text>
-          <Text style={[styles.expenditureTime, STYLES.MARGIN_LEFT(10)]}>
-            {dayjs(payed_at).format('HH:mm')}
-          </Text>
-        </View>
-        <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
-          <Text style={[styles.expenditureName, STYLES.FLEX(1)]}>{name}</Text>
           {has_receipt && (
             <Icon
               name="receipt"
@@ -241,6 +235,14 @@ const ExpenditureItem = ({item}) => {
               style={STYLES.MARGIN_LEFT(10)}
             />
           )}
+        </View>
+        <Text style={[styles.expenditurePrice, STYLES.MARGIN_VERTICAL(3)]} numberOfLines={1}>
+          {formatWithCommas(total_price)} {currency_code}
+        </Text>
+        <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
+          <Text style={[styles.expenditureName, STYLES.FLEX(1)]} numberOfLines={1}>
+            {name}
+          </Text>
         </View>
       </View>
       <Icon
@@ -280,7 +282,7 @@ const CurrentBudgetScreen = () => {
     const dates = [];
     let currentDate = dayjs(startAt);
 
-    const total = myBudget?.total || 0;
+    const total = sessionBudget?.total || 0;
 
     while (currentDate.isBefore(endAt) || currentDate.isSame(endAt)) {
       let spent = 0;
@@ -300,10 +302,21 @@ const CurrentBudgetScreen = () => {
       currentDate = currentDate.add(1, 'day');
     }
     return dates;
-  }, [startAt, endAt, spentByDay, myBudget]);
+  }, [startAt, endAt, spentByDay, sessionBudget]);
+
+  const totalSpentRatio = React.useMemo(() => {
+    const total = sessionBudget?.total || 0;
+    const spent = sessionBudget?.spent || 0;
+    if (total > 0) {
+      return ((spent / total) * 100).toFixed(2).replace(/\.00$/, '');
+    } else if (spent > 0) {
+      return 100;
+    }
+    return 0;
+  }, [sessionBudget]);
 
   const previousSpentRatio = React.useMemo(() => {
-    const total = myBudget?.total || 0;
+    const total = sessionBudget?.total || 0;
     const keys = Object.keys(spentByDay || {});
     let previousSpent = 0;
 
@@ -319,7 +332,7 @@ const CurrentBudgetScreen = () => {
       return 100;
     }
     return 0;
-  }, [spentByDay, tripDays, myBudget]);
+  }, [spentByDay, tripDays, sessionBudget]);
 
   const filteredExpenditures = React.useMemo(() => {
     if (selectedDay === 'A') {
@@ -448,6 +461,9 @@ const CurrentBudgetScreen = () => {
             ]}
             onPress={() => setSelectedDay('A')}>
             <Text style={[styles.day, selectedDay === 'A' && styles.selectedText]}>All</Text>
+            <Text style={[styles.spent, selectedDay === 'A' && styles.selectedText]}>
+              {totalSpentRatio}%
+            </Text>
           </TouchableOpacity>
           <View style={STYLES.PADDING_VERTICAL(5)} />
           <TouchableOpacity
@@ -487,7 +503,10 @@ const CurrentBudgetScreen = () => {
                   expenditure_id: item.expenditure_id,
                 });
               }}>
-              <ExpenditureItem item={item} />
+              <ExpenditureItem
+                item={item}
+                mode={selectedDay === 'A' ? 'all' : selectedDay === 'P' ? 'previous' : 'day'}
+              />
             </TouchableOpacity>
           )}
           ItemSeparatorComponent={<View style={STYLES.PADDING_VERTICAL(5)} />}
@@ -600,6 +619,7 @@ const styles = StyleSheet.create({
     paddingLeft: 14,
     borderRadius: 10,
     borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   expenditurePrice: {
     fontSize: 18,
