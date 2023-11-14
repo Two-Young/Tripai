@@ -20,6 +20,5 @@ buildscript {
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath 'com.android.tools.build:gradle:3.1.2' // google signin
         classpath 'com.google.gms:google-services:4.1.0' // google signin
-        classpath 'com.google.firebase:firebase-appdistribution-gradle:4.0.1' // firebase app distribution
     }
 }
