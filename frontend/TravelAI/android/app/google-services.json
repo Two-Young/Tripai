@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1040091877029",
+    "project_id": "tripai-184ad",
+    "storage_bucket": "tripai-184ad.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040091877029:android:459bb9bcf474c97646074c",
+        "android_client_info": {
+          "package_name": "com.twoyoung.tripai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAoq_Cynz0_jzHvhHwflnok2aDQVfxYJps"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
