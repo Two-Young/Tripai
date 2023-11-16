@@ -41,7 +41,7 @@ const AddFriendListEmptyComponent = ({isResult}) => {
 
 const AddFriendsScreen = () => {
   // states
-  const [query, setQuery] = React.useState('이한영');
+  const [query, setQuery] = React.useState('');
   const [searchResults, setSearchResults] = React.useState([]);
   const [isSearching, setIsSearching] = React.useState(false);
   const [isResult, setIsResult] = React.useState(false);
