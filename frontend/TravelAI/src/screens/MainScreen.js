@@ -2,7 +2,7 @@ import {FlatList, StyleSheet, Text, View, Alert} from 'react-native';
 import React, {useCallback} from 'react';
 import {CommonActions, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {IconButton, Portal, Snackbar} from 'react-native-paper';
-import {getCurrencies, getSessions, locateCountries} from '../services/api';
+import {getCurrencies, getProfile, getSessions, locateCountries} from '../services/api';
 import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
 import sessionAtom from '../recoil/session/session';
 import userAtom from '../recoil/user/user';
@@ -19,6 +19,7 @@ import {sessionsAtom} from '../recoil/session/sessions';
 import {showErrorToast} from '../utils/utils';
 import {socket} from '../services/socket';
 import reactotron from 'reactotron-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MainScreen = () => {
   /* states */
@@ -34,7 +35,7 @@ const MainScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const setCurrentSession = useSetRecoilState(sessionAtom);
-  const user = useRecoilValue(userAtom);
+  const [user, setUser] = useRecoilState(userAtom);
 
   const userName = React.useMemo(() => user?.user_info?.username, [user]);
 
@@ -147,6 +148,24 @@ const MainScreen = () => {
       fetchData();
     }, []),
   );
+
+  // functions
+
+  const fetchProfile = async () => {
+    try {
+      const res = await getProfile();
+      const newUser = {...user, user_info: {...user.user_info, ...res}};
+      setUser(newUser);
+      await AsyncStorage.setItem('user', JSON.stringify(newUser));
+    } catch (err) {
+      showErrorToast(err);
+    }
+  };
+
+  // 유저 정보 최초 한 번 가져오기
+  React.useEffect(() => {
+    fetchProfile();
+  }, []);
 
   return (
     <SafeArea bottom={{inactive: true}}>

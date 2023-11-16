@@ -262,7 +262,7 @@ const CurrentBudgetScreen = () => {
 
   const currentSessionID = React.useMemo(() => currentSession?.session_id, [currentSession]);
 
-  const {start_at, end_at} = currentSession;
+  const {start_at, end_at} = currentSession || {};
 
   const startAt = React.useMemo(() => dayjs(start_at).format('YYYY-MM-DD'), [start_at]);
   const endAt = React.useMemo(() => dayjs(end_at).format('YYYY-MM-DD'), [end_at]);
@@ -394,13 +394,25 @@ const CurrentBudgetScreen = () => {
     }
   }, [currentSessionID]);
 
+  // React.useEffect(() => {
+  //   if (tripDays.some(item => item.isToday)) {
+  //     setSelectedDay(tripDays.find(item => item.isToday));
+  //   } else {
+  //     setSelectedDay('A');
+  //   }
+  // }, [tripDays]);
+
+  const tripDaysLength = React.useMemo(() => tripDays.length, [tripDays]);
+
   React.useEffect(() => {
-    if (tripDays.some(item => item.isToday)) {
-      setSelectedDay(tripDays.find(item => item.isToday));
-    } else {
-      setSelectedDay('A');
+    if (tripDaysLength > 0) {
+      if (tripDays.some(item => item.isToday)) {
+        setSelectedDay(tripDays.find(item => item.isToday));
+      } else {
+        setSelectedDay('A');
+      }
     }
-  }, [tripDays]);
+  }, [tripDaysLength]);
 
   const emptyExpenditureText = React.useMemo(() => {
     if (selectedDay === 'A') {
