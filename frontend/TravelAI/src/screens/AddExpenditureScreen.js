@@ -53,6 +53,7 @@ import LoadingModal from '../component/atoms/LoadingModal';
 import infoIcon from '../assets/images/information-circle-sharp.png';
 import DismissKeyboard from '../component/molecules/DismissKeyboard';
 import {Platform} from 'react-native';
+import {Pressable} from 'react-native';
 
 const FlatListRenderItem = ({data}) => {
   const {
@@ -103,10 +104,9 @@ const FlatListRenderItem = ({data}) => {
                 Press the row to edit the items that the user occupied
               </Text>
             }>
-            <Image
-              source={infoIcon}
-              style={[styles.infoIcon, STYLES.MARGIN_LEFT(0), STYLES.MARGIN_RIGHT(5)]}
-            />
+            <View style={[STYLES.PADDING(5), STYLES.MARGIN_LEFT(0), STYLES.MARGIN_RIGHT(5)]}>
+              <Image source={infoIcon} style={[styles.infoIcon]} />
+            </View>
           </Tooltip>
         )}
         <Text style={[styles.bottomSheetText, styles.individualText]}>{userName}</Text>
@@ -263,7 +263,7 @@ const FirstSection = ({data}) => {
         },
       }));
     });
-    if (detail) {
+    if (detail.length > 0) {
       setDetail(prev => {
         return prev.map(el => ({
           ...el,

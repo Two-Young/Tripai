@@ -1,6 +1,5 @@
 apply plugin: "com.android.application"
 apply plugin: "com.facebook.react"
-apply plugin: "com.google.firebase.appdistribution" // firebase app distribution
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle" // From RNVI
 
 /**
