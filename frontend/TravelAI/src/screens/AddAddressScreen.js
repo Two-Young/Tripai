@@ -15,6 +15,7 @@ import {SemiBold} from './../theme/fonts';
 import colors from '../theme/colors';
 import CustomHeader, {CUSTOM_HEADER_THEME} from '../component/molecules/CustomHeader';
 import {showErrorToast} from '../utils/utils';
+import DismissKeyboard from '../component/molecules/DismissKeyboard';
 
 const AddAddressScreen = () => {
   // hooks
@@ -97,12 +98,14 @@ const AddAddressScreen = () => {
   }, [searchQuery]);
 
   return (
-    <Pressable onPress={Keyboard.dismiss} style={STYLES.FLEX(1)}>
-      <SafeArea
-        top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
-        bottom={{inactive: true}}>
+    <SafeArea
+      top={{style: {backgroundColor: colors.white}, barStyle: 'dark-content'}}
+      bottom={{inactive: true}}>
+      <Pressable onPress={Keyboard.dismiss}>
         <CustomHeader title={'Select address'} theme={CUSTOM_HEADER_THEME.WHITE} useMenu={false} />
-        <View style={styles.container}>
+      </Pressable>
+      <View style={styles.container}>
+        <Pressable onPress={Keyboard.dismiss}>
           <Searchbar
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -110,34 +113,34 @@ const AddAddressScreen = () => {
             placeholderTextColor={colors.gray}
             style={styles.searchBar}
           />
-          <FlatList
-            style={{flex: 1}}
-            ListHeaderComponent={() => (
-              <React.Fragment>
-                {searchQuery.length > 0 && (
-                  <SearchResultFlatList
-                    {...{isZeroResult, searchResult, onPressListItem, onPressFooterItem}}
-                  />
-                )}
-                <Text style={styles.label}>Registered Places</Text>
-              </React.Fragment>
-            )}
-            contentContainerStyle={{paddingTop: 16}}
-            data={places.filter(place =>
-              place.name.toLowerCase().includes(searchQuery.toLowerCase()),
-            )}
-            numColumns={2}
-            renderItem={({item}) => (
-              <TouchableOpacity
-                onPress={() => onPressPlace(item)}
-                style={[STYLES.MARGIN_BOTTOM(10), STYLES.MARGIN_RIGHT(10)]}>
-                <PlaceImageCard name={item.name} photo_reference={item.photo_reference} />
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-      </SafeArea>
-    </Pressable>
+        </Pressable>
+        <FlatList
+          style={{flex: 1}}
+          ListHeaderComponent={() => (
+            <React.Fragment>
+              {searchQuery.length > 0 && (
+                <SearchResultFlatList
+                  {...{isZeroResult, searchResult, onPressListItem, onPressFooterItem}}
+                />
+              )}
+              <Text style={styles.label}>Registered Places</Text>
+            </React.Fragment>
+          )}
+          contentContainerStyle={{paddingTop: 16}}
+          data={places.filter(place =>
+            place.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          )}
+          numColumns={2}
+          renderItem={({item}) => (
+            <TouchableOpacity
+              onPress={() => onPressPlace(item)}
+              style={[STYLES.MARGIN_BOTTOM(10), STYLES.MARGIN_RIGHT(10)]}>
+              <PlaceImageCard name={item.name} photo_reference={item.photo_reference} />
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+    </SafeArea>
   );
 };
 

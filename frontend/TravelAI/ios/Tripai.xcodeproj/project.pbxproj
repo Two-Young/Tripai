@@ -616,7 +616,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = F4J828K9VT;
+				DEVELOPMENT_TEAM = N6X66532LK;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Tripai/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tripai;
@@ -631,7 +631,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.tripai;
+				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.travelai;
 				PRODUCT_NAME = Tripai;
 				SWIFT_OBJC_BRIDGING_HEADER = "Tripai-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -647,7 +647,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = F4J828K9VT;
+				DEVELOPMENT_TEAM = N6X66532LK;
 				INFOPLIST_FILE = Tripai/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tripai;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.travel";
@@ -661,7 +661,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.tripai;
+				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.travelai;
 				PRODUCT_NAME = Tripai;
 				SWIFT_OBJC_BRIDGING_HEADER = "Tripai-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
