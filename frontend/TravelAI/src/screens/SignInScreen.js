@@ -22,7 +22,7 @@ import {
   socialNaverIcon,
 } from '../assets/images';
 import {Fonts} from '../theme';
-import {showErrorToast} from '../utils/utils';
+import reactotron from 'reactotron-react-native';
 
 function SignInScreen(props) {
   // states
@@ -35,12 +35,13 @@ function SignInScreen(props) {
 
   const storeUserData = async value => {
     try {
+      reactotron.log('storeUserData', value);
       const jsonValue = JSON.stringify(value);
       await AsyncStorage.setItem('user', jsonValue);
       setUser(value);
       navigation.dispatch(StackActions.replace('Main'));
     } catch (e) {
-      showErrorToast(e);
+      reactotron.error(e);
       // saving error
     }
   };

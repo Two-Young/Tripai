@@ -204,7 +204,9 @@ const ChatScreen = () => {
         <CustomHeader title={'AI CHAT'} useBack={false} />
         <FlatList
           ref={flatListRef}
-          data={messages}
+          data={messages.filter(
+            item => item.sessionId === currentSessionID || item.type === 'assistant_response',
+          )}
           renderItem={({item, index}) => <MessageItem {...item} />}
           contentContainerStyle={[STYLES.PADDING(16), {backgroundColor: '#f2f7ff'}]}
         />

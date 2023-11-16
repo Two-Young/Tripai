@@ -16,7 +16,7 @@ GoogleSignin.configure({
 const consumerKey = 'yslLLko5U73xJ8HfWEPP';
 const consumerSecret = '8dZZfr0tOR';
 const appName = 'TravelAI';
-const serviceUrlScheme = 'com.twoyoung.travelai';
+const serviceUrlScheme = 'com.twoyoung.trpiai';
 
 export async function socialGoogleSignIn() {
   try {
@@ -79,6 +79,7 @@ export const socialKakaoSignin = async () => {
   try {
     const token = await login();
     const {idToken, accessToken} = token;
+
     const res = await authKakaoSign(accessToken);
     return res;
   } catch (e) {

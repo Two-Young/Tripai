@@ -225,7 +225,9 @@ const ExpenditureItem = ({item, mode}) => {
       <View style={STYLES.FLEX(1)}>
         <View style={STYLES.FLEX_ROW_ALIGN_CENTER}>
           <Text style={[styles.expenditureTime, STYLES.FLEX(1)]}>
-            {dayjs(payed_at).format(mode === 'day' ? 'HH:mm' : 'YY-MM-DD HH:mm')}
+            {dayjs(payed_at)
+              .add(dayjs().utcOffset() / 60, 'hour')
+              .format(mode === 'day' ? 'HH:mm' : 'YY-MM-DD HH:mm')}
           </Text>
           {has_receipt && (
             <Icon
@@ -339,9 +341,18 @@ const CurrentBudgetScreen = () => {
       return expenditures;
     }
     if (selectedDay === 'P') {
-      return expenditures.filter(item => dayjs(item.payed_at).isBefore(dayjs(tripDays[0].date)));
+      return expenditures.filter(item =>
+        dayjs(item.payed_at)
+          .add(dayjs().utcOffset() / 60, 'hour')
+          .isBefore(dayjs(tripDays[0].date)),
+      );
     }
-    return expenditures.filter(item => dayjs(item.payed_at).isSame(dayjs(selectedDay.date), 'day'));
+    return expenditures.filter(item =>
+      dayjs(item.payed_at).isSame(
+        dayjs(selectedDay.date).add(dayjs().utcOffset() / 60, 'hour'),
+        'day',
+      ),
+    );
   }, [selectedDay, expenditures, tripDays]);
 
   // functions

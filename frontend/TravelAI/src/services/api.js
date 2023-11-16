@@ -12,7 +12,7 @@ export const API_URL_DEBUG = 'http://1.237.25.170:10375/';
 
 const api = axios.create({
   baseURL: API_URL_PROD,
-  timeout: 10000,
+  timeout: 100000,
 });
 
 // 응답에서 발생한 401 Unauthorized 에러에 대한 Interceptor
@@ -759,6 +759,7 @@ export const postExpenditureReceipt = async formData => {
     });
     return response.data;
   } catch (error) {
+    console.log(JSON.stringify(error));
     throw error;
   }
 };

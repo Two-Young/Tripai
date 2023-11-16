@@ -257,9 +257,7 @@ const ManageParticipantsScreen = () => {
 
     socket.on('session/memberJoined', memberJoinedCallback);
     socket.on('session/memberLeft', fetchJoined);
-    socket.on('session/memberJoinRequested', data => {
-      fetchRequeted();
-    });
+    socket.on('session/memberJoinRequested', memberJoinedCallback);
     return () => {
       if (socket) {
         socket.off('session/memberJoined', memberJoinedCallback);

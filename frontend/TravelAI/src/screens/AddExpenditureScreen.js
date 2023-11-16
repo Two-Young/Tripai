@@ -212,7 +212,8 @@ const AddExpenditureScreen = () => {
           price: Number(el.price.replace(/,/g, '')),
           allocations: el.allocations,
         })),
-        payed_at: Date.parse(time + 'Z'),
+        // payed_at: new Date(time).getTime() + dayjs().utcOffset() * 60 * 1000,
+        payed_at: new Date(time).getTime() - dayjs().utcOffset() * 60 * 1000,
         session_id: currentSessionID,
       });
       navigation.goBack();
@@ -317,7 +318,8 @@ const AddExpenditureScreen = () => {
           price: Number(el.price.replace(/,/g, '')),
           allocations: el.allocations,
         })),
-        payed_at: Date.parse(time + 'Z'),
+        payed_at: new Date(time).getTime() - dayjs().utcOffset() * 60 * 1000,
+        // payed_at: new Date(time).getTime() + dayjs().utcOffset() * 60 * 1000,
         session_id: currentSessionID,
         expenditure_id: route.params?.expenditure_id,
       });
