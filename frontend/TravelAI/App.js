@@ -1,4 +1,5 @@
 import React from 'react';
+import {LogBox} from 'react-native';
 // import SplashScreen from 'react-native-splash-screen';
 import {NavigationContainer} from '@react-navigation/native';
 import {RootNavigator, navigationRef} from './src/navigation/RootNavigator';
@@ -10,6 +11,9 @@ import colors from './src/theme/colors';
 import {SocketManager} from './src/services/socket';
 import Toast from 'react-native-toast-message';
 import {toastConfig} from './src/utils/utils';
+
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs(); //Ignore all log notifications
 
 const theme = {
   ...DefaultTheme,

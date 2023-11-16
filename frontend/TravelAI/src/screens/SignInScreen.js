@@ -35,6 +35,7 @@ function SignInScreen(props) {
 
   const storeUserData = async value => {
     try {
+      console.log(value);
       reactotron.log('storeUserData', value);
       const jsonValue = JSON.stringify(value);
       await AsyncStorage.setItem('user', jsonValue);

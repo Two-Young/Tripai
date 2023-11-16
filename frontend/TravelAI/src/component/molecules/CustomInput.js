@@ -75,7 +75,6 @@ const CustomInput = ({label, value, setValue, type = 'text', onFocus, onBlur}) =
           value={showValue}
           {...(type !== 'date' && {onChangeText: setValue})}
           {...(type === 'multiline' && {multiline: true})}
-          showSoftInputOnFocus={type === 'text' || Platform.OS === 'android'}
         />
       </View>
       {(type === 'date' || type === 'time') && value.length > 0 && (

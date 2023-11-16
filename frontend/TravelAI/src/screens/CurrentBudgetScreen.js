@@ -344,6 +344,8 @@ const CurrentBudgetScreen = () => {
     return expenditures.filter(item => dayjs(item.payed_at).isSame(dayjs(selectedDay.date), 'day'));
   }, [selectedDay, expenditures, tripDays]);
 
+  console.log(expenditures);
+
   // functions
   const onPressAddExpenditure = () => {
     navigation.navigate('AddExpenditure', {

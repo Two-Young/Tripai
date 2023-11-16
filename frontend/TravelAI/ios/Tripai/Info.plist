@@ -43,7 +43,7 @@
 			<string>naver</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.twoyoung.travelai</string>
+				<string>com.twoyoung.tripai</string>
 			</array>
 		</dict>
 		<dict>

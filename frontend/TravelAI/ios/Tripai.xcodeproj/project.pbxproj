@@ -631,7 +631,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.travelai;
+				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.tripai;
 				PRODUCT_NAME = Tripai;
 				SWIFT_OBJC_BRIDGING_HEADER = "Tripai-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -661,7 +661,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.travelai;
+				PRODUCT_BUNDLE_IDENTIFIER = com.twoyoung.tripai;
 				PRODUCT_NAME = Tripai;
 				SWIFT_OBJC_BRIDGING_HEADER = "Tripai-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
