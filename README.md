@@ -34,7 +34,7 @@ AI-Based Travel Platform & Service
 
 ## API Lists
 
-- [move to notion](https://dear-knife-508.notion.site/New-API-265f13a33fcb4daba56197eeaa21bad2?pvs=4)
+- [move to notion](https://shyunku.notion.site/API-265f13a33fcb4daba56197eeaa21bad2?pvs=73)
 
 ## Members
 
